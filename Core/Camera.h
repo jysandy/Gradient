@@ -2,6 +2,7 @@
 
 #include "StepTimer.h"
 #include <directxtk/SimpleMath.h>
+#include <directxtk/Mouse.h>
 
 namespace Gradient
 {
@@ -16,6 +17,7 @@ namespace Gradient
         DirectX::SimpleMath::Vector3 m_direction;
 
         DirectX::SimpleMath::Matrix m_projectionMatrix;
+        DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;
         void CreateProjectionMatrix();
 
     public:

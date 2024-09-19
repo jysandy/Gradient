@@ -42,7 +42,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_keyboard = std::make_unique<Keyboard>();
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
-    m_mouse->SetMode(DirectX::Mouse::MODE_RELATIVE);
+    m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
 
     m_world = Matrix::Identity;
 }

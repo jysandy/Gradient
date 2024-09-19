@@ -24,12 +24,12 @@ namespace Gradient
 
     void Camera::Update(DX::StepTimer const& timer)
     {
-        // TODO: toggle mouse movement using Esc
         const float elapsedSeconds = timer.GetElapsedSeconds();
         const float sensitivity = 0.001f;
 
         auto mouseState = DirectX::Mouse::Get().GetState();
 
+        if (mouseState.positionMode == DirectX::Mouse::MODE_RELATIVE)
         {
             // Mouse movement
             auto yAxis = Vector3::UnitY;
@@ -99,6 +99,18 @@ namespace Gradient
 
         const float speed = 4.f;
         m_position += (speed * elapsedSeconds) * translation;
+         
+        m_mouseButtonTracker.Update(mouseState);
+
+        auto& mouse = DirectX::Mouse::Get();
+        if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::PRESSED)
+        {
+            mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+        }
+        else if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::RELEASED)
+        {
+            mouse.SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+        }
     }
 
 
