@@ -43,8 +43,6 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
-
-    m_world = Matrix::Identity;
 }
 
 #pragma region Frame Update
@@ -63,6 +61,14 @@ void Game::Tick()
 void Game::Update(DX::StepTimer const& timer)
 {
     m_camera.Update(timer);
+
+    float secs = timer.GetTotalSeconds();
+    Vector3 translation{
+        3 * cosf(DirectX::XM_PI * secs),
+        0,
+        -3 * sinf(DirectX::XM_PI * secs) 
+    };
+    m_teapotEntity.Translation = Matrix::CreateTranslation(translation);
 }
 #pragma endregion
 
@@ -81,7 +87,8 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Render");
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-    m_teapotShape->Draw(m_world,
+    m_teapotEntity.Primitive->Draw(
+        m_teapotEntity.GetWorldMatrix(),
         m_camera.GetViewMatrix(),
         m_camera.GetProjectionMatrix());
 
@@ -174,7 +181,7 @@ void Game::CreateDeviceDependentResources()
 {
     auto device = m_deviceResources->GetD3DDevice();
 
-    m_teapotShape = GeometricPrimitive::CreateTeapot(m_deviceResources->GetD3DDeviceContext());
+    m_teapotEntity.Primitive = GeometricPrimitive::CreateTeapot(m_deviceResources->GetD3DDeviceContext());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -186,7 +193,7 @@ void Game::CreateWindowSizeDependentResources()
 
 void Game::OnDeviceLost()
 {
-    m_teapotShape.reset();
+    m_teapotEntity.OnDeviceLost();
 }
 
 void Game::OnDeviceRestored()

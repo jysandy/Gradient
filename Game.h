@@ -12,6 +12,7 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 #include "Core/Camera.h"
+#include "Core/Entity.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -70,8 +71,8 @@ private:
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
-    std::unique_ptr<DirectX::GeometricPrimitive> m_teapotShape;
-    Matrix m_world;
+    
+    Gradient::Entity m_teapotEntity;
 
     Gradient::Camera m_camera;
 };

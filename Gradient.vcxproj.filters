@@ -19,6 +19,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Core\Camera.h" />
+    <ClInclude Include="Core\Entity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -28,6 +29,7 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Core\Camera.cpp" />
+    <ClCompile Include="Core\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
