@@ -62,13 +62,7 @@ void Game::Update(DX::StepTimer const& timer)
 {
     m_camera.Update(timer);
 
-    float secs = timer.GetTotalSeconds();
-    Vector3 translation{
-        3 * cosf(DirectX::XM_PI * secs),
-        0,
-        -3 * sinf(DirectX::XM_PI * secs) 
-    };
-    m_teapotEntity.Translation = Matrix::CreateTranslation(translation);
+    m_entityManager.UpdateAll(timer);
 }
 #pragma endregion
 
@@ -87,11 +81,9 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Render");
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-    m_teapotEntity.Primitive->Draw(
-        m_teapotEntity.GetWorldMatrix(),
+    m_entityManager.DrawAll(
         m_camera.GetViewMatrix(),
         m_camera.GetProjectionMatrix());
-
 
     m_deviceResources->PIXEndEvent();
 
@@ -179,9 +171,7 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
-    auto device = m_deviceResources->GetD3DDevice();
-
-    m_teapotEntity.Primitive = GeometricPrimitive::CreateTeapot(m_deviceResources->GetD3DDeviceContext());
+    m_entityManager.CreateEntities(m_deviceResources->GetD3DDeviceContext());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -193,7 +183,7 @@ void Game::CreateWindowSizeDependentResources()
 
 void Game::OnDeviceLost()
 {
-    m_teapotEntity.OnDeviceLost();
+    m_entityManager.OnDeviceLost();
 }
 
 void Game::OnDeviceRestored()

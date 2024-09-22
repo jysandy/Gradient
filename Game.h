@@ -13,6 +13,7 @@
 #include "StepTimer.h"
 #include "Core/Camera.h"
 #include "Core/Entity.h"
+#include "Core/EntityManager.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -72,7 +73,7 @@ private:
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
     
-    Gradient::Entity m_teapotEntity;
+    Gradient::EntityManager m_entityManager;
 
     Gradient::Camera m_camera;
 };

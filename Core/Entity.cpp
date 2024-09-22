@@ -12,7 +12,7 @@ namespace Gradient
         this->Translation = Matrix::Identity;
     }
 
-    Matrix Entity::GetWorldMatrix()
+    Matrix Entity::GetWorldMatrix() const
     {
         return this->Scale * this->Rotation * this->Translation;
     }
