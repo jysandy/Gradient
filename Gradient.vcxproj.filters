@@ -21,6 +21,7 @@
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
+    <ClInclude Include="Core\Logger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -32,6 +33,7 @@
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
+    <ClCompile Include="Core\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

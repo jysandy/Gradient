@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "directxtk/Keyboard.h"
 #include "directxtk/Mouse.h"
+#include "Core/Logger.h"
 
 using namespace DirectX;
 
@@ -38,6 +39,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    Gradient::Logger::Initialize();
+    Gradient::Logger::Get()->info("Initialized logger");
 
     if (!XMVerifyCPUSupport())
         return 1;
@@ -109,6 +113,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     CoUninitialize();
 
+    Gradient::Logger::Destroy();
     return static_cast<int>(msg.wParam);
 }
 
