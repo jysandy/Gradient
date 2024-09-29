@@ -120,7 +120,7 @@ namespace Gradient
             m_fieldOfViewRadians,
             m_aspectRatio,
             0.1f,
-            30.f
+            500.f
         );
     }
 
