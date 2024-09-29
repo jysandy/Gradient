@@ -60,44 +60,23 @@ namespace Gradient
 
     void EntityManager::CreateEntities(ID3D11DeviceContext1* deviceContext)
     {
-        Entity teapot;
-        teapot.id = "teapot";
-        teapot.Primitive = DirectX::GeometricPrimitive::CreateTeapot(deviceContext);
+        Entity sphere1;
+        sphere1.id = "sphere1";
+        sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+        sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
+        this->AddEntity(std::move(sphere1));
 
-        this->AddEntity(std::move(teapot), [](Entity& teapot, DX::StepTimer const& timer)
-            {
-                float secs = timer.GetTotalSeconds();
+        Entity sphere2;
+        sphere2.id = "sphere2";
+        sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+        sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 3.f, 0.f });
+        this->AddEntity(std::move(sphere2));
 
-                teapot.Rotation = Matrix::CreateRotationX(DirectX::XM_PI * secs);
-
-                Vector3 translation{
-                    3 * cosf(DirectX::XM_PI * secs),
-                    0,
-                    -3 * sinf(DirectX::XM_PI * secs)
-                };
-                teapot.Translation = Matrix::CreateTranslation(translation);
-            });
-
-        Entity foo;
-        foo.id = "foo";
-        foo.Primitive = DirectX::GeometricPrimitive::CreateDodecahedron(deviceContext);
-
-        this->AddEntity(std::move(foo), [](Entity& foo, DX::StepTimer const& timer)
-            {
-                float secs = timer.GetTotalSeconds();
-
-                float scale = (1.5f + cosf(DirectX::XM_PI * secs / 3.f)) / 2.f;
-                foo.Scale = Matrix::CreateScale(Vector3{ scale, scale, scale });
-
-                foo.Rotation = Matrix::CreateRotationY(DirectX::XM_PI * secs);
-
-                Vector3 translation{
-                    3 * cosf(DirectX::XM_PI * secs + DirectX::XM_PI),
-                    3 * sinf(DirectX::XM_PI * secs + DirectX::XM_PI),
-                    0
-                };
-                foo.Translation = Matrix::CreateTranslation(translation);
-            });
+        Entity floor;
+        floor.id = "floor";
+        floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
+        floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
+        this->AddEntity(std::move(floor));
     }
 
     void EntityManager::DrawAll(Matrix const& view, Matrix const& projection)

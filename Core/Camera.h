@@ -38,5 +38,6 @@ namespace Gradient
 
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);
+        void SetPosition(DirectX::SimpleMath::Vector3 const&);
     };
 }

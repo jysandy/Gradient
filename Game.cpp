@@ -14,7 +14,12 @@ using Microsoft::WRL::ComPtr;
 
 Game::Game() noexcept(false)
 {
-    m_deviceResources = std::make_unique<DX::DeviceResources>();
+    m_deviceResources = std::make_unique<DX::DeviceResources>(
+        DXGI_FORMAT_B8G8R8A8_UNORM,
+        DXGI_FORMAT_D32_FLOAT,
+        2,
+        D3D_FEATURE_LEVEL_11_1
+    );
     // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
     //   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
     //   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
@@ -43,6 +48,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+    m_camera.SetPosition(Vector3{ 0, 0, 25 });
 }
 
 #pragma region Frame Update
