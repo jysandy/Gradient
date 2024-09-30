@@ -27,7 +27,6 @@ namespace Gradient
         void RegisterUpdate(std::string const& entityId, UpdateFunctionType);
         void DeregisterUpdate(std::string const& entityId);
         
-        void CreateEntities(ID3D11DeviceContext1*);
         void OnDeviceLost();
     
     private:

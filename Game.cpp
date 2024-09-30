@@ -29,6 +29,7 @@ Game::Game() noexcept(false)
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
+    m_physicsEngine.Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
     m_deviceResources->CreateDeviceResources();
@@ -164,6 +165,11 @@ void Game::OnWindowSizeChanged(int width, int height)
     // TODO: Game window is being resized.
 }
 
+void Game::OnQuit()
+{
+    m_physicsEngine.Shutdown();
+}
+
 // Properties
 void Game::GetDefaultSize(int& width, int& height) const noexcept
 {
@@ -177,7 +183,90 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
-    m_entityManager.CreateEntities(m_deviceResources->GetD3DDeviceContext());
+    auto deviceContext = m_deviceResources->GetD3DDeviceContext();
+    JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+
+    using namespace Gradient;
+
+
+    // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
+
+
+
+    Entity sphere1;
+    sphere1.id = "sphere1";
+    sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
+    JPH::BodyCreationSettings sphere1Settings(
+        new JPH::SphereShape(1.f),
+        JPH::RVec3(-3.f, 3.f, 0.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Physics::ObjectLayers::MOVING
+    );
+    sphere1Settings.mRestitution = 0.8f;
+    auto sphere1BodyId = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
+
+    m_entityManager.AddEntity(std::move(sphere1),
+        [this, sphere1BodyId](Entity& e, DX::StepTimer const& timer) {
+            JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+            if (bodyInterface.IsActive(sphere1BodyId))
+            {
+                auto position = bodyInterface.GetCenterOfMassPosition(sphere1BodyId);
+                e.Translation = Matrix::CreateTranslation(Vector3{
+                    position.GetX(),
+                    position.GetY(),
+                    position.GetZ()
+                    });
+            }
+        });
+
+    Entity sphere2;
+    sphere2.id = "sphere2";
+    sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 5.f, 0.f });
+    JPH::BodyCreationSettings sphere2Settings(
+        new JPH::SphereShape(1.f),
+        JPH::RVec3(3.f, 5.f, 0.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Physics::ObjectLayers::MOVING
+    );
+    sphere2Settings.mRestitution = 0.9f; 
+    auto sphere2BodyId = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
+
+    m_entityManager.AddEntity(std::move(sphere2),
+        [this, sphere2BodyId](Entity& e, DX::StepTimer const& timer) {
+            JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+            if (bodyInterface.IsActive(sphere2BodyId))
+            {
+                auto position = bodyInterface.GetCenterOfMassPosition(sphere2BodyId);
+                e.Translation = Matrix::CreateTranslation(Vector3{
+                    position.GetX(),
+                    position.GetY(),
+                    position.GetZ()
+                    });
+            }
+        });
+
+    Entity floor;
+    floor.id = "floor";
+    floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
+    floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
+    m_entityManager.AddEntity(std::move(floor));
+
+    JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
+    JPH::BodyCreationSettings floorSettings(
+        floorShape,
+        JPH::RVec3(0.f, -0.25f, 0.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Static,
+        Gradient::Physics::ObjectLayers::NON_MOVING
+    );
+
+    auto floorBodyId = bodyInterface.CreateAndAddBody(floorSettings, JPH::EActivation::DontActivate);
+
+    m_physicsEngine.StartSimulation();
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "directxtk",
-    "spdlog"
+    "spdlog",
+    "joltphysics"
   ]
 }

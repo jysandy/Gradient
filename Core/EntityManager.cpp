@@ -58,27 +58,6 @@ namespace Gradient
         }
     }
 
-    void EntityManager::CreateEntities(ID3D11DeviceContext1* deviceContext)
-    {
-        Entity sphere1;
-        sphere1.id = "sphere1";
-        sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
-        sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
-        this->AddEntity(std::move(sphere1));
-
-        Entity sphere2;
-        sphere2.id = "sphere2";
-        sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
-        sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 3.f, 0.f });
-        this->AddEntity(std::move(sphere2));
-
-        Entity floor;
-        floor.id = "floor";
-        floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-        floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
-        this->AddEntity(std::move(floor));
-    }
-
     void EntityManager::DrawAll(Matrix const& view, Matrix const& projection)
     {
         for (auto const& entity : m_entities)

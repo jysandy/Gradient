@@ -55,6 +55,15 @@
 #include <dxgidebug.h>
 #endif
 
+// Jolt blows up without these because vcpkg is compiling 
+// with these defines for some reason.
+// TODO: Figure out a way to get vcpkg to turn these off 
+// in release mode? Do these need to be turned off?
+#define JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
+#define JPH_OBJECT_STREAM
+
+#include <Jolt/Jolt.h>
+
 namespace DX
 {
     // Helper class for COM exceptions

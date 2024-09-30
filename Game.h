@@ -14,6 +14,7 @@
 #include "Core/Camera.h"
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
+#include "Core/Physics/PhysicsEngine.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -50,6 +51,7 @@ public:
     void OnWindowMoved();
     void OnDisplayChange();
     void OnWindowSizeChanged(int width, int height);
+    void OnQuit();
 
     // Properties
     void GetDefaultSize(int& width, int& height) const noexcept;
@@ -74,6 +76,6 @@ private:
     std::unique_ptr<DirectX::Mouse> m_mouse;
     
     Gradient::EntityManager m_entityManager;
-
     Gradient::Camera m_camera;
+    Gradient::Physics::PhysicsEngine m_physicsEngine;
 };
