@@ -203,20 +203,9 @@ void Game::CreateDeviceDependentResources()
 
     sphere1Settings.mRestitution = 0.9f;
     sphere1Settings.mLinearVelocity = JPH::Vec3{ 1.5f, 0, 0 };
-    auto sphere1BodyId = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
+    sphere1.BodyID = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
 
-    m_entityManager.AddEntity(std::move(sphere1),
-        [this, sphere1BodyId, &bodyInterface](Entity& e, DX::StepTimer const& timer) {
-            if (bodyInterface.IsActive(sphere1BodyId))
-            {
-                auto position = bodyInterface.GetCenterOfMassPosition(sphere1BodyId);
-                e.Translation = Matrix::CreateTranslation(Vector3{
-                    position.GetX(),
-                    position.GetY(),
-                    position.GetZ()
-                    });
-            }
-        });
+    m_entityManager.AddEntity(std::move(sphere1));
 
     Entity sphere2;
     sphere2.id = "sphere2";
@@ -230,20 +219,9 @@ void Game::CreateDeviceDependentResources()
         Physics::ObjectLayers::MOVING
     );
     sphere2Settings.mRestitution = 0.9f; 
-    auto sphere2BodyId = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
+    sphere2.BodyID = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
 
-    m_entityManager.AddEntity(std::move(sphere2),
-        [this, sphere2BodyId, &bodyInterface](Entity& e, DX::StepTimer const& timer) {
-            if (bodyInterface.IsActive(sphere2BodyId))
-            {
-                auto position = bodyInterface.GetCenterOfMassPosition(sphere2BodyId);
-                e.Translation = Matrix::CreateTranslation(Vector3{
-                    position.GetX(),
-                    position.GetY(),
-                    position.GetZ()
-                    });
-            }
-        });
+    m_entityManager.AddEntity(std::move(sphere2));
 
     Entity floor;
     floor.id = "floor";

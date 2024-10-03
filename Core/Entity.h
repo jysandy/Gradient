@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Jolt/Physics/Body/BodyID.h>
+
 #include <directxtk/SimpleMath.h>
 #include <directxtk/GeometricPrimitive.h>
 #include <memory>
@@ -10,6 +12,8 @@ namespace Gradient
     struct Entity
     {
         std::string id;
+        JPH::BodyID BodyID;
+        // TODO: Add a transform for the physics body
 
         DirectX::SimpleMath::Matrix Scale;
         DirectX::SimpleMath::Matrix Rotation;
