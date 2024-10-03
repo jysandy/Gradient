@@ -29,7 +29,7 @@ Game::Game() noexcept(false)
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
-    m_physicsEngine.Initialize();
+    Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
     m_deviceResources->CreateDeviceResources();
@@ -86,7 +86,6 @@ void Game::Render()
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
-    auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_entityManager.DrawAll(
         m_camera.GetViewMatrix(),
@@ -167,7 +166,7 @@ void Game::OnWindowSizeChanged(int width, int height)
 
 void Game::OnQuit()
 {
-    m_physicsEngine.Shutdown();
+    Gradient::Physics::PhysicsEngine::Shutdown();
 }
 
 // Properties
@@ -184,14 +183,11 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 void Game::CreateDeviceDependentResources()
 {
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
-    JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+    JPH::BodyInterface& bodyInterface 
+        = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
     using namespace Gradient;
-
-
     // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
-
-
 
     Entity sphere1;
     sphere1.id = "sphere1";
@@ -204,13 +200,13 @@ void Game::CreateDeviceDependentResources()
         JPH::EMotionType::Dynamic,
         Physics::ObjectLayers::MOVING
     );
+
     sphere1Settings.mRestitution = 0.9f;
     sphere1Settings.mLinearVelocity = JPH::Vec3{ 1.5f, 0, 0 };
     auto sphere1BodyId = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
 
     m_entityManager.AddEntity(std::move(sphere1),
-        [this, sphere1BodyId](Entity& e, DX::StepTimer const& timer) {
-            JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+        [this, sphere1BodyId, &bodyInterface](Entity& e, DX::StepTimer const& timer) {
             if (bodyInterface.IsActive(sphere1BodyId))
             {
                 auto position = bodyInterface.GetCenterOfMassPosition(sphere1BodyId);
@@ -237,8 +233,7 @@ void Game::CreateDeviceDependentResources()
     auto sphere2BodyId = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
 
     m_entityManager.AddEntity(std::move(sphere2),
-        [this, sphere2BodyId](Entity& e, DX::StepTimer const& timer) {
-            JPH::BodyInterface& bodyInterface = m_physicsEngine.GetBodyInterface();
+        [this, sphere2BodyId, &bodyInterface](Entity& e, DX::StepTimer const& timer) {
             if (bodyInterface.IsActive(sphere2BodyId))
             {
                 auto position = bodyInterface.GetCenterOfMassPosition(sphere2BodyId);
@@ -267,7 +262,7 @@ void Game::CreateDeviceDependentResources()
 
     auto floorBodyId = bodyInterface.CreateAndAddBody(floorSettings, JPH::EActivation::DontActivate);
 
-    m_physicsEngine.StartSimulation();
+    Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

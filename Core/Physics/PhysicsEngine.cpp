@@ -5,6 +5,8 @@
 
 namespace Gradient::Physics
 {
+    std::unique_ptr<PhysicsEngine> PhysicsEngine::s_engine;
+
     bool PhysicsEngine::ObjectLayerPairFilterImpl::ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const
     {
         switch (inObject1)
@@ -88,7 +90,7 @@ namespace Gradient::Physics
 
     void PhysicsEngine::Initialize()
     {
-        if (!m_isShutDown) return;
+        if (s_engine != nullptr) return;
 
         JPH::RegisterDefaultAllocator();
 
@@ -97,41 +99,48 @@ namespace Gradient::Physics
 
         JPH::Factory::sInstance = new JPH::Factory();
         JPH::RegisterTypes();
-        m_tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(10 * 1024 * 1024);
-        m_jobSystem = std::make_unique<JPH::JobSystemThreadPool>(
+
+        auto engine = new PhysicsEngine();
+
+        s_engine = std::unique_ptr<PhysicsEngine>(engine);
+
+        s_engine->m_tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(10 * 1024 * 1024);
+        s_engine->m_jobSystem = std::make_unique<JPH::JobSystemThreadPool>(
             JPH::cMaxPhysicsJobs,
             JPH::cMaxPhysicsBarriers,
             std::max(std::thread::hardware_concurrency() - 4, 2u)
         );
 
         // TODO: Initialize the physics system and start the update thread
-        m_physicsSystem = std::make_unique<JPH::PhysicsSystem>();
-        m_physicsSystem->Init(
+        s_engine->m_physicsSystem = std::make_unique<JPH::PhysicsSystem>();
+        s_engine->m_physicsSystem->Init(
             cMaxBodies,
             cNumBodyMutexes,
             cMaxBodyPairs,
             cMaxContactConstraints,
-            m_bpLayerInterface,
-            m_objectVsBPLayerFilter,
-            m_objectLayerPairFilter
+            s_engine->m_bpLayerInterface,
+            s_engine->m_objectVsBPLayerFilter,
+            s_engine->m_objectLayerPairFilter
         );
-
-        m_isShutDown = false;
     }
 
     void PhysicsEngine::Shutdown()
     {
-        if (!m_isShutDown)
+        if (s_engine != nullptr)
         {
-            StopSimulation();
-            m_physicsSystem.reset();
-            m_jobSystem.reset();
-            m_tempAllocator.reset();
+            s_engine->StopSimulation();
+            s_engine->m_physicsSystem.reset();
+            s_engine->m_jobSystem.reset();
+            s_engine->m_tempAllocator.reset();
             JPH::UnregisterTypes();
             delete JPH::Factory::sInstance;
-
-            m_isShutDown = true;
+            s_engine.reset();
         }
+    }
+
+    PhysicsEngine* PhysicsEngine::Get()
+    {
+        return s_engine.get();
     }
 
     void PhysicsEngine::StartSimulation()

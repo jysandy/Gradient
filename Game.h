@@ -77,5 +77,4 @@ private:
     
     Gradient::EntityManager m_entityManager;
     Gradient::Camera m_camera;
-    Gradient::Physics::PhysicsEngine m_physicsEngine;
 };

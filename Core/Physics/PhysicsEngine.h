@@ -27,11 +27,11 @@ namespace Gradient::Physics
         const static JPH::uint cMaxBodyPairs = 65536;
         const static JPH::uint cMaxContactConstraints = 10240;
 
-        PhysicsEngine();
         ~PhysicsEngine();
 
-        void Initialize();
-        void Shutdown();
+        static PhysicsEngine* Get();
+        static void Initialize();
+        static void Shutdown();
 
         void StartSimulation();
         void StopSimulation();
@@ -39,6 +39,9 @@ namespace Gradient::Physics
         JPH::BodyInterface& GetBodyInterface();
 
     private:
+        PhysicsEngine();
+        static std::unique_ptr<PhysicsEngine> s_engine;
+
         bool m_isShutDown;
         bool m_workerShouldStop;
 
