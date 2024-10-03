@@ -101,7 +101,7 @@ namespace Gradient::Physics
         m_jobSystem = std::make_unique<JPH::JobSystemThreadPool>(
             JPH::cMaxPhysicsJobs,
             JPH::cMaxPhysicsBarriers,
-            std::max(std::thread::hardware_concurrency() - 2, 2u)
+            std::max(std::thread::hardware_concurrency() - 4, 2u)
         );
 
         // TODO: Initialize the physics system and start the update thread
