@@ -5,6 +5,7 @@
 #include "pch.h"
 #include "Game.h"
 #include "directxtk/Keyboard.h"
+#include "Core/TextureManager.h"
 
 extern void ExitGame() noexcept;
 
@@ -167,6 +168,7 @@ void Game::OnWindowSizeChanged(int width, int height)
 void Game::OnQuit()
 {
     Gradient::Physics::PhysicsEngine::Shutdown();
+    Gradient::TextureManager::Shutdown();
 }
 
 // Properties
@@ -182,8 +184,20 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
+    Gradient::TextureManager::Initialize();
+
+    auto textureManager = Gradient::TextureManager::Get();
+    textureManager->LoadWICTexture(m_deviceResources->GetD3DDevice(),
+        "basketball",
+        L"BasketballColor.jpg"
+    );
+    textureManager->LoadWICTexture(m_deviceResources->GetD3DDevice(),
+        "softball",
+        L"SoftballColor.jpg"
+    );
+
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
-    JPH::BodyInterface& bodyInterface 
+    JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
     using namespace Gradient;
@@ -192,6 +206,7 @@ void Game::CreateDeviceDependentResources()
     Entity sphere1;
     sphere1.id = "sphere1";
     sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere1.Texture = textureManager->GetTexture("basketball");
     sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
     JPH::BodyCreationSettings sphere1Settings(
         new JPH::SphereShape(1.f),
@@ -210,6 +225,7 @@ void Game::CreateDeviceDependentResources()
     Entity sphere2;
     sphere2.id = "sphere2";
     sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere2.Texture = textureManager->GetTexture("softball");
     sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 5.f, 0.f });
     JPH::BodyCreationSettings sphere2Settings(
         new JPH::SphereShape(1.f),
@@ -218,7 +234,7 @@ void Game::CreateDeviceDependentResources()
         JPH::EMotionType::Dynamic,
         Physics::ObjectLayers::MOVING
     );
-    sphere2Settings.mRestitution = 0.9f; 
+    sphere2Settings.mRestitution = 0.9f;
     sphere2.BodyID = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
 
     m_entityManager.AddEntity(std::move(sphere2));

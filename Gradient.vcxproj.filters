@@ -24,6 +24,7 @@
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
+    <ClInclude Include="Core\TextureManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -37,12 +38,19 @@
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
+    <ClCompile Include="Core\TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="directx.ico">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="BasketballColor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="SoftballColor.jpg">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -55,5 +63,6 @@
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
     <None Include=".gitignore" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

@@ -85,9 +85,20 @@ namespace Gradient
     {
         for (auto const& entity : m_entities)
         {
-            entity.Primitive->Draw(entity.GetWorldMatrix(),
-                view,
-                projection);
+            if (entity.Texture != nullptr)
+            {
+                entity.Primitive->Draw(entity.GetWorldMatrix(),
+                    view,
+                    projection,
+                    DirectX::Colors::White,
+                    entity.Texture);
+            }
+            else
+            {
+                entity.Primitive->Draw(entity.GetWorldMatrix(),
+                    view,
+                    projection);
+            }
         }
     }
 }
