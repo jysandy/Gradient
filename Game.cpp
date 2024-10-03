@@ -204,7 +204,8 @@ void Game::CreateDeviceDependentResources()
         JPH::EMotionType::Dynamic,
         Physics::ObjectLayers::MOVING
     );
-    sphere1Settings.mRestitution = 0.8f;
+    sphere1Settings.mRestitution = 0.9f;
+    sphere1Settings.mLinearVelocity = JPH::Vec3{ 1.5f, 0, 0 };
     auto sphere1BodyId = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
 
     m_entityManager.AddEntity(std::move(sphere1),
