@@ -15,6 +15,7 @@
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
+#include "GUI/PhysicsWindow.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -77,7 +78,5 @@ private:
     
     Gradient::EntityManager m_entityManager;
     Gradient::Camera m_camera;
-
-    float m_timeScale = 1.f;
-    bool m_physicsPaused = false;
+    Gradient::GUI::PhysicsWindow m_physicsWindow;
 };

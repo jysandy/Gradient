@@ -27,6 +27,7 @@
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
+    <ClInclude Include="GUI\PhysicsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -43,6 +44,7 @@
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
+    <ClCompile Include="GUI\PhysicsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
