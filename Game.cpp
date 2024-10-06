@@ -7,6 +7,10 @@
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
 
+#include <imgui.h>
+#include "GUI/imgui_impl_win32.h"
+#include "GUI/imgui_impl_dx11.h"
+
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
@@ -39,18 +43,15 @@ void Game::Initialize(HWND window, int width, int height)
     m_deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
 
-    // TODO: Change the timer settings if you want something other than the default variable timestep mode.
-    // e.g. for 60 FPS fixed timestep update logic, call:
-    /*
-    m_timer.SetFixedTimeStep(true);
-    m_timer.SetTargetElapsedSeconds(1.0 / 60);
-    */
-
     m_keyboard = std::make_unique<Keyboard>();
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
     m_camera.SetPosition(Vector3{ 0, 0, 25 });
+
+    // Initialize ImGUI
+
+    ImGui_ImplDX11_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetD3DDeviceContext());
 }
 
 #pragma region Frame Update
@@ -71,6 +72,8 @@ void Game::Update(DX::StepTimer const& timer)
     m_camera.Update(timer);
 
     m_entityManager.UpdateAll(timer);
+
+    Gradient::Physics::PhysicsEngine::Get()->SetTimeScale(m_timeScale);
 }
 #pragma endregion
 
@@ -84,6 +87,10 @@ void Game::Render()
         return;
     }
 
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
@@ -93,6 +100,13 @@ void Game::Render()
         m_camera.GetProjectionMatrix());
 
     m_deviceResources->PIXEndEvent();
+
+    ImGui::Begin("Physics controls");
+    ImGui::SliderFloat("Time scale", &m_timeScale, 0.1f, 1.f);
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     // Show the new frame.
     m_deviceResources->Present();
@@ -169,6 +183,9 @@ void Game::OnQuit()
 {
     Gradient::Physics::PhysicsEngine::Shutdown();
     Gradient::TextureManager::Shutdown();
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
 
 // Properties

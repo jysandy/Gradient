@@ -35,6 +35,7 @@ namespace Gradient::Physics
 
         void StartSimulation();
         void StopSimulation();
+        void SetTimeScale(float timeScale);
 
         JPH::BodyInterface& GetBodyInterface();
 
@@ -44,6 +45,7 @@ namespace Gradient::Physics
 
         bool m_isShutDown;
         bool m_workerShouldStop;
+        float m_timeScale = 1.f;
 
         std::unique_ptr<JPH::TempAllocatorImpl> m_tempAllocator;
 

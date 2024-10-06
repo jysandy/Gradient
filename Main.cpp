@@ -8,6 +8,8 @@
 #include "directxtk/Mouse.h"
 #include "Core/Logger.h"
 
+#include "GUI/imgui_impl_win32.h"
+
 using namespace DirectX;
 
 #ifdef __clang__
@@ -86,6 +88,15 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         if (!hwnd)
             return 1;
 
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+        ImGui_ImplWin32_Init(hwnd);
+
         ShowWindow(hwnd, nCmdShow);
         // TODO: Change nCmdShow to SW_SHOWMAXIMIZED to default to fullscreen.
 
@@ -118,9 +129,30 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     return static_cast<int>(msg.wParam);
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+inline void ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui::GetIO().WantCaptureKeyboard)
+        return;
+
+    Keyboard::ProcessMessage(message, wParam, lParam);
+}
+
+inline void ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui::GetIO().WantCaptureMouse)
+        return;
+    Mouse::ProcessMessage(message, wParam, lParam);
+}
+
+
 // Windows procedure
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return true;
+
     static bool s_in_sizemove = false;
     static bool s_in_suspend = false;
     static bool s_minimized = false;
@@ -215,8 +247,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_ACTIVATE:
-        Keyboard::ProcessMessage(message, wParam, lParam);
-        Mouse::ProcessMessage(message, wParam, lParam);
+        ProcessKeyboardMessage(message, wParam, lParam);
+        ProcessMouseMessage(message, wParam, lParam);
         break;
 
     case WM_ACTIVATEAPP:
@@ -231,8 +263,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnDeactivated();
             }
         }
-        Keyboard::ProcessMessage(message, wParam, lParam);
-        Mouse::ProcessMessage(message, wParam, lParam);
+        ProcessKeyboardMessage(message, wParam, lParam);
+        ProcessMouseMessage(message, wParam, lParam);
         break;
 
     case WM_POWERBROADCAST:
@@ -289,13 +321,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
-        Keyboard::ProcessMessage(message, wParam, lParam);
+        ProcessKeyboardMessage(message, wParam, lParam);
         break;
 
     case WM_KEYDOWN:
     case WM_KEYUP:
     case WM_SYSKEYUP:
-        Keyboard::ProcessMessage(message, wParam, lParam);
+        ProcessKeyboardMessage(message, wParam, lParam);
         break;
 
     case WM_INPUT:
@@ -310,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_XBUTTONDOWN:
     case WM_XBUTTONUP:
     case WM_MOUSEHOVER:
-        Mouse::ProcessMessage(message, wParam, lParam);
+        ProcessMouseMessage(message, wParam, lParam);
         break;
 
     case WM_MENUCHAR:

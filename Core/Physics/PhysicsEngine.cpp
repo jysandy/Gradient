@@ -145,16 +145,20 @@ namespace Gradient::Physics
 
     void PhysicsEngine::StartSimulation()
     {
-        const float cDeltaTime = 1.0f / 60.0f;
         m_workerShouldStop = false;
-        auto simulationWorkerFn = [this, cDeltaTime]() {
+        auto simulationWorkerFn = [this]() {
             while (!m_workerShouldStop)
             {
                 m_stepTimer.Tick([this]()
                     {
-                        float deltaTime = m_stepTimer.GetElapsedSeconds();
+                        // Jolt doesn't seem to compute impulses properly if 
+                        // the time scale is less than 1. Impulses are weaker 
+                        // than they ought to be.
+                        // TODO: Fix or remove this feature.
+                        float deltaTime = m_stepTimer.GetElapsedSeconds()
+                            * m_timeScale;
                         m_physicsSystem->Update(deltaTime,
-                            1,
+                            2,
                             m_tempAllocator.get(),
                             m_jobSystem.get());
                     });
@@ -177,5 +181,21 @@ namespace Gradient::Physics
     JPH::BodyInterface& PhysicsEngine::GetBodyInterface()
     {
         return m_physicsSystem->GetBodyInterface();
+    }
+
+    void PhysicsEngine::SetTimeScale(float timeScale)
+    {
+        if (timeScale < 0.1f)
+        {
+            m_timeScale = 0.1f;
+        }
+        else if (timeScale > 1.f)
+        {
+            m_timeScale = 1.f;
+        }
+        else
+        {
+            m_timeScale = timeScale;
+        }
     }
 }

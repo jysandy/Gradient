@@ -77,4 +77,6 @@ private:
     
     Gradient::EntityManager m_entityManager;
     Gradient::Camera m_camera;
+
+    float m_timeScale = 1.f;
 };

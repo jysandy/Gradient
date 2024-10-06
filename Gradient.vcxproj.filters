@@ -25,6 +25,8 @@
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\TextureManager.h" />
+    <ClInclude Include="GUI\imgui_impl_dx11.h" />
+    <ClInclude Include="GUI\imgui_impl_win32.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -39,6 +41,8 @@
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
+    <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
+    <ClCompile Include="GUI\imgui_impl_win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
