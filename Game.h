@@ -79,4 +79,5 @@ private:
     Gradient::Camera m_camera;
 
     float m_timeScale = 1.f;
+    bool m_physicsPaused = false;
 };

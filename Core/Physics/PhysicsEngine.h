@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include <thread>
+#include <atomic>
 
 #include "Core/Physics/Layers.h"
 #include "StepTimer.h"
@@ -35,6 +36,9 @@ namespace Gradient::Physics
 
         void StartSimulation();
         void StopSimulation();
+        void PauseSimulation();
+        void UnpauseSimulation();
+        bool IsPaused();
         void SetTimeScale(float timeScale);
 
         JPH::BodyInterface& GetBodyInterface();
@@ -44,7 +48,8 @@ namespace Gradient::Physics
         static std::unique_ptr<PhysicsEngine> s_engine;
 
         bool m_isShutDown;
-        bool m_workerShouldStop;
+        std::atomic_flag m_workerShouldStop;
+        std::atomic_flag m_workerPaused;
         float m_timeScale = 1.f;
 
         std::unique_ptr<JPH::TempAllocatorImpl> m_tempAllocator;

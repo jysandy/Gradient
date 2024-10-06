@@ -73,7 +73,16 @@ void Game::Update(DX::StepTimer const& timer)
 
     m_entityManager.UpdateAll(timer);
 
-    Gradient::Physics::PhysicsEngine::Get()->SetTimeScale(m_timeScale);
+    auto physicsEngine = Gradient::Physics::PhysicsEngine::Get();
+    physicsEngine->SetTimeScale(m_timeScale);
+    if (m_physicsPaused)
+    {
+        physicsEngine->PauseSimulation();
+    }
+    else
+    {
+        physicsEngine->UnpauseSimulation();
+    }
 }
 #pragma endregion
 
@@ -102,6 +111,7 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     ImGui::Begin("Physics controls");
+    ImGui::Checkbox("Physics paused", &m_physicsPaused);
     ImGui::SliderFloat("Time scale", &m_timeScale, 0.1f, 1.f);
     ImGui::End();
 

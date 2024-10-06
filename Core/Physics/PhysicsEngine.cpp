@@ -65,7 +65,7 @@ namespace Gradient::Physics
         }
     }
 
-    PhysicsEngine::PhysicsEngine() : m_isShutDown(true), m_workerShouldStop(false)
+    PhysicsEngine::PhysicsEngine() : m_isShutDown(true), m_workerShouldStop()
     {
         m_stepTimer.SetFixedTimeStep(true);
         m_stepTimer.SetTargetElapsedSeconds(1.0 / 60.0);
@@ -111,7 +111,6 @@ namespace Gradient::Physics
             std::max(std::thread::hardware_concurrency() - 4, 2u)
         );
 
-        // TODO: Initialize the physics system and start the update thread
         s_engine->m_physicsSystem = std::make_unique<JPH::PhysicsSystem>();
         s_engine->m_physicsSystem->Init(
             cMaxBodies,
@@ -145,9 +144,10 @@ namespace Gradient::Physics
 
     void PhysicsEngine::StartSimulation()
     {
-        m_workerShouldStop = false;
+        m_workerShouldStop.clear();
+        m_workerPaused.clear();
         auto simulationWorkerFn = [this]() {
-            while (!m_workerShouldStop)
+            while (!m_workerShouldStop.test())
             {
                 m_stepTimer.Tick([this]()
                     {
@@ -162,17 +162,41 @@ namespace Gradient::Physics
                             m_tempAllocator.get(),
                             m_jobSystem.get());
                     });
+
+                if (m_workerPaused.test())
+                    m_workerPaused.wait(true);
             }
             };
 
         m_simulationWorker = std::make_unique<std::thread>(simulationWorkerFn);
     }
 
+    void PhysicsEngine::PauseSimulation()
+    {
+        m_workerPaused.test_and_set();
+    }
+
+    void PhysicsEngine::UnpauseSimulation()
+    {
+        if (IsPaused())
+        {
+            m_stepTimer.ResetElapsedTime();
+            m_workerPaused.clear();
+            m_workerPaused.notify_one();
+        }
+    }
+
+    bool PhysicsEngine::IsPaused()
+    {
+        return m_workerPaused.test();
+    }
+
     void PhysicsEngine::StopSimulation()
     {
         if (m_simulationWorker.get() != nullptr)
         {
-            m_workerShouldStop = true;
+            m_workerShouldStop.test_and_set();
+            UnpauseSimulation();
             m_simulationWorker->join();
             m_simulationWorker.reset();
         }
