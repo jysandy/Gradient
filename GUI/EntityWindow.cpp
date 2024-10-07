@@ -27,11 +27,12 @@ namespace Gradient::GUI
             };
     }
 
-    void EntityWindow::Update(EntityManager& entityManager)
+    void EntityWindow::Update()
     {
         if (!m_enabled) return;
 
-        entityManager.MutateEntity(m_entityID, m_mutator);
+        auto entityManager = EntityManager::Get();
+        entityManager->MutateEntity(m_entityID, m_mutator);
     }
 
     void EntityWindow::Disable()
@@ -39,11 +40,12 @@ namespace Gradient::GUI
         m_enabled = false;
     }
 
-    void EntityWindow::Enable(EntityManager& entityManager)
+    void EntityWindow::Enable()
     {
         if (m_enabled) return;
 
-        auto e = entityManager.LookupEntity(m_entityID);
+        auto entityManager = EntityManager::Get();
+        auto e = entityManager->LookupEntity(m_entityID);
         auto t = e->GetTranslation();
 
         m_translation[0] = t.x;

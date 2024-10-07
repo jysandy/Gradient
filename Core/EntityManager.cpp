@@ -10,8 +10,26 @@ using namespace DirectX::SimpleMath;
 
 namespace Gradient
 {
+    std::unique_ptr<EntityManager> EntityManager::s_instance;
+
     EntityManager::EntityManager()
     {
+    }
+
+    void EntityManager::Initialize()
+    {
+        auto instance = new EntityManager();
+        s_instance = std::unique_ptr<EntityManager>(instance);
+    }
+
+    void EntityManager::Shutdown()
+    {
+        s_instance.reset();
+    }
+
+    EntityManager* EntityManager::Get()
+    {
+        return s_instance.get();
     }
 
     void EntityManager::UpdateAll(DX::StepTimer const& timer)

@@ -17,7 +17,10 @@ namespace Gradient
     public:
         using UpdateFunctionType = std::function<void(Entity&, DX::StepTimer const&)>;
     
-        EntityManager();
+        static void Initialize();
+        static void Shutdown();
+
+        static EntityManager* Get();
 
         void UpdateAll(DX::StepTimer const&);
         void DrawAll(DirectX::SimpleMath::Matrix const& view, DirectX::SimpleMath::Matrix const& projection);
@@ -36,6 +39,9 @@ namespace Gradient
         void OnDeviceLost();
     
     private:
+        EntityManager();
+        static std::unique_ptr<EntityManager> s_instance;
+
         // TODO: Make this concurrency safe
         // We can have multiple readers or editors,
         // but adders need to be serialized

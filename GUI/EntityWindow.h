@@ -9,10 +9,10 @@ namespace Gradient::GUI
     public:
         EntityWindow();
 
-        void Update(EntityManager& entityManager);
+        void Update();
         void Draw();
 
-        void Enable(EntityManager& entityManager);
+        void Enable();
         void Disable();
 
     private:

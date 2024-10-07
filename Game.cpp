@@ -71,19 +71,21 @@ void Game::Update(DX::StepTimer const& timer)
 {
     m_camera.Update(timer);
 
-    m_entityManager.UpdateAll(timer);
+    auto entityManager = Gradient::EntityManager::Get();
+
+    entityManager->UpdateAll(timer);
 
     m_physicsWindow.Update();
     if (Gradient::Physics::PhysicsEngine::Get()->IsPaused())
     {
-        m_entityWindow.Enable(m_entityManager);
+        m_entityWindow.Enable();
     }
     else
     {
         m_entityWindow.Disable();
     }
 
-    m_entityWindow.Update(m_entityManager);
+    m_entityWindow.Update();
 }
 #pragma endregion
 
@@ -105,7 +107,9 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Render");
 
-    m_entityManager.DrawAll(
+    auto entityManager = Gradient::EntityManager::Get();
+
+    entityManager->DrawAll(
         m_camera.GetViewMatrix(),
         m_camera.GetProjectionMatrix());
 
@@ -192,6 +196,7 @@ void Game::OnQuit()
 {
     Gradient::Physics::PhysicsEngine::Shutdown();
     Gradient::TextureManager::Shutdown();
+    Gradient::EntityManager::Shutdown();
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
@@ -210,9 +215,13 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
-    Gradient::TextureManager::Initialize();
+    using namespace Gradient;
 
-    auto textureManager = Gradient::TextureManager::Get();
+    EntityManager::Initialize();
+    TextureManager::Initialize();
+
+    auto entityManager = EntityManager::Get();
+    auto textureManager = TextureManager::Get();
     textureManager->LoadWICTexture(m_deviceResources->GetD3DDevice(),
         "basketball",
         L"BasketballColor.jpg"
@@ -226,7 +235,7 @@ void Game::CreateDeviceDependentResources()
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
-    using namespace Gradient;
+    
     // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
 
     Entity sphere1;
@@ -246,7 +255,7 @@ void Game::CreateDeviceDependentResources()
     sphere1Settings.mLinearVelocity = JPH::Vec3{ 1.5f, 0, 0 };
     sphere1.BodyID = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
 
-    m_entityManager.AddEntity(std::move(sphere1));
+    entityManager->AddEntity(std::move(sphere1));
 
     Entity sphere2;
     sphere2.id = "sphere2";
@@ -263,13 +272,13 @@ void Game::CreateDeviceDependentResources()
     sphere2Settings.mRestitution = 0.9f;
     sphere2.BodyID = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
 
-    m_entityManager.AddEntity(std::move(sphere2));
+    entityManager->AddEntity(std::move(sphere2));
 
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
-    m_entityManager.AddEntity(std::move(floor));
+    entityManager->AddEntity(std::move(floor));
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
     JPH::BodyCreationSettings floorSettings(
@@ -282,7 +291,7 @@ void Game::CreateDeviceDependentResources()
 
     auto floorBodyId = bodyInterface.CreateAndAddBody(floorSettings, JPH::EActivation::DontActivate);
 
-    Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
+    Physics::PhysicsEngine::Get()->StartSimulation();
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -294,7 +303,8 @@ void Game::CreateWindowSizeDependentResources()
 
 void Game::OnDeviceLost()
 {
-    m_entityManager.OnDeviceLost();
+    auto entityManager = Gradient::EntityManager::Get();
+    entityManager->OnDeviceLost();
 }
 
 void Game::OnDeviceRestored()
