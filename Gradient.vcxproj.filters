@@ -28,6 +28,7 @@
     <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
+    <ClInclude Include="GUI\EntityWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -45,6 +46,7 @@
     <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
+    <ClCompile Include="GUI\EntityWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

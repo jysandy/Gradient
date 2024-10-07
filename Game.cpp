@@ -74,6 +74,16 @@ void Game::Update(DX::StepTimer const& timer)
     m_entityManager.UpdateAll(timer);
 
     m_physicsWindow.Update();
+    if (Gradient::Physics::PhysicsEngine::Get()->IsPaused())
+    {
+        m_entityWindow.Enable(m_entityManager);
+    }
+    else
+    {
+        m_entityWindow.Disable();
+    }
+
+    m_entityWindow.Update(m_entityManager);
 }
 #pragma endregion
 
@@ -102,6 +112,7 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     m_physicsWindow.Draw();
+    m_entityWindow.Draw();
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

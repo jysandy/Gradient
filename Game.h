@@ -16,6 +16,7 @@
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "GUI/PhysicsWindow.h"
+#include "GUI/EntityWindow.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -79,4 +80,5 @@ private:
     Gradient::EntityManager m_entityManager;
     Gradient::Camera m_camera;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
+    Gradient::GUI::EntityWindow m_entityWindow;
 };

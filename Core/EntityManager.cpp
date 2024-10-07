@@ -51,7 +51,9 @@ namespace Gradient
 
     void EntityManager::AddEntity(Entity&& entity)
     {
+        auto theID = entity.id;
         m_entities.push_back(std::move(entity));
+        m_idToIndex.insert({ theID, m_entities.size() - 1 });
     }
 
     void EntityManager::RegisterUpdate(std::string const& entityId, EntityManager::UpdateFunctionType updateFn)
@@ -99,6 +101,23 @@ namespace Gradient
                     view,
                     projection);
             }
+        }
+    }
+
+    const Entity* EntityManager::LookupEntity(const std::string& id)
+    {
+        if (auto it = m_idToIndex.find(id); it != m_idToIndex.end())
+        {
+            return &m_entities[it->second];
+        }
+        return nullptr;
+    }
+
+    void EntityManager::MutateEntity(const std::string& id, std::function<void(Entity&)> mutatorFn)
+    {
+        if (auto it = m_idToIndex.find(id); it != m_idToIndex.end())
+        {
+            mutatorFn(m_entities[it->second]);
         }
     }
 }

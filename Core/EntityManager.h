@@ -26,11 +26,21 @@ namespace Gradient
         void AddEntity(Entity&&, UpdateFunctionType);
         void RegisterUpdate(std::string const& entityId, UpdateFunctionType);
         void DeregisterUpdate(std::string const& entityId);
+
+        // This pointer is not guaranteed to remain valid!
+        // TODO: Make the entity contain only handles/IDs, 
+        // so that it can be cheaply copied around
+        const Entity* LookupEntity(const std::string& id);
+        void MutateEntity(const std::string& id, std::function<void(Entity&)>);
         
         void OnDeviceLost();
     
     private:
+        // TODO: Make this concurrency safe
+        // We can have multiple readers or editors,
+        // but adders need to be serialized
         std::vector<Entity> m_entities;
         std::unordered_map<std::string, UpdateFunctionType> m_updateFunctions;
+        std::unordered_map<std::string, size_t> m_idToIndex;
     };
 }
