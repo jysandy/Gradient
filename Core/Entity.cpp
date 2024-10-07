@@ -41,6 +41,12 @@ namespace Gradient
                 rotationQuat.w),
                 isActive ? JPH::EActivation::Activate : JPH::EActivation::DontActivate
             );
+
+            // Static entities are not synced by the EntityManager
+            if (bodyInterface.GetMotionType(BodyID) == JPH::EMotionType::Static)
+            {
+                Rotation = Matrix::CreateFromQuaternion(rotationQuat);
+            }
         }
     }
 
@@ -52,6 +58,7 @@ namespace Gradient
 
     Vector3 Entity::GetTranslation() const
     {
+        // This doesn't read from the physics engine, for efficiency
         return this->Translation.Translation();
     }
 
@@ -69,6 +76,12 @@ namespace Gradient
                 JPH::Vec3(offset.x, offset.y, offset.z),
                 isActive ? JPH::EActivation::Activate : JPH::EActivation::DontActivate
                 );
+
+            // Static entities are not synced by the EntityManager
+            if (bodyInterface.GetMotionType(BodyID) == JPH::EMotionType::Static)
+            {
+                Translation = Matrix::CreateTranslation(offset);
+            }
         }
     }
 }

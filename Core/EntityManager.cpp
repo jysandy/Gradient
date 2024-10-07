@@ -72,6 +72,7 @@ namespace Gradient
         auto theID = entity.id;
         m_entities.push_back(std::move(entity));
         m_idToIndex.insert({ theID, m_entities.size() - 1 });
+        m_idSet.insert(theID);
     }
 
     void EntityManager::RegisterUpdate(std::string const& entityId, EntityManager::UpdateFunctionType updateFn)
@@ -91,6 +92,11 @@ namespace Gradient
         {
             m_updateFunctions.erase(it);
         }
+    }
+
+    const std::set<std::string>& EntityManager::GetIDs() const
+    {
+        return m_idSet;
     }
 
     void EntityManager::OnDeviceLost()

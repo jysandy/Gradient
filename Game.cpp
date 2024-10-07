@@ -278,7 +278,6 @@ void Game::CreateDeviceDependentResources()
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
-    entityManager->AddEntity(std::move(floor));
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
     JPH::BodyCreationSettings floorSettings(
@@ -290,6 +289,8 @@ void Game::CreateDeviceDependentResources()
     );
 
     auto floorBodyId = bodyInterface.CreateAndAddBody(floorSettings, JPH::EActivation::DontActivate);
+    floor.BodyID = floorBodyId;
+    entityManager->AddEntity(std::move(floor));
 
     Physics::PhysicsEngine::Get()->StartSimulation();
 }

@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 #include <unordered_map>
+#include <set>
 #include <directxtk/SimpleMath.h>
 #include "Core/Entity.h"
 #include "StepTimer.h"
@@ -29,6 +30,7 @@ namespace Gradient
         void AddEntity(Entity&&, UpdateFunctionType);
         void RegisterUpdate(std::string const& entityId, UpdateFunctionType);
         void DeregisterUpdate(std::string const& entityId);
+        const std::set<std::string>& GetIDs() const;
 
         // This pointer is not guaranteed to remain valid!
         // TODO: Make the entity contain only handles/IDs, 
@@ -48,5 +50,11 @@ namespace Gradient
         std::vector<Entity> m_entities;
         std::unordered_map<std::string, UpdateFunctionType> m_updateFunctions;
         std::unordered_map<std::string, size_t> m_idToIndex;
+
+        // This set needs to be ordered since it's used for 
+        // UI rendering.
+        // Changing m_idToIndex to an ordered map would make 
+        // lookups by ID less efficient.
+        std::set<std::string> m_idSet;
     };
 }

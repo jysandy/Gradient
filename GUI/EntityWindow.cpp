@@ -9,7 +9,28 @@ namespace Gradient::GUI
     {
         if (!m_enabled) return;
 
+        auto entityManager = EntityManager::Get();
+
         ImGui::Begin("Entity");
+        
+        const auto& idSet = entityManager->GetIDs();
+        std::vector<const char*> cstrings;
+        for (const auto& id : idSet)
+        {
+            cstrings.push_back(id.c_str());
+        }
+
+        ImGui::Combo("Entity ID", 
+            &m_currentEntityIdx, 
+            cstrings.data(), 
+            cstrings.size());
+
+        if (m_currentEntityIdx != m_oldEntityIdx)
+        {
+            SyncEntityState();
+            m_oldEntityIdx = m_currentEntityIdx;
+        }
+
         ImGui::InputFloat3("Translation", m_translation);
         ImGui::SliderFloat3("Rotation yaw/pitch/roll", m_rotationYawPitchRoll, -DirectX::XM_2PI, DirectX::XM_2PI);
         ImGui::End();
@@ -35,7 +56,7 @@ namespace Gradient::GUI
         if (!m_enabled) return;
 
         auto entityManager = EntityManager::Get();
-        entityManager->MutateEntity(m_entityID, m_mutator);
+        entityManager->MutateEntity(GetCurrentEntityID(), m_mutator);
     }
 
     void EntityWindow::Disable()
@@ -43,12 +64,10 @@ namespace Gradient::GUI
         m_enabled = false;
     }
 
-    void EntityWindow::Enable()
+    void EntityWindow::SyncEntityState()
     {
-        if (m_enabled) return;
-
         auto entityManager = EntityManager::Get();
-        auto e = entityManager->LookupEntity(m_entityID);
+        auto e = entityManager->LookupEntity(GetCurrentEntityID());
         auto t = e->GetTranslation();
         auto r = e->GetRotationYawPitchRoll();
 
@@ -59,7 +78,23 @@ namespace Gradient::GUI
         m_rotationYawPitchRoll[0] = r.y;
         m_rotationYawPitchRoll[1] = r.x;
         m_rotationYawPitchRoll[2] = r.z;
+    }
 
+    std::string EntityWindow::GetCurrentEntityID()
+    {
+        auto entityManager = EntityManager::Get();
+        const auto& idSet = entityManager->GetIDs();
+
+        auto it = idSet.begin();
+        std::advance(it, m_currentEntityIdx);
+        return *it;
+    }
+
+    void EntityWindow::Enable()
+    {
+        if (m_enabled) return;
+
+        SyncEntityState();
         m_enabled = true;
     }
 }

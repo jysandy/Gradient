@@ -16,12 +16,16 @@ namespace Gradient::GUI
         void Disable();
 
     private:
+        void SyncEntityState();
+        std::string GetCurrentEntityID();
+
         bool m_enabled = false;
         float m_translation[3];
         float m_rotationYawPitchRoll[3];
 
-        std::function<void(Entity&)> m_mutator;
+        int m_oldEntityIdx = 0;
+        int m_currentEntityIdx = 0;
 
-        const std::string m_entityID = "sphere1";
+        std::function<void(Entity&)> m_mutator;
     };
 }
