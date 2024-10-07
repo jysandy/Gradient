@@ -18,7 +18,7 @@ namespace Gradient::GUI
     private:
         bool m_enabled = false;
         float m_translation[3];
-        float m_rotation[3];
+        float m_rotationYawPitchRoll[3];
 
         std::function<void(Entity&)> m_mutator;
 
