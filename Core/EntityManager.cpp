@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "Core/EntityManager.h"
+#include "Core/TextureManager.h"
 #include <directxtk/GeometricPrimitive.h>
 #include <directxtk/SimpleMath.h>
 #include <utility>
@@ -107,23 +108,34 @@ namespace Gradient
         }
     }
 
-    void EntityManager::DrawAll(Matrix const& view, Matrix const& projection)
+    void EntityManager::DrawAll(Matrix const& view, 
+        Matrix const& projection,
+        Effects::BlinnPhongEffect* effect)
     {
+        auto textureManager = TextureManager::Get();
         for (auto const& entity : m_entities)
         {
             if (entity.Texture != nullptr)
             {
-                entity.Primitive->Draw(entity.GetWorldMatrix(),
+
+                effect->SetTexture(entity.Texture);
+                effect->SetMatrices(entity.GetWorldMatrix(),
                     view,
-                    projection,
-                    DirectX::Colors::White,
-                    entity.Texture);
+                    projection);
+
+                entity.Primitive->Draw(effect, effect->GetInputLayout());
             }
             else
             {
-                entity.Primitive->Draw(entity.GetWorldMatrix(),
+                // TODO: Set the view and projection matrices on the effect 
+                // before passing it in here.
+                auto blankTexture = textureManager->GetTexture("default");
+                effect->SetTexture(blankTexture);
+                effect->SetMatrices(entity.GetWorldMatrix(),
                     view,
                     projection);
+
+                entity.Primitive->Draw(effect, effect->GetInputLayout());
             }
         }
     }

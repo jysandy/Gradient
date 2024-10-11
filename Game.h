@@ -8,6 +8,7 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>
+#include <directxtk/CommonStates.h>
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
@@ -15,6 +16,7 @@
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
+#include "Core/Effects/BlinnPhongEffect.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -76,8 +78,10 @@ private:
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
+    std::shared_ptr<DirectX::CommonStates> m_states;
     
     Gradient::Camera m_camera;
+    std::unique_ptr<Gradient::Effects::BlinnPhongEffect> m_effect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
 };

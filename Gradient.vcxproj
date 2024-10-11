@@ -190,11 +190,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Camera.h" />
+    <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
+    <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="Game.h" />
@@ -207,6 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Camera.cpp" />
+    <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
@@ -231,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="BasketballColor.jpg" />
+    <Image Include="DefaultTexture.png" />
     <Image Include="directx.ico" />
     <Image Include="SoftballColor.jpg" />
   </ItemGroup>
@@ -242,6 +246,20 @@
     <None Include="README.md" />
     <None Include="vcpkg-configuration.json" />
     <None Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Core\Effects\blinn_phong_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Core\Effects\blinn_phong_vs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

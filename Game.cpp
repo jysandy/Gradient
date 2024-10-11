@@ -21,6 +21,7 @@ Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>(
         DXGI_FORMAT_B8G8R8A8_UNORM,
+        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
         DXGI_FORMAT_D32_FLOAT,
         2,
         D3D_FEATURE_LEVEL_11_1
@@ -111,7 +112,8 @@ void Game::Render()
 
     entityManager->DrawAll(
         m_camera.GetViewMatrix(),
-        m_camera.GetProjectionMatrix());
+        m_camera.GetProjectionMatrix(),
+        m_effect.get());
 
     m_deviceResources->PIXEndEvent();
 
@@ -135,7 +137,7 @@ void Game::Clear()
     auto renderTarget = m_deviceResources->GetRenderTargetView();
     auto depthStencil = m_deviceResources->GetDepthStencilView();
 
-    context->ClearRenderTargetView(renderTarget, Colors::CornflowerBlue);
+    context->ClearRenderTargetView(renderTarget, ColorsLinear::CornflowerBlue);
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
 
@@ -217,8 +219,13 @@ void Game::CreateDeviceDependentResources()
 {
     using namespace Gradient;
 
+    auto device = m_deviceResources->GetD3DDevice();
+
+    m_states = std::make_shared<DirectX::CommonStates>(device);
+    m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
+
     EntityManager::Initialize();
-    TextureManager::Initialize();
+    TextureManager::Initialize(m_deviceResources->GetD3DDevice());
 
     auto entityManager = EntityManager::Get();
     auto textureManager = TextureManager::Get();

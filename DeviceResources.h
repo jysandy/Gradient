@@ -25,6 +25,7 @@ namespace DX
         static constexpr unsigned int c_EnableHDR    = 0x4;
 
         DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
+                        DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
                         DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
                         UINT backBufferCount = 2,
                         D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_10_0,
@@ -104,6 +105,7 @@ namespace DX
         // Direct3D properties.
         DXGI_FORMAT                                     m_backBufferFormat;
         DXGI_FORMAT                                     m_depthBufferFormat;
+        DXGI_FORMAT                                     m_renderTargetFormat;
         UINT                                            m_backBufferCount;
         D3D_FEATURE_LEVEL                               m_d3dMinFeatureLevel;
 

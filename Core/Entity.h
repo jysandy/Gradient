@@ -19,7 +19,7 @@ namespace Gradient
         DirectX::SimpleMath::Matrix Rotation;
         DirectX::SimpleMath::Matrix Translation;
         std::unique_ptr<DirectX::GeometricPrimitive> Primitive;
-        ID3D11ShaderResourceView* Texture = nullptr;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Texture = nullptr;
 
         Entity();
         DirectX::SimpleMath::Matrix GetWorldMatrix() const;

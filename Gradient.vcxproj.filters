@@ -29,6 +29,8 @@
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
+    <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
+    <ClInclude Include="Core\ReadData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -47,6 +49,7 @@
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
+    <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -61,6 +64,9 @@
     <Image Include="SoftballColor.jpg">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="DefaultTexture.png">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">
@@ -72,5 +78,9 @@
     <None Include="vcpkg-configuration.json" />
     <None Include=".gitignore" />
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Core\Effects\blinn_phong_ps.hlsl" />
+    <FxCompile Include="Core\Effects\blinn_phong_vs.hlsl" />
   </ItemGroup>
 </Project>

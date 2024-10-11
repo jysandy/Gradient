@@ -8,6 +8,7 @@
 #include <set>
 #include <directxtk/SimpleMath.h>
 #include "Core/Entity.h"
+#include "Core/Effects/BlinnPhongEffect.h"
 #include "StepTimer.h"
 
 
@@ -24,7 +25,9 @@ namespace Gradient
         static EntityManager* Get();
 
         void UpdateAll(DX::StepTimer const&);
-        void DrawAll(DirectX::SimpleMath::Matrix const& view, DirectX::SimpleMath::Matrix const& projection);
+        void DrawAll(DirectX::SimpleMath::Matrix const& view, 
+            DirectX::SimpleMath::Matrix const& projection,
+            Effects::BlinnPhongEffect* effect);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);

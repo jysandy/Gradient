@@ -63,12 +63,14 @@ namespace
 // Constructor for DeviceResources.
 DeviceResources::DeviceResources(
     DXGI_FORMAT backBufferFormat,
+    DXGI_FORMAT renderTargetFormat,
     DXGI_FORMAT depthBufferFormat,
     UINT backBufferCount,
     D3D_FEATURE_LEVEL minFeatureLevel,
     unsigned int flags) noexcept :
         m_screenViewport{},
         m_backBufferFormat(backBufferFormat),
+        m_renderTargetFormat(renderTargetFormat),
         m_depthBufferFormat(depthBufferFormat),
         m_backBufferCount(backBufferCount),
         m_d3dMinFeatureLevel(minFeatureLevel),
@@ -345,7 +347,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
     // Create a render target view of the swap chain back buffer.
     ThrowIfFailed(m_swapChain->GetBuffer(0, IID_PPV_ARGS(m_renderTarget.ReleaseAndGetAddressOf())));
 
-    CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(D3D11_RTV_DIMENSION_TEXTURE2D, m_backBufferFormat);
+    CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(D3D11_RTV_DIMENSION_TEXTURE2D, m_renderTargetFormat);
     ThrowIfFailed(m_d3dDevice->CreateRenderTargetView(
         m_renderTarget.Get(),
         &renderTargetViewDesc,
