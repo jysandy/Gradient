@@ -110,6 +110,7 @@ void Game::Render()
 
     auto entityManager = Gradient::EntityManager::Get();
 
+    m_effect->SetCameraPosition(m_camera.GetPosition());
     entityManager->DrawAll(
         m_camera.GetViewMatrix(),
         m_camera.GetProjectionMatrix(),

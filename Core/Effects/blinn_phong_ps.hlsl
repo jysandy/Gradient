@@ -40,16 +40,13 @@ cbuffer LightBuffer : register(b0)
     DirectionalLight directionalLight;
     uint numPointLights;
 };
+*/
 
 cbuffer CameraBuffer : register(b1)
 {
     float3 cameraPosition;
     float pad;
 }
-*/
-
-float3 cameraPosition = { 0.f, 10.f, 25.f };
-
 
 struct InputType
 {
@@ -67,7 +64,7 @@ float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition
     
     float3 viewVector = normalize(cameraPosition - worldPosition);
     float3 halfVector = normalize((viewVector + toLight) / 2.f);
-    float4 specularColour = pow(max(dot(halfVector, normal), 0), 128)
+    float4 specularColour = pow(max(dot(halfVector, normal), 0), 256)
         * light.specular;
     
     return specularColour + light.ambient + colour;
@@ -125,17 +122,14 @@ float4 main(InputType input) : SV_TARGET
     DirectionalLight directionalLight;
     directionalLight.diffuse = float4(0.8f, 0.8f, 0.6f, 1.f);
     directionalLight.ambient = float4(0.1f, 0.1f, 0.1f, 1.f);
-    directionalLight.specular = float4(1.f, 1.f, 1.f, 1.f);
-    directionalLight.direction = float3(0.5f, -0.5f, -1.f);
+    directionalLight.specular = float4(0.8f, 0.8f, 0.4f, 1.f);
+    directionalLight.direction = float3(-0.5f, -0.5f, 1.f);
     
     float4 directionalLightColour = calculateDirectionalLighting(directionalLight, input.worldPosition, input.normal);
     
     //float4 outputColour = saturate(pointLightColour + spotLightColour + directionalLightColour) * textureColour;
     
     float4 outputColour = saturate(directionalLightColour) * textureColour;
-    
-	// Compensate for gamma correction. Do we need this?
-    //outputColour = pow(outputColour, 1.0f / 2.2f);
 	
     return outputColour;
 }

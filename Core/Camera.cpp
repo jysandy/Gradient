@@ -143,4 +143,9 @@ namespace Gradient
     {
         m_position = pos;
     }
+
+    Vector3 Camera::GetPosition()
+    {
+        return m_position;
+    }
 }

@@ -19,6 +19,12 @@ namespace Gradient::Effects
             DirectX::XMMATRIX proj;
         };
 
+        struct __declspec(align(16)) PixelCameraCB
+        {
+            DirectX::XMFLOAT3 cameraPosition;
+            float pad;
+        };
+
         using VertexType = DirectX::VertexPositionNormalTexture;
 
         explicit BlinnPhongEffect(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
@@ -37,12 +43,15 @@ namespace Gradient::Effects
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
+        void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
+
     private:
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
+        DirectX::ConstantBuffer<PixelCameraCB> m_pixelCameraCB;
         std::shared_ptr<DirectX::CommonStates> m_states;
 
         std::vector<uint8_t> m_vsData;
@@ -51,5 +60,7 @@ namespace Gradient::Effects
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;
+
+        DirectX::SimpleMath::Vector3 m_cameraPosition;
     };
 }

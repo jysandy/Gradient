@@ -29,6 +29,7 @@ namespace Gradient::Effects
                 m_ps.ReleaseAndGetAddressOf()));
 
         m_vertexCB.Create(device);
+        m_pixelCameraCB.Create(device);
 
         device->CreateInputLayout(
             VertexType::InputElements,
@@ -59,10 +60,16 @@ namespace Gradient::Effects
 
         m_vertexCB.SetData(context, vertexConstants);
 
+        PixelCameraCB pixelConstants;
+        pixelConstants.cameraPosition = m_cameraPosition;
+        m_pixelCameraCB.SetData(context, pixelConstants);
+
         context->VSSetShader(m_vs.Get(), nullptr, 0);
         auto cb = m_vertexCB.GetBuffer();
         context->VSSetConstantBuffers(0, 1, &cb);
         context->PSSetShader(m_ps.Get(), nullptr, 0);
+        cb = m_pixelCameraCB.GetBuffer();
+        context->PSSetConstantBuffers(1, 1, &cb);
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
         auto samplerState = m_states->LinearWrap();
         context->PSSetSamplers(0, 1, &samplerState);
@@ -93,6 +100,11 @@ namespace Gradient::Effects
         m_world = world;
         m_view = view;
         m_proj = projection;
+    }
+
+    void BlinnPhongEffect::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
+    {
+        m_cameraPosition = cameraPosition;
     }
 
     ID3D11InputLayout* BlinnPhongEffect::GetInputLayout() const
