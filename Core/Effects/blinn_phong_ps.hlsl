@@ -104,6 +104,8 @@ float4 calculateSpotLighting(SpotLight light, float3 worldPosition, float3 norma
 
 float4 main(InputType input) : SV_TARGET
 {
+    input.normal = normalize(input.normal);
+    
     float4 textureColour;
     
     textureColour = texture0.Sample(sampler0, input.tex);
