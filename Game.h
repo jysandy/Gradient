@@ -66,7 +66,7 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
-    void SetShadowMapRenderTargets();
+    void SetShadowMapPipelineState();
     void Clear();
 
     void CreateDeviceDependentResources();
@@ -97,6 +97,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMapSRV;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> m_shadowMapDS;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_shadowMapDSV;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState1> m_shadowMapRSState;
 
     DirectX::SimpleMath::Matrix m_shadowMapView;
     DirectX::SimpleMath::Matrix m_shadowMapProj;

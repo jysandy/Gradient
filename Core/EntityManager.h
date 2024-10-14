@@ -18,16 +18,15 @@ namespace Gradient
     {
     public:
         using UpdateFunctionType = std::function<void(Entity&, DX::StepTimer const&)>;
-    
+
         static void Initialize();
         static void Shutdown();
 
         static EntityManager* Get();
 
         void UpdateAll(DX::StepTimer const&);
-        void DrawAll(DirectX::SimpleMath::Matrix const& view, 
-            DirectX::SimpleMath::Matrix const& projection,
-            Effects::IEntityEffect* effect);
+        void DrawAll(Effects::IEntityEffect* effect,
+            std::function<void()> setCustomState = nullptr);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);
@@ -40,9 +39,9 @@ namespace Gradient
         // so that it can be cheaply copied around
         const Entity* LookupEntity(const std::string& id);
         void MutateEntity(const std::string& id, std::function<void(Entity&)>);
-        
+
         void OnDeviceLost();
-    
+
     private:
         EntityManager();
         static std::unique_ptr<EntityManager> s_instance;

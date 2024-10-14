@@ -108,9 +108,7 @@ namespace Gradient
         }
     }
 
-    void EntityManager::DrawAll(Matrix const& view, 
-        Matrix const& projection,
-        Effects::IEntityEffect* effect)
+    void EntityManager::DrawAll(Effects::IEntityEffect* effect, std::function<void()> setCustomState)
     {
         auto textureManager = TextureManager::Get();
         for (auto const& entity : m_entities)
@@ -119,23 +117,25 @@ namespace Gradient
             {
 
                 effect->SetTexture(entity.Texture);
-                effect->SetMatrices(entity.GetWorldMatrix(),
-                    view,
-                    projection);
+                effect->SetWorld(entity.GetWorldMatrix());
 
-                entity.Primitive->Draw(effect, effect->GetInputLayout());
+                entity.Primitive->Draw(effect, 
+                    effect->GetInputLayout(),
+                    false,
+                    false,
+                    setCustomState);
             }
             else
             {
-                // TODO: Set the view and projection matrices on the effect 
-                // before passing it in here.
                 auto blankTexture = textureManager->GetTexture("default");
                 effect->SetTexture(blankTexture);
-                effect->SetMatrices(entity.GetWorldMatrix(),
-                    view,
-                    projection);
+                effect->SetWorld(entity.GetWorldMatrix());
 
-                entity.Primitive->Draw(effect, effect->GetInputLayout());
+                entity.Primitive->Draw(effect,
+                    effect->GetInputLayout(),
+                    false,
+                    false,
+                    setCustomState);
             }
         }
     }

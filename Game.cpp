@@ -116,14 +116,17 @@ void Game::Render()
 
     auto entityManager = Gradient::EntityManager::Get();
 
-    SetShadowMapRenderTargets();
+    SetShadowMapPipelineState();
     
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
-    entityManager->DrawAll(
-        m_shadowMapView,
-        m_shadowMapProj,
-        m_shadowMapEffect.get());
+    m_shadowMapEffect->SetView(m_shadowMapView);
+    m_shadowMapEffect->SetProjection(m_shadowMapProj);
+    entityManager->DrawAll(m_shadowMapEffect.get(), [this]() 
+        {
+            auto context = m_deviceResources->GetD3DDeviceContext();
+            context->RSSetState(m_shadowMapRSState.Get());
+        });
     
     m_deviceResources->PIXEndEvent();
 
@@ -139,11 +142,10 @@ void Game::Render()
     m_effect->SetCameraPosition(m_camera.GetPosition());
     m_effect->SetShadowMap(m_shadowMapSRV);
     m_effect->SetShadowTransform(GetShadowTransform());
+    m_effect->SetView(m_camera.GetViewMatrix());
+    m_effect->SetProjection(m_camera.GetProjectionMatrix());
 
-    entityManager->DrawAll(
-        m_camera.GetViewMatrix(),
-        m_camera.GetProjectionMatrix(),
-        m_effect.get());
+    entityManager->DrawAll(m_effect.get());
 
     m_deviceResources->PIXEndEvent();
 
@@ -157,9 +159,9 @@ void Game::Render()
     m_deviceResources->Present();
 }
 
-void Game::SetShadowMapRenderTargets()
+void Game::SetShadowMapPipelineState()
 {
-    m_deviceResources->PIXBeginEvent(L"SetShadowMapRenderTargets");
+    m_deviceResources->PIXBeginEvent(L"SetShadowMapPipelineState");
 
     auto context = m_deviceResources->GetD3DDeviceContext();
     context->ClearDepthStencilView(m_shadowMapDSV.Get(),
@@ -187,6 +189,8 @@ void Game::Clear()
     context->ClearRenderTargetView(renderTarget, ColorsLinear::CornflowerBlue);
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
+    
+    context->RSSetState(m_rsState.Get());
 
     // Set the viewport.
     auto const viewport = m_deviceResources->GetScreenViewport();
@@ -349,6 +353,8 @@ void Game::CreateDeviceDependentResources()
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
 
+    m_rsState = m_states->CullCounterClockwise();
+
     EntityManager::Initialize();
     TextureManager::Initialize(m_deviceResources->GetD3DDevice());
 
@@ -382,16 +388,16 @@ void Game::CreateShadowMapResources()
     m_shadowMapViewport = {
         0.0f,
         0.0f,
-        2048.f,
-        2048.f,
+        1024,
+        1024.f,
         0.f,
         1.f
     };
 
     CD3D11_TEXTURE2D_DESC depthStencilDesc(
         DXGI_FORMAT_R32_TYPELESS,
-        2048,
-        2048,
+        1024,
+        1024,
         1, // Use a single array entry.
         1, // Use a single mipmap level.
         D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
@@ -422,6 +428,23 @@ void Game::CreateShadowMapResources()
         m_shadowMapDS.Get(),
         &srvDesc,
         m_shadowMapSRV.ReleaseAndGetAddressOf()
+    ));
+
+    auto rsDesc = CD3D11_RASTERIZER_DESC1();
+    rsDesc.FillMode = D3D11_FILL_SOLID;
+    rsDesc.CullMode = D3D11_CULL_BACK;
+    rsDesc.FrontCounterClockwise = FALSE;
+    rsDesc.DepthClipEnable = TRUE;
+    rsDesc.ScissorEnable = FALSE;
+    rsDesc.MultisampleEnable = FALSE;
+    rsDesc.AntialiasedLineEnable = FALSE;
+    rsDesc.ForcedSampleCount = 0;
+    rsDesc.DepthBias = 10000;
+    rsDesc.SlopeScaledDepthBias = 1.f;
+    rsDesc.DepthBiasClamp = 0.01f;
+
+    DX::ThrowIfFailed(device->CreateRasterizerState1(&rsDesc,
+        m_shadowMapRSState.ReleaseAndGetAddressOf()
     ));
 }
 
