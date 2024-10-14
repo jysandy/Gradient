@@ -31,8 +31,8 @@ namespace Gradient::GUI
             m_oldEntityIdx = m_currentEntityIdx;
         }
 
-        ImGui::InputFloat3("Translation", m_translation);
-        ImGui::SliderFloat3("Rotation yaw/pitch/roll", m_rotationYawPitchRoll, -DirectX::XM_2PI, DirectX::XM_2PI);
+        ImGui::DragFloat3(("Translation##" + GetCurrentEntityID()).c_str(), m_translation, 0.1f);
+        ImGui::DragFloat3(("Rotation yaw/pitch/roll##" + GetCurrentEntityID()).c_str(), m_rotationYawPitchRoll, 0.1f, -DirectX::XM_2PI, DirectX::XM_2PI);
         ImGui::End();
     }
 

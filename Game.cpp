@@ -278,6 +278,9 @@ void Game::CreateEntities()
         "softball",
         L"SoftballColor.jpg"
     );
+    textureManager->LoadWICTexture(m_deviceResources->GetD3DDevice(),
+        "crate",
+        L"Wood_Crate_001_basecolor.jpg");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -340,6 +343,22 @@ void Game::CreateEntities()
     floor.BodyID = floorBodyId;
     entityManager->AddEntity(std::move(floor));
 
+    Entity box1;
+    box1.id = "box1";
+    box1.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box1.Texture = textureManager->GetTexture("crate");
+    box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
+    JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
+    JPH::BodyCreationSettings box1Settings(
+        box1Shape,
+        JPH::RVec3(-5.f, 1.5f, -4.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Gradient::Physics::ObjectLayers::MOVING
+    );
+    auto box1BodyId = bodyInterface.CreateAndAddBody(box1Settings, JPH::EActivation::Activate);
+    box1.BodyID = box1BodyId;
+    entityManager->AddEntity(std::move(box1));
 }
 
 #pragma region Direct3D Resources
@@ -441,7 +460,7 @@ void Game::CreateShadowMapResources()
     rsDesc.ForcedSampleCount = 0;
     rsDesc.DepthBias = 10000;
     rsDesc.SlopeScaledDepthBias = 1.f;
-    rsDesc.DepthBiasClamp = 0.01f;
+    rsDesc.DepthBiasClamp = 0.f;
 
     DX::ThrowIfFailed(device->CreateRasterizerState1(&rsDesc,
         m_shadowMapRSState.ReleaseAndGetAddressOf()

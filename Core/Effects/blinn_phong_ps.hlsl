@@ -87,8 +87,11 @@ float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition
     float3 halfVector = normalize((viewVector + toLight) / 2.f);
     float4 specularColour = pow(max(dot(halfVector, normal), 0), 256)
         * light.specular;
+  
+    float4 nonAmbient = specularColour + colour;
+    nonAmbient.rgb *= shadowFactor;
     
-    return shadowFactor * (specularColour + light.ambient + colour);
+    return light.ambient + nonAmbient;
 }
 
 float4 calculatePointLighting(PointLight light, float3 worldPosition, float3 normal)
