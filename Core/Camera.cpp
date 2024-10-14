@@ -140,7 +140,7 @@ namespace Gradient
 
     // Don't know if this is thread safe or not.
     void Camera::SetPosition(Vector3 const& pos)
-    {
+    {                  
         m_position = pos;
     }
 

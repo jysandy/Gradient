@@ -1,8 +1,9 @@
-// Light pixel shader
-// Calculate diffuse lighting for a single directional light (also texturing)
 
 Texture2D texture0 : register(t0);
 SamplerState sampler0 : register(s0);
+
+Texture2D shadowMap : register(t1);
+SamplerState shadowMapSampler : register(s1);
 
 struct PointLight
 {
@@ -42,10 +43,11 @@ cbuffer LightBuffer : register(b0)
 };
 */
 
-cbuffer CameraBuffer : register(b1)
+cbuffer Constants : register(b1)
 {
     float3 cameraPosition;
     float pad;
+    float4x4 shadowTransform;
 }
 
 struct InputType
@@ -56,8 +58,27 @@ struct InputType
     float3 worldPosition : POSITION1;
 };
 
+float calculateShadowFactor(float3 worldPosition)
+{
+    // TODO: Move this multiplication to the vertex shader
+    float4 shadowUV = mul(float4(worldPosition, 1.f), shadowTransform);
+    
+    shadowUV.xyz /= shadowUV.w;
+    
+    float depth = shadowUV.z;
+    // TODO: Use a samplercomparisonstate
+    float shadowDepth = shadowMap.Sample(shadowMapSampler, shadowUV.xy).r;
+    if (depth >= shadowDepth)
+    {
+        return 0;
+    }
+    return 1;
+}
+
 float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition, float3 normal)
 {
+    float shadowFactor = calculateShadowFactor(worldPosition);
+    
     float3 toLight = -normalize(light.direction);
     float intensity = saturate(dot(normal, toLight));
     float4 colour = light.diffuse * intensity;
@@ -67,7 +88,7 @@ float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition
     float4 specularColour = pow(max(dot(halfVector, normal), 0), 256)
         * light.specular;
     
-    return specularColour + light.ambient + colour;
+    return shadowFactor * (specularColour + light.ambient + colour);
 }
 
 float4 calculatePointLighting(PointLight light, float3 worldPosition, float3 normal)
@@ -125,7 +146,7 @@ float4 main(InputType input) : SV_TARGET
     directionalLight.diffuse = float4(0.8f, 0.8f, 0.6f, 1.f);
     directionalLight.ambient = float4(0.1f, 0.1f, 0.1f, 1.f);
     directionalLight.specular = float4(0.8f, 0.8f, 0.4f, 1.f);
-    directionalLight.direction = float3(-0.5f, -0.5f, 1.f);
+    directionalLight.direction = float3(-0.25f, -0.3f, 1.f);
     
     float4 directionalLightColour = calculateDirectionalLighting(directionalLight, input.worldPosition, input.normal);
     

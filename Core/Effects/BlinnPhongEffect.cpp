@@ -60,8 +60,9 @@ namespace Gradient::Effects
 
         m_vertexCB.SetData(context, vertexConstants);
 
-        PixelCameraCB pixelConstants;
+        PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
+        pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         m_pixelCameraCB.SetData(context, pixelConstants);
 
         context->VSSetShader(m_vs.Get(), nullptr, 0);
@@ -71,13 +72,28 @@ namespace Gradient::Effects
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
+        if (m_shadowMap != nullptr)
+            context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
         auto samplerState = m_states->LinearWrap();
         context->PSSetSamplers(0, 1, &samplerState);
+
+        samplerState = m_states->PointWrap();
+        context->PSSetSamplers(1, 1, &samplerState);
     }
 
     void BlinnPhongEffect::SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_texture = srv;
+    }
+
+    void BlinnPhongEffect::SetShadowMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_shadowMap = srv;
+    }
+
+    void BlinnPhongEffect::SetShadowTransform(DirectX::FXMMATRIX value)
+    {
+        m_shadowTransform = value;
     }
 
     void BlinnPhongEffect::SetWorld(DirectX::FXMMATRIX value)

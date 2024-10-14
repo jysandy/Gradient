@@ -110,7 +110,7 @@ namespace Gradient
 
     void EntityManager::DrawAll(Matrix const& view, 
         Matrix const& projection,
-        Effects::BlinnPhongEffect* effect)
+        Effects::IEntityEffect* effect)
     {
         auto textureManager = TextureManager::Get();
         for (auto const& entity : m_entities)

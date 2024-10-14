@@ -31,6 +31,8 @@
     <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
     <ClInclude Include="Core\ReadData.h" />
+    <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
+    <ClInclude Include="Core\Effects\IEntityEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -50,6 +52,7 @@
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
     <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
+    <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

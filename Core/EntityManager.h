@@ -27,7 +27,7 @@ namespace Gradient
         void UpdateAll(DX::StepTimer const&);
         void DrawAll(DirectX::SimpleMath::Matrix const& view, 
             DirectX::SimpleMath::Matrix const& projection,
-            Effects::BlinnPhongEffect* effect);
+            Effects::IEntityEffect* effect);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);

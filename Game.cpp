@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
+#include <directxtk/SimpleMath.h>
 
 #include <imgui.h>
 #include "GUI/imgui_impl_win32.h"
@@ -53,6 +54,7 @@ void Game::Initialize(HWND window, int width, int height)
     // Initialize ImGUI
 
     ImGui_ImplDX11_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetD3DDeviceContext());
+    Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
 }
 
 #pragma region Frame Update
@@ -90,6 +92,18 @@ void Game::Update(DX::StepTimer const& timer)
 }
 #pragma endregion
 
+Matrix Game::GetShadowTransform()
+{
+    const auto t = Matrix(
+        0.5f, 0.f, 0.f, 0.f,
+        0.f, -0.5f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.5f, 0.5f, 0.f, 1.f
+    );
+
+    return m_shadowMapView * m_shadowMapProj * t;
+}
+
 #pragma region Frame Render
 // Draws the scene.
 void Game::Render()
@@ -100,6 +114,19 @@ void Game::Render()
         return;
     }
 
+    auto entityManager = Gradient::EntityManager::Get();
+
+    SetShadowMapRenderTargets();
+    
+    m_deviceResources->PIXBeginEvent(L"Shadow Pass");
+
+    entityManager->DrawAll(
+        m_shadowMapView,
+        m_shadowMapProj,
+        m_shadowMapEffect.get());
+    
+    m_deviceResources->PIXEndEvent();
+
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
@@ -108,9 +135,11 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Render");
 
-    auto entityManager = Gradient::EntityManager::Get();
-
+    // TODO: Pass the shadow map SRV here for sampling
     m_effect->SetCameraPosition(m_camera.GetPosition());
+    m_effect->SetShadowMap(m_shadowMapSRV);
+    m_effect->SetShadowTransform(GetShadowTransform());
+
     entityManager->DrawAll(
         m_camera.GetViewMatrix(),
         m_camera.GetProjectionMatrix(),
@@ -126,6 +155,23 @@ void Game::Render()
 
     // Show the new frame.
     m_deviceResources->Present();
+}
+
+void Game::SetShadowMapRenderTargets()
+{
+    m_deviceResources->PIXBeginEvent(L"SetShadowMapRenderTargets");
+
+    auto context = m_deviceResources->GetD3DDeviceContext();
+    context->ClearDepthStencilView(m_shadowMapDSV.Get(),
+        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+        1.f, 0);
+
+    ID3D11RenderTargetView* nullRTV = nullptr;
+
+    context->OMSetRenderTargets(1, &nullRTV, m_shadowMapDSV.Get());
+    context->RSSetViewports(1, &m_shadowMapViewport);
+
+    m_deviceResources->PIXEndEvent();
 }
 
 // Helper method to clear the back buffers.
@@ -214,19 +260,9 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 }
 #pragma endregion
 
-#pragma region Direct3D Resources
-// These are the resources that depend on the device.
-void Game::CreateDeviceDependentResources()
+void Game::CreateEntities()
 {
     using namespace Gradient;
-
-    auto device = m_deviceResources->GetD3DDevice();
-
-    m_states = std::make_shared<DirectX::CommonStates>(device);
-    m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
-
-    EntityManager::Initialize();
-    TextureManager::Initialize(m_deviceResources->GetD3DDevice());
 
     auto entityManager = EntityManager::Get();
     auto textureManager = TextureManager::Get();
@@ -243,7 +279,7 @@ void Game::CreateDeviceDependentResources()
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
-    
+
     // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
 
     Entity sphere1;
@@ -300,7 +336,93 @@ void Game::CreateDeviceDependentResources()
     floor.BodyID = floorBodyId;
     entityManager->AddEntity(std::move(floor));
 
-    Physics::PhysicsEngine::Get()->StartSimulation();
+}
+
+#pragma region Direct3D Resources
+// These are the resources that depend on the device.
+void Game::CreateDeviceDependentResources()
+{
+    using namespace Gradient;
+
+    auto device = m_deviceResources->GetD3DDevice();
+
+    m_states = std::make_shared<DirectX::CommonStates>(device);
+    m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
+
+    EntityManager::Initialize();
+    TextureManager::Initialize(m_deviceResources->GetD3DDevice());
+
+    CreateEntities();
+    CreateShadowMapResources();
+}
+
+void Game::CreateShadowMapResources()
+{
+    auto device = m_deviceResources->GetD3DDevice();
+
+    m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
+
+    const float sceneRadius = 15.f;
+    SimpleMath::Vector3 lightDirection(-0.25f, -0.3f, 1.f);
+    lightDirection.Normalize();
+    auto lightPosition = -2 * sceneRadius * lightDirection;
+
+    // TODO: Replace these with CreateShadow instead?
+    m_shadowMapView = SimpleMath::Matrix::CreateLookAt(lightPosition,
+        SimpleMath::Vector3::Zero,
+        SimpleMath::Vector3::UnitY);
+    
+    m_shadowMapProj = SimpleMath::Matrix::CreateOrthographic(
+        2 * sceneRadius,
+        2 * sceneRadius,
+        sceneRadius,
+        3 * sceneRadius
+    );
+
+    m_shadowMapViewport = {
+        0.0f,
+        0.0f,
+        2048.f,
+        2048.f,
+        0.f,
+        1.f
+    };
+
+    CD3D11_TEXTURE2D_DESC depthStencilDesc(
+        DXGI_FORMAT_R32_TYPELESS,
+        2048,
+        2048,
+        1, // Use a single array entry.
+        1, // Use a single mipmap level.
+        D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
+    );
+
+    DX::ThrowIfFailed(device->CreateTexture2D(
+        &depthStencilDesc,
+        nullptr,
+        m_shadowMapDS.ReleaseAndGetAddressOf()
+    ));
+
+    CD3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc(
+        D3D11_DSV_DIMENSION_TEXTURE2D,
+        DXGI_FORMAT_D32_FLOAT
+    );
+
+    DX::ThrowIfFailed(device->CreateDepthStencilView(
+        m_shadowMapDS.Get(),
+        &dsvDesc,
+        m_shadowMapDSV.ReleaseAndGetAddressOf()
+    ));
+
+    CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc(m_shadowMapDS.Get(),
+        D3D11_SRV_DIMENSION_TEXTURE2D,
+        DXGI_FORMAT_R32_FLOAT);
+
+    DX::ThrowIfFailed(device->CreateShaderResourceView(
+        m_shadowMapDS.Get(),
+        &srvDesc,
+        m_shadowMapSRV.ReleaseAndGetAddressOf()
+    ));
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

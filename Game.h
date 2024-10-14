@@ -17,6 +17,7 @@
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Effects/BlinnPhongEffect.h"
+#include "Core/Effects/ShadowMapEffect.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -65,23 +66,40 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
+    void SetShadowMapRenderTargets();
     void Clear();
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
+    void CreateEntities();
+    void CreateShadowMapResources();
 
     // Device resources.
-    std::unique_ptr<DX::DeviceResources>    m_deviceResources;
+    std::unique_ptr<DX::DeviceResources> m_deviceResources;
 
     // Rendering loop timer.
-    DX::StepTimer                           m_timer;
+    DX::StepTimer m_timer;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
     std::shared_ptr<DirectX::CommonStates> m_states;
-    
+
     Gradient::Camera m_camera;
     std::unique_ptr<Gradient::Effects::BlinnPhongEffect> m_effect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rsState;
+
+    // Shadow map resources
+
+    std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
+    D3D11_VIEWPORT m_shadowMapViewport;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMapSRV;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_shadowMapDS;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_shadowMapDSV;
+
+    DirectX::SimpleMath::Matrix m_shadowMapView;
+    DirectX::SimpleMath::Matrix m_shadowMapProj;
+
+    DirectX::SimpleMath::Matrix GetShadowTransform();
 };

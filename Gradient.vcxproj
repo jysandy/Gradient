@@ -191,6 +191,8 @@
   <ItemGroup>
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
+    <ClInclude Include="Core\Effects\IEntityEffect.h" />
+    <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
@@ -210,6 +212,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
+    <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
