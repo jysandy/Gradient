@@ -3,7 +3,7 @@ Texture2D texture0 : register(t0);
 SamplerState sampler0 : register(s0);
 
 Texture2D shadowMap : register(t1);
-SamplerState shadowMapSampler : register(s1);
+SamplerComparisonState shadowMapSampler : register(s1);
 
 struct PointLight
 {
@@ -65,14 +65,8 @@ float calculateShadowFactor(float3 worldPosition)
     
     shadowUV.xyz /= shadowUV.w;
     
-    float depth = shadowUV.z;
-    // TODO: Use a samplercomparisonstate
-    float shadowDepth = shadowMap.Sample(shadowMapSampler, shadowUV.xy).r;
-    if (depth >= shadowDepth)
-    {
-        return 0;
-    }
-    return 1;
+    float depth = shadowUV.z;    
+    return saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler, shadowUV.xy, depth).r);
 }
 
 float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition, float3 normal)

@@ -57,6 +57,7 @@ namespace Gradient::Effects
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
         std::shared_ptr<DirectX::CommonStates> m_states;
+        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
 
         std::vector<uint8_t> m_vsData;
         std::vector<uint8_t> m_psData;

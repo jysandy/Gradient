@@ -31,13 +31,32 @@ namespace Gradient::Effects
         m_vertexCB.Create(device);
         m_pixelCameraCB.Create(device);
 
-        device->CreateInputLayout(
-            VertexType::InputElements,
-            VertexType::InputElementCount,
-            m_vsData.data(),
-            m_vsData.size(),
-            m_inputLayout.ReleaseAndGetAddressOf()
+        DX::ThrowIfFailed(
+            device->CreateInputLayout(
+                VertexType::InputElements,
+                VertexType::InputElementCount,
+                m_vsData.data(),
+                m_vsData.size(),
+                m_inputLayout.ReleaseAndGetAddressOf()
+            ));
+
+        CD3D11_SAMPLER_DESC cmpDesc(
+            D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+            D3D11_TEXTURE_ADDRESS_MIRROR,
+            D3D11_TEXTURE_ADDRESS_MIRROR,
+            D3D11_TEXTURE_ADDRESS_MIRROR,
+            0,
+            1,
+            D3D11_COMPARISON_LESS,
+            nullptr,
+            0,
+            0
         );
+
+        DX::ThrowIfFailed(
+            device->CreateSamplerState(&cmpDesc,
+                m_comparisonSS.ReleaseAndGetAddressOf()
+            ));
     }
 
     void BlinnPhongEffect::GetVertexShaderBytecode(
@@ -74,11 +93,11 @@ namespace Gradient::Effects
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
         if (m_shadowMap != nullptr)
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
+
         auto samplerState = m_states->LinearWrap();
         context->PSSetSamplers(0, 1, &samplerState);
 
-        samplerState = m_states->PointWrap();
-        context->PSSetSamplers(1, 1, &samplerState);
+        context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
     }
 
     void BlinnPhongEffect::SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
