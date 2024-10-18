@@ -117,17 +117,17 @@ void Game::Render()
     auto entityManager = Gradient::EntityManager::Get();
 
     SetShadowMapPipelineState();
-    
+
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
     m_shadowMapEffect->SetView(m_shadowMapView);
     m_shadowMapEffect->SetProjection(m_shadowMapProj);
-    entityManager->DrawAll(m_shadowMapEffect.get(), [this]() 
+    entityManager->DrawAll(m_shadowMapEffect.get(), [this]()
         {
             auto context = m_deviceResources->GetD3DDeviceContext();
             context->RSSetState(m_shadowMapRSState.Get());
         });
-    
+
     m_deviceResources->PIXEndEvent();
 
     ImGui_ImplDX11_NewFrame();
@@ -189,7 +189,7 @@ void Game::Clear()
     context->ClearRenderTargetView(renderTarget, ColorsLinear::CornflowerBlue);
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-    
+
     context->RSSetState(m_rsState.Get());
 
     // Set the viewport.
@@ -396,27 +396,31 @@ void Game::CreateShadowMapResources()
     m_shadowMapView = SimpleMath::Matrix::CreateLookAt(lightPosition,
         SimpleMath::Vector3::Zero,
         SimpleMath::Vector3::UnitY);
-    
-    m_shadowMapProj = SimpleMath::Matrix::CreateOrthographic(
-        2 * sceneRadius,
-        2 * sceneRadius,
+
+    m_shadowMapProj = SimpleMath::Matrix::CreateOrthographicOffCenter(
+        -sceneRadius,
+        sceneRadius,
+        -sceneRadius,
+        sceneRadius,
         sceneRadius,
         3 * sceneRadius
     );
 
+    const float shadowMapWidth = 2048.f;
+
     m_shadowMapViewport = {
         0.0f,
         0.0f,
-        1024,
-        1024.f,
+        shadowMapWidth,
+        shadowMapWidth,
         0.f,
         1.f
     };
 
     CD3D11_TEXTURE2D_DESC depthStencilDesc(
         DXGI_FORMAT_R32_TYPELESS,
-        1024,
-        1024,
+        (int)shadowMapWidth,
+        (int)shadowMapWidth,
         1, // Use a single array entry.
         1, // Use a single mipmap level.
         D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
