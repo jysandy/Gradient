@@ -239,10 +239,14 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="BasketballColor.jpg" />
+    <Image Include="CobbleDiffuse.bmp" />
+    <Image Include="CobbleNormal.bmp" />
+    <Image Include="DefaultNormalMap.png" />
     <Image Include="DefaultTexture.png" />
     <Image Include="directx.ico" />
     <Image Include="SoftballColor.jpg" />
     <Image Include="Wood_Crate_001_basecolor.jpg" />
+    <Image Include="Wood_Crate_001_normal.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest" />

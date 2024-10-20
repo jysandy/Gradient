@@ -14,14 +14,13 @@ namespace Gradient
 
         static TextureManager* Get();
         void LoadWICTexture(ID3D11Device* device, std::string key, std::wstring path);
+        void LoadWICNormalMap(ID3D11Device* device, std::string key, std::wstring path);
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetTexture(std::string key);
 
     private:
         static std::unique_ptr<TextureManager> s_textureManager;
 
         TextureManager();
-
-
 
         std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_textureMap;
     };

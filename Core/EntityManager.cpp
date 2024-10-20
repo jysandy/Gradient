@@ -115,28 +115,32 @@ namespace Gradient
         {
             if (entity.Texture != nullptr)
             {
-
                 effect->SetTexture(entity.Texture);
-                effect->SetWorld(entity.GetWorldMatrix());
-
-                entity.Primitive->Draw(effect, 
-                    effect->GetInputLayout(),
-                    false,
-                    false,
-                    setCustomState);
             }
             else
             {
                 auto blankTexture = textureManager->GetTexture("default");
                 effect->SetTexture(blankTexture);
-                effect->SetWorld(entity.GetWorldMatrix());
-
-                entity.Primitive->Draw(effect,
-                    effect->GetInputLayout(),
-                    false,
-                    false,
-                    setCustomState);
             }
+
+            if (entity.NormalMap != nullptr)
+            {
+                effect->SetNormalMap(entity.NormalMap);
+            }
+            else
+            {
+                auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
+                effect->SetNormalMap(outwardNormalMap);
+            }
+
+
+            effect->SetWorld(entity.GetWorldMatrix());
+
+            entity.Primitive->Draw(effect,
+                effect->GetInputLayout(),
+                false,
+                false,
+                setCustomState);
         }
     }
 

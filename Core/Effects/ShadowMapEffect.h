@@ -30,6 +30,7 @@ namespace Gradient::Effects
             size_t* pByteCodeLength) override;
 
         virtual void SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual ID3D11InputLayout* GetInputLayout() const override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;

@@ -75,6 +75,18 @@
     <Image Include="Wood_Crate_001_basecolor.jpg">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="DefaultNormalMap.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Wood_Crate_001_normal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="CobbleDiffuse.bmp">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="CobbleNormal.bmp">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">

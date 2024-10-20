@@ -7,7 +7,8 @@
 namespace Gradient::Effects
 {
     // Interface for effects that can be used by the EntityManager for rendering entities.
-    class IEntityEffect : public DirectX::IEffect, public DirectX::IEffectMatrices
+    class IEntityEffect : public DirectX::IEffect,
+        public DirectX::IEffectMatrices
     {
     public:
         virtual ~IEntityEffect() = default;
@@ -16,6 +17,7 @@ namespace Gradient::Effects
         IEntityEffect& operator=(const IEntityEffect&) = delete;
 
         virtual void SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) = 0;
+        virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) = 0;
         virtual ID3D11InputLayout* GetInputLayout() const = 0;
 
     protected:

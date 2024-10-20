@@ -16,6 +16,7 @@ namespace Gradient
         auto tm = new TextureManager();
         s_textureManager = std::unique_ptr<TextureManager>(tm);
         s_textureManager->LoadWICTexture(device, "default", L"DefaultTexture.png");
+        s_textureManager->LoadWICNormalMap(device, "defaultNormal", L"DefaultNormalMap.png");
     }
 
     void TextureManager::Shutdown()
@@ -44,6 +45,21 @@ namespace Gradient
                 0,
                 0,
                 DirectX::WIC_LOADER_FORCE_SRGB,
+                nullptr,
+                srv.ReleaseAndGetAddressOf()));
+
+        m_textureMap.insert({ key, srv });
+    }
+
+    void TextureManager::LoadWICNormalMap(ID3D11Device* device,
+        std::string key,
+        std::wstring path)
+    {
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+
+        DX::ThrowIfFailed(
+            DirectX::CreateWICTextureFromFile(device,
+                path.c_str(),
                 nullptr,
                 srv.ReleaseAndGetAddressOf()));
 

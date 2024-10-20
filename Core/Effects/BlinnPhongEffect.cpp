@@ -97,18 +97,27 @@ namespace Gradient::Effects
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
+        
         if (m_shadowMap != nullptr)
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
+        if (m_normalMap != nullptr)
+            context->PSSetShaderResources(2, 1, m_normalMap.GetAddressOf());
 
-        auto samplerState = m_states->LinearWrap();
+        auto samplerState = m_states->AnisotropicWrap();
         context->PSSetSamplers(0, 1, &samplerState);
-
         context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
+        samplerState = m_states->PointWrap();
+        context->PSSetSamplers(2, 1, &samplerState);
     }
 
     void BlinnPhongEffect::SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_texture = srv;
+    }
+
+    void BlinnPhongEffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_normalMap = srv;
     }
 
     void BlinnPhongEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
