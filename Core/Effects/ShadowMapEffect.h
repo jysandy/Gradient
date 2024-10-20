@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "Core/Effects/IEntityEffect.h"
+#include "Core/Rendering/DirectionalLight.h"
 #include <directxtk/Effects.h>
 #include <directxtk/VertexTypes.h>
 #include <directxtk/SimpleMath.h>
@@ -36,10 +37,13 @@ namespace Gradient::Effects
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
+        void SetDirectionalLight(Rendering::DirectionalLight* dLight);
+
     private:
         std::vector<uint8_t> m_vsData;
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowMapRSState;
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
 
         DirectX::SimpleMath::Matrix m_world;

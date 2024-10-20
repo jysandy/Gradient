@@ -18,6 +18,7 @@
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Effects/BlinnPhongEffect.h"
 #include "Core/Effects/ShadowMapEffect.h"
+#include "Core/Rendering/DirectionalLight.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -66,13 +67,11 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
-    void SetShadowMapPipelineState();
     void Clear();
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
     void CreateEntities();
-    void CreateShadowMapResources();
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources> m_deviceResources;
@@ -90,17 +89,7 @@ private:
     Gradient::GUI::EntityWindow m_entityWindow;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rsState;
 
-    // Shadow map resources
-
+    std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
-    D3D11_VIEWPORT m_shadowMapViewport;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMapSRV;
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_shadowMapDS;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_shadowMapDSV;
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState1> m_shadowMapRSState;
-
-    DirectX::SimpleMath::Matrix m_shadowMapView;
-    DirectX::SimpleMath::Matrix m_shadowMapProj;
-
-    DirectX::SimpleMath::Matrix GetShadowTransform();
+    
 };

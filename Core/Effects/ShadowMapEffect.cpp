@@ -24,6 +24,22 @@ namespace Gradient::Effects
             m_vsData.size(),
             m_inputLayout.ReleaseAndGetAddressOf()
         );
+
+        auto rsDesc = CD3D11_RASTERIZER_DESC();
+        rsDesc.FillMode = D3D11_FILL_SOLID;
+        rsDesc.CullMode = D3D11_CULL_BACK;
+        rsDesc.FrontCounterClockwise = FALSE;
+        rsDesc.DepthClipEnable = TRUE;
+        rsDesc.ScissorEnable = FALSE;
+        rsDesc.MultisampleEnable = FALSE;
+        rsDesc.AntialiasedLineEnable = FALSE;
+        rsDesc.DepthBias = 10000;
+        rsDesc.SlopeScaledDepthBias = 1.f;
+        rsDesc.DepthBiasClamp = 0.f;
+
+        DX::ThrowIfFailed(device->CreateRasterizerState(&rsDesc,
+            m_shadowMapRSState.ReleaseAndGetAddressOf()
+        ));
     }
 
     void ShadowMapEffect::GetVertexShaderBytecode(
@@ -81,5 +97,12 @@ namespace Gradient::Effects
         context->VSSetConstantBuffers(0, 1, &cb);
 
         context->PSSetShader(nullptr, nullptr, 0);
+        context->RSSetState(m_shadowMapRSState.Get());
+    }
+
+    void ShadowMapEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
+    {
+        SetView(dlight->GetView());
+        SetProjection(dlight->GetProjection());
     }
 }

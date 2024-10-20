@@ -30,6 +30,7 @@ namespace Gradient::Effects
 
         m_vertexCB.Create(device);
         m_pixelCameraCB.Create(device);
+        m_dLightCB.Create(device);
 
         DX::ThrowIfFailed(
             device->CreateInputLayout(
@@ -79,6 +80,8 @@ namespace Gradient::Effects
 
         m_vertexCB.SetData(context, vertexConstants);
 
+        m_dLightCB.SetData(context, m_dLightCBData);
+
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
@@ -88,6 +91,9 @@ namespace Gradient::Effects
         auto cb = m_vertexCB.GetBuffer();
         context->VSSetConstantBuffers(0, 1, &cb);
         context->PSSetShader(m_ps.Get(), nullptr, 0);
+        cb = m_dLightCB.GetBuffer();
+        context->PSSetConstantBuffers(0, 1, &cb);
+
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
@@ -105,14 +111,15 @@ namespace Gradient::Effects
         m_texture = srv;
     }
 
-    void BlinnPhongEffect::SetShadowMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void BlinnPhongEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
-        m_shadowMap = srv;
-    }
+        m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
+        m_shadowTransform = dlight->GetShadowTransform();
 
-    void BlinnPhongEffect::SetShadowTransform(DirectX::FXMMATRIX value)
-    {
-        m_shadowTransform = value;
+        m_dLightCBData.ambient = dlight->GetAmbient();
+        m_dLightCBData.diffuse = dlight->GetDiffuse();
+        m_dLightCBData.specular = dlight->GetSpecular();
+        m_dLightCBData.direction = dlight->GetDirection();
     }
 
     void BlinnPhongEffect::SetWorld(DirectX::FXMMATRIX value)
