@@ -48,6 +48,7 @@ namespace Gradient::Effects
 
         virtual void SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual ID3D11InputLayout* GetInputLayout() const override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
@@ -64,6 +65,7 @@ namespace Gradient::Effects
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalMap;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_aoMap;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;

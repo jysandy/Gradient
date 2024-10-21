@@ -113,13 +113,13 @@ namespace Gradient
         auto textureManager = TextureManager::Get();
         for (auto const& entity : m_entities)
         {
+            auto blankTexture = textureManager->GetTexture("default");
             if (entity.Texture != nullptr)
             {
                 effect->SetTexture(entity.Texture);
             }
             else
             {
-                auto blankTexture = textureManager->GetTexture("default");
                 effect->SetTexture(blankTexture);
             }
 
@@ -131,6 +131,15 @@ namespace Gradient
             {
                 auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
                 effect->SetNormalMap(outwardNormalMap);
+            }
+
+            if (entity.AOMap != nullptr)
+            {
+                effect->SetAOMap(entity.AOMap);
+            }
+            else
+            {
+                effect->SetAOMap(blankTexture);
             }
 
 

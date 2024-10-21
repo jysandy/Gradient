@@ -87,6 +87,12 @@
     <Image Include="CobbleNormal.bmp">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="CobbleAO.bmp">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Wood_Crate_001_ambientOcclusion.jpg">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">

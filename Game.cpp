@@ -263,6 +263,13 @@ void Game::CreateEntities()
     textureManager->LoadWICNormalMap(device,
         "cobbleNormal",
         L"CobbleNormal.bmp");
+    textureManager->LoadWICTexture(device,
+        "crateAO",
+        L"Wood_Crate_001_ambientOcclusion.jpg"
+        );
+    textureManager->LoadWICTexture(device,
+        "cobbleAO",
+        L"CobbleAO.bmp");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -312,6 +319,7 @@ void Game::CreateEntities()
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
     floor.Texture = textureManager->GetTexture("cobbleDiffuse");
     floor.NormalMap = textureManager->GetTexture("cobbleNormal");
+    floor.AOMap = textureManager->GetTexture("cobbleAO");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -331,6 +339,8 @@ void Game::CreateEntities()
     box1.id = "box1";
     box1.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
     box1.Texture = textureManager->GetTexture("crate");
+    box1.NormalMap = textureManager->GetTexture("crateNormal");
+    box1.AOMap = textureManager->GetTexture("crateAO");
     box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(

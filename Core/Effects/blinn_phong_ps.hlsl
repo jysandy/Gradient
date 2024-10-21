@@ -8,6 +8,9 @@ SamplerComparisonState shadowMapSampler : register(s1);
 Texture2D normalMap : register(t2);
 SamplerState pointSampler : register(s2);
 
+Texture2D aoMap : register(t3);
+SamplerState linearSampler : register(s3);
+
 struct PointLight
 {
     float4 diffuse;
@@ -98,7 +101,10 @@ float calculateShadowFactor(float3 worldPosition)
     return shadowFactor / 9.f;
 }
 
-float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition, float3 normal)
+float4 calculateDirectionalLighting(DirectionalLight light, 
+    float3 worldPosition, 
+    float3 normal,
+    float aoFactor)
 {
     float shadowFactor = calculateShadowFactor(worldPosition);
     
@@ -114,7 +120,7 @@ float4 calculateDirectionalLighting(DirectionalLight light, float3 worldPosition
     float4 nonAmbient = specularColour + colour;
     nonAmbient.rgb *= shadowFactor;
     
-    return light.ambient + nonAmbient;
+    return float4(light.ambient.rgb * aoFactor, 1.f) + nonAmbient;
 }
 
 float4 calculatePointLighting(PointLight light, float3 worldPosition, float3 normal)
@@ -177,15 +183,30 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
     return normalize(mul(map, TBN));
 }
 
+// Taken from https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+float3 ACESFilm(float3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 float4 main(InputType input) : SV_TARGET
 {
     input.normal = normalize(input.normal);
     
     float3 normal = perturbNormal(input.normal, input.worldPosition, input.tex);
     float4 textureColour = texture0.Sample(sampler0, input.tex);
+    float aoFactor = aoMap.Sample(linearSampler, input.tex);
     
-    float4 directionalLightColour = calculateDirectionalLighting(directionalLight, input.worldPosition, normal);
+    float4 directionalLightColour = calculateDirectionalLighting(directionalLight, 
+        input.worldPosition, 
+        normal,
+        aoFactor);
     
-    float4 outputColour = saturate(directionalLightColour) * textureColour;	
-    return outputColour;
+    float4 outputColour = directionalLightColour * textureColour;	
+    return float4(ACESFilm(outputColour.rgb), outputColour.a);
 }

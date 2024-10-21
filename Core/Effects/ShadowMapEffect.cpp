@@ -66,6 +66,11 @@ namespace Gradient::Effects
         // Ignored
     }
 
+    void ShadowMapEffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        // Ignored
+    }
+
     void ShadowMapEffect::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;
