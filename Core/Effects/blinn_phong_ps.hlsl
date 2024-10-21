@@ -177,6 +177,10 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 {
     float3 map = normalMap.SampleLevel(pointSampler, tex, 0).xyz;
     map.xy = map.xy * 2.f - 1.f;
+    // Using right-handed coordinates, and assuming green up
+    map.x = -map.x;
+    map.y = -map.y;
+    
     map.z = sqrt(1.f - dot(map.xy, map.xy));
     
     float3x3 TBN = cotangentFrame(N, worldPosition, tex);
@@ -200,7 +204,7 @@ float4 main(InputType input) : SV_TARGET
     
     float3 normal = perturbNormal(input.normal, input.worldPosition, input.tex);
     float4 textureColour = texture0.Sample(sampler0, input.tex);
-    float aoFactor = aoMap.Sample(linearSampler, input.tex);
+    float aoFactor = aoMap.Sample(linearSampler, input.tex).r;
     
     float4 directionalLightColour = calculateDirectionalLighting(directionalLight, 
         input.worldPosition, 
@@ -209,4 +213,7 @@ float4 main(InputType input) : SV_TARGET
     
     float4 outputColour = directionalLightColour * textureColour;	
     return float4(ACESFilm(outputColour.rgb), outputColour.a);
+    
+    // For normal debugging
+    //return float4(pow(normal * 0.5 + 0.5, 2.2), 1.f);
 }

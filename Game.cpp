@@ -243,40 +243,40 @@ void Game::CreateEntities()
     auto entityManager = EntityManager::Get();
     auto textureManager = TextureManager::Get();
     auto device = m_deviceResources->GetD3DDevice();
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICsRGB(device,
         "basketball",
         L"BasketballColor.jpg"
     );
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICsRGB(device,
         "softball",
         L"SoftballColor.jpg"
     );
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICsRGB(device,
         "crate",
         L"Wood_Crate_001_basecolor.jpg");
-    textureManager->LoadWICNormalMap(device,
+    textureManager->LoadWICLinear(device,
         "crateNormal",
         L"Wood_Crate_001_normal.jpg");
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICsRGB(device,
         "cobbleDiffuse",
         L"CobbleDiffuse.bmp");
-    textureManager->LoadWICNormalMap(device,
+    textureManager->LoadWICLinear(device,
         "cobbleNormal",
         L"CobbleNormal.bmp");
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICLinear(device,
         "crateAO",
         L"Wood_Crate_001_ambientOcclusion.jpg"
         );
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICLinear(device,
         "cobbleAO",
         L"CobbleAO.bmp");
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICsRGB(device,
         "tilesDiffuse",
         L"TilesDiffuse.jpg");
-    textureManager->LoadWICNormalMap(device,
+    textureManager->LoadWICLinear(device,
         "tilesNormal",
         L"TilesNormal.jpg");
-    textureManager->LoadWICTexture(device,
+    textureManager->LoadWICLinear(device,
         "tilesAO",
         L"TilesAO.jpg");
 
@@ -384,7 +384,7 @@ void Game::CreateDeviceDependentResources()
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
-        { -0.3f, -0.6f, 0.5f },
+        { -0.3f, -0.6f, 0.3f },
         15.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);

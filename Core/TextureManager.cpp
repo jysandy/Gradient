@@ -15,8 +15,8 @@ namespace Gradient
     {
         auto tm = new TextureManager();
         s_textureManager = std::unique_ptr<TextureManager>(tm);
-        s_textureManager->LoadWICTexture(device, "default", L"DefaultTexture.png");
-        s_textureManager->LoadWICNormalMap(device, "defaultNormal", L"DefaultNormalMap.png");
+        s_textureManager->LoadWICsRGB(device, "default", L"DefaultTexture.png");
+        s_textureManager->LoadWICLinear(device, "defaultNormal", L"DefaultNormalMap.png");
     }
 
     void TextureManager::Shutdown()
@@ -29,13 +29,12 @@ namespace Gradient
         return s_textureManager.get();
     }
 
-    void TextureManager::LoadWICTexture(ID3D11Device* device,
+    void TextureManager::LoadWICsRGB(ID3D11Device* device,
         std::string key,
         std::wstring path)
     {
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
 
-        // Assumes the texture is not in linear space.
         DX::ThrowIfFailed(
             DirectX::CreateWICTextureFromFileEx(device,
                 path.c_str(),
@@ -51,15 +50,21 @@ namespace Gradient
         m_textureMap.insert({ key, srv });
     }
 
-    void TextureManager::LoadWICNormalMap(ID3D11Device* device,
+    void TextureManager::LoadWICLinear(ID3D11Device* device,
         std::string key,
         std::wstring path)
     {
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
 
         DX::ThrowIfFailed(
-            DirectX::CreateWICTextureFromFile(device,
+            DirectX::CreateWICTextureFromFileEx(device,
                 path.c_str(),
+                0,
+                D3D11_USAGE_DEFAULT,
+                D3D11_BIND_SHADER_RESOURCE,
+                0,
+                0,
+                DirectX::WIC_LOADER_IGNORE_SRGB,
                 nullptr,
                 srv.ReleaseAndGetAddressOf()));
 
