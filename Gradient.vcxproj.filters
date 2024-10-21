@@ -93,6 +93,15 @@
     <Image Include="Wood_Crate_001_ambientOcclusion.jpg">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="TilesAO.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="TilesDiffuse.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="TilesNormal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">

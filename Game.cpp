@@ -270,6 +270,15 @@ void Game::CreateEntities()
     textureManager->LoadWICTexture(device,
         "cobbleAO",
         L"CobbleAO.bmp");
+    textureManager->LoadWICTexture(device,
+        "tilesDiffuse",
+        L"TilesDiffuse.jpg");
+    textureManager->LoadWICNormalMap(device,
+        "tilesNormal",
+        L"TilesNormal.jpg");
+    textureManager->LoadWICTexture(device,
+        "tilesAO",
+        L"TilesAO.jpg");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -317,9 +326,9 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-    floor.Texture = textureManager->GetTexture("cobbleDiffuse");
-    floor.NormalMap = textureManager->GetTexture("cobbleNormal");
-    floor.AOMap = textureManager->GetTexture("cobbleAO");
+    floor.Texture = textureManager->GetTexture("tilesDiffuse");
+    floor.NormalMap = textureManager->GetTexture("tilesNormal");
+    floor.AOMap = textureManager->GetTexture("tilesAO");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));

@@ -246,6 +246,9 @@
     <Image Include="DefaultTexture.png" />
     <Image Include="directx.ico" />
     <Image Include="SoftballColor.jpg" />
+    <Image Include="TilesAO.jpg" />
+    <Image Include="TilesDiffuse.jpg" />
+    <Image Include="TilesNormal.jpg" />
     <Image Include="Wood_Crate_001_ambientOcclusion.jpg" />
     <Image Include="Wood_Crate_001_basecolor.jpg" />
     <Image Include="Wood_Crate_001_normal.jpg" />
