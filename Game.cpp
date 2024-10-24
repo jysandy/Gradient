@@ -231,7 +231,7 @@ void Game::OnQuit()
 void Game::GetDefaultSize(int& width, int& height) const noexcept
 {
     // TODO: Change to desired default window size (note minimum size is 320x200).
-    width = 1920;
+    width = 1900;
     height = 1080;
 }
 #pragma endregion
@@ -396,7 +396,7 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     auto windowSize = m_deviceResources->GetOutputSize();
-    m_camera.SetAspectRatio(windowSize.right / windowSize.bottom);
+    m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
 }
 
 void Game::OnDeviceLost()

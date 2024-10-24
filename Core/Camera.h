@@ -9,8 +9,8 @@ namespace Gradient
     class Camera
     {
     private:
-        constexpr static float DEFAULT_FOV = DirectX::XM_PI / 4.f;
-        constexpr static float DEFAULT_ASPECT_RATIO = 16.f / 9.f;
+        constexpr static float DEFAULT_FOV = DirectX::XM_PI / 3.f;
+        constexpr static float DEFAULT_ASPECT_RATIO = 1920.f / 1080.f;
         float m_fieldOfViewRadians;
         float m_aspectRatio;
         DirectX::SimpleMath::Vector3 m_position;
