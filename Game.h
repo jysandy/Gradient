@@ -79,6 +79,12 @@ private:
     // Rendering loop timer.
     DX::StepTimer m_timer;
 
+    // TODO: Move these into DeviceResources
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_offscreenRenderTarget;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_offscreenRenderTargetSRV;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilSRV;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rsState;
+
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
     std::shared_ptr<DirectX::CommonStates> m_states;
@@ -87,7 +93,6 @@ private:
     std::unique_ptr<Gradient::Effects::BlinnPhongEffect> m_effect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rsState;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
