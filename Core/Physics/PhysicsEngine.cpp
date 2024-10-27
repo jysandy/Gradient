@@ -157,10 +157,16 @@ namespace Gradient::Physics
                         // TODO: Fix or remove this feature.
                         float deltaTime = m_stepTimer.GetElapsedSeconds()
                             * m_timeScale;
-                        m_physicsSystem->Update(deltaTime,
-                            2,
-                            m_tempAllocator.get(),
-                            m_jobSystem.get());
+
+                        while (deltaTime > 0.f)
+                        {
+                            m_physicsSystem->Update(
+                                std::min(deltaTime, 1.f / 60.f),
+                                2,
+                                m_tempAllocator.get(),
+                                m_jobSystem.get());
+                            deltaTime -= 1.f / 60.f;
+                        }
                     });
 
                 if (m_workerPaused.test())
