@@ -192,6 +192,7 @@
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
     <ClInclude Include="Core\Effects\IEntityEffect.h" />
+    <ClInclude Include="Core\Effects\PBREffect.h" />
     <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
@@ -207,12 +208,14 @@
     <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
+    <ClInclude Include="PBREffect.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
+    <ClCompile Include="Core\Effects\PBREffect.cpp" />
     <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
@@ -242,16 +245,20 @@
     <Image Include="CobbleAO.bmp" />
     <Image Include="CobbleDiffuse.bmp" />
     <Image Include="CobbleNormal.bmp" />
+    <Image Include="DefaultMetalness.bmp" />
     <Image Include="DefaultNormalMap.png" />
     <Image Include="DefaultTexture.png" />
     <Image Include="directx.ico" />
     <Image Include="SoftballColor.jpg" />
     <Image Include="TilesAO.jpg" />
     <Image Include="TilesDiffuse.jpg" />
+    <Image Include="TilesMetalness.jpg" />
     <Image Include="TilesNormal.jpg" />
+    <Image Include="TilesRoughness.jpg" />
     <Image Include="Wood_Crate_001_ambientOcclusion.jpg" />
     <Image Include="Wood_Crate_001_basecolor.jpg" />
     <Image Include="Wood_Crate_001_normal.jpg" />
+    <Image Include="Wood_Crate_001_roughness.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest" />
@@ -269,7 +276,13 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="Core\Effects\blinn_phong_vs.hlsl">
+    <FxCompile Include="Core\Effects\pbr_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Core\Effects\wvp_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

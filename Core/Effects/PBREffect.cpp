@@ -1,12 +1,12 @@
 #include "pch.h"
 
-#include "Core/Effects/BlinnPhongEffect.h"
+#include "Core/Effects/PBREffect.h"
 #include <directxtk/VertexTypes.h>
 #include "Core/ReadData.h"
 
 namespace Gradient::Effects
 {
-    BlinnPhongEffect::BlinnPhongEffect(ID3D11Device* device,
+    PBREffect::PBREffect(ID3D11Device* device,
         std::shared_ptr<DirectX::CommonStates> states)
     {
         m_states = states;
@@ -20,7 +20,7 @@ namespace Gradient::Effects
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
-        m_psData = DX::ReadData(L"blinn_phong_ps.cso");
+        m_psData = DX::ReadData(L"pbr_ps.cso");
 
         DX::ThrowIfFailed(
             device->CreatePixelShader(m_psData.data(),
@@ -60,7 +60,7 @@ namespace Gradient::Effects
             ));
     }
 
-    void BlinnPhongEffect::GetVertexShaderBytecode(
+    void PBREffect::GetVertexShaderBytecode(
         void const** pShaderByteCode,
         size_t* pByteCodeLength)
     {
@@ -69,7 +69,7 @@ namespace Gradient::Effects
         *pByteCodeLength = m_vsData.size();
     }
 
-    void BlinnPhongEffect::Apply(ID3D11DeviceContext* context)
+    void PBREffect::Apply(ID3D11DeviceContext* context)
     {
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
 
@@ -97,13 +97,17 @@ namespace Gradient::Effects
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
         context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
-        
+
         if (m_shadowMap != nullptr)
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
         if (m_normalMap != nullptr)
             context->PSSetShaderResources(2, 1, m_normalMap.GetAddressOf());
         if (m_aoMap != nullptr)
             context->PSSetShaderResources(3, 1, m_aoMap.GetAddressOf());
+        if (m_metalnessMap != nullptr)
+            context->PSSetShaderResources(4, 1, m_aoMap.GetAddressOf());
+        if (m_roughnessMap != nullptr)
+            context->PSSetShaderResources(5, 1, m_aoMap.GetAddressOf());
 
         auto samplerState = m_states->AnisotropicWrap();
         context->PSSetSamplers(0, 1, &samplerState);
@@ -114,71 +118,69 @@ namespace Gradient::Effects
         context->PSSetSamplers(3, 1, &samplerState);
     }
 
-    void BlinnPhongEffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBREffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_texture = srv;
     }
 
-    void BlinnPhongEffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBREffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_normalMap = srv;
     }
-    
-    void BlinnPhongEffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+
+    void PBREffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_aoMap = srv;
-    } 
-
-    void BlinnPhongEffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // No effect
     }
 
-    void BlinnPhongEffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBREffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
-        // No effect
+        m_metalnessMap = srv;
+    }
+
+    void PBREffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_roughnessMap = srv;
     }
 
 
-    void BlinnPhongEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
+    void PBREffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
         m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
         m_shadowTransform = dlight->GetShadowTransform();
 
-        m_dLightCBData.ambient = dlight->GetAmbient();
         m_dLightCBData.diffuse = dlight->GetDiffuse();
-        m_dLightCBData.specular = dlight->GetSpecular();
         m_dLightCBData.direction = dlight->GetDirection();
     }
 
-    void BlinnPhongEffect::SetWorld(DirectX::FXMMATRIX value)
+    void PBREffect::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;
     }
 
-    void BlinnPhongEffect::SetView(DirectX::FXMMATRIX value)
+    void PBREffect::SetView(DirectX::FXMMATRIX value)
     {
         m_view = value;
     }
 
-    void BlinnPhongEffect::SetProjection(DirectX::FXMMATRIX value)
+    void PBREffect::SetProjection(DirectX::FXMMATRIX value)
     {
         m_proj = value;
     }
 
-    void BlinnPhongEffect::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
+    void PBREffect::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
     {
         m_world = world;
         m_view = view;
         m_proj = projection;
     }
 
-    void BlinnPhongEffect::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
+    void PBREffect::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
     }
 
-    ID3D11InputLayout* BlinnPhongEffect::GetInputLayout() const
+    ID3D11InputLayout* PBREffect::GetInputLayout() const
     {
         return m_inputLayout.Get();
     }

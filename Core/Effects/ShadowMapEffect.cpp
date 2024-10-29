@@ -7,7 +7,7 @@ namespace Gradient::Effects
 {
     ShadowMapEffect::ShadowMapEffect(ID3D11Device* device)
     {
-        m_vsData = DX::ReadData(L"blinn_phong_vs.cso");
+        m_vsData = DX::ReadData(L"wvp_vs.cso");
 
         DX::ThrowIfFailed(
             device->CreateVertexShader(m_vsData.data(),
@@ -56,7 +56,9 @@ namespace Gradient::Effects
         return m_inputLayout.Get();
     }
 
-    void ShadowMapEffect::SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    // TODO: Move all these empty implementations into the base interface?
+
+    void ShadowMapEffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         // Ignored
     }
@@ -67,6 +69,16 @@ namespace Gradient::Effects
     }
 
     void ShadowMapEffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        // Ignored
+    }
+
+    void ShadowMapEffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        // Ignored
+    }
+
+    void ShadowMapEffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         // Ignored
     }

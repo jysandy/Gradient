@@ -135,12 +135,12 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Render");
 
     // TODO: Pass the shadow map SRV here for sampling
-    m_effect->SetCameraPosition(m_camera.GetPosition());
-    m_effect->SetDirectionalLight(m_dLight.get());    
-    m_effect->SetView(m_camera.GetViewMatrix());
-    m_effect->SetProjection(m_camera.GetProjectionMatrix());
+    m_pbrEffect->SetCameraPosition(m_camera.GetPosition());
+    m_pbrEffect->SetDirectionalLight(m_dLight.get());
+    m_pbrEffect->SetView(m_camera.GetViewMatrix());
+    m_pbrEffect->SetProjection(m_camera.GetProjectionMatrix());
 
-    entityManager->DrawAll(m_effect.get());
+    entityManager->DrawAll(m_pbrEffect.get());
 
     m_deviceResources->PIXEndEvent();
 
@@ -152,8 +152,8 @@ void Game::Render()
 
 
     context->ResolveSubresource(m_deviceResources->GetRenderTarget(), 0,
-    m_offscreenRenderTarget.Get(), 0,
-    m_deviceResources->GetBackBufferFormat());
+        m_offscreenRenderTarget.Get(), 0,
+        m_deviceResources->GetBackBufferFormat());
     // Show the new frame.
     m_deviceResources->Present();
 }
@@ -242,7 +242,7 @@ void Game::OnQuit()
 void Game::GetDefaultSize(int& width, int& height) const noexcept
 {
     // TODO: Change to desired default window size (note minimum size is 320x200).
-    width = 1900;
+    width = 1920;
     height = 1080;
 }
 #pragma endregion
@@ -268,6 +268,13 @@ void Game::CreateEntities()
     textureManager->LoadWICLinear(device,
         "crateNormal",
         L"Wood_Crate_001_normal.jpg");
+    textureManager->LoadWICLinear(device,
+        "crateRoughness",
+        L"Wood_Crate_001_roughness.jpg");
+    textureManager->LoadWICLinear(device,
+        "crateAO",
+        L"Wood_Crate_001_ambientOcclusion.jpg");
+
     textureManager->LoadWICsRGB(device,
         "cobbleDiffuse",
         L"CobbleDiffuse.bmp");
@@ -275,12 +282,9 @@ void Game::CreateEntities()
         "cobbleNormal",
         L"CobbleNormal.bmp");
     textureManager->LoadWICLinear(device,
-        "crateAO",
-        L"Wood_Crate_001_ambientOcclusion.jpg"
-        );
-    textureManager->LoadWICLinear(device,
         "cobbleAO",
         L"CobbleAO.bmp");
+
     textureManager->LoadWICsRGB(device,
         "tilesDiffuse",
         L"TilesDiffuse.jpg");
@@ -290,11 +294,16 @@ void Game::CreateEntities()
     textureManager->LoadWICLinear(device,
         "tilesAO",
         L"TilesAO.jpg");
+    textureManager->LoadWICLinear(device,
+        "tilesMetalness",
+        L"TilesMetalness.jpg");
+    textureManager->LoadWICLinear(device,
+        "tilesRoughness",
+        L"TilesRoughness.jpg");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
-
 
     // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
 
@@ -340,6 +349,8 @@ void Game::CreateEntities()
     floor.Texture = textureManager->GetTexture("tilesDiffuse");
     floor.NormalMap = textureManager->GetTexture("tilesNormal");
     floor.AOMap = textureManager->GetTexture("tilesAO");
+    floor.MetalnessMap = textureManager->GetTexture("tilesMetalness");
+    floor.RoughnessMap = textureManager->GetTexture("tilesRoughness");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -361,6 +372,7 @@ void Game::CreateEntities()
     box1.Texture = textureManager->GetTexture("crate");
     box1.NormalMap = textureManager->GetTexture("crateNormal");
     box1.AOMap = textureManager->GetTexture("crateAO");
+    box1.RoughnessMap = textureManager->GetTexture("crateRoughness");
     box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(
@@ -392,6 +404,7 @@ void Game::CreateDeviceDependentResources()
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
+    m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
 
     EntityManager::Initialize();
     TextureManager::Initialize(device);
@@ -404,7 +417,7 @@ void Game::CreateDeviceDependentResources()
         15.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
-    
+
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
 }
 

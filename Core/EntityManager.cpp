@@ -114,34 +114,34 @@ namespace Gradient
         for (auto const& entity : m_entities)
         {
             auto blankTexture = textureManager->GetTexture("default");
+            auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
+            auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
+            auto smoothMap = dielectricMetalnessMap;
+
             if (entity.Texture != nullptr)
-            {
-                effect->SetTexture(entity.Texture);
-            }
+                effect->SetAlbedo(entity.Texture);
             else
-            {
-                effect->SetTexture(blankTexture);
-            }
+                effect->SetAlbedo(blankTexture);
 
             if (entity.NormalMap != nullptr)
-            {
                 effect->SetNormalMap(entity.NormalMap);
-            }
             else
-            {
-                auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
                 effect->SetNormalMap(outwardNormalMap);
-            }
 
             if (entity.AOMap != nullptr)
-            {
                 effect->SetAOMap(entity.AOMap);
-            }
             else
-            {
                 effect->SetAOMap(blankTexture);
-            }
 
+            if (entity.MetalnessMap != nullptr)
+                effect->SetMetalnessMap(entity.MetalnessMap);
+            else
+                effect->SetMetalnessMap(dielectricMetalnessMap);
+
+            if (entity.RoughnessMap != nullptr)
+                effect->SetRoughnessMap(entity.RoughnessMap);
+            else
+                effect->SetRoughnessMap(blankTexture);
 
             effect->SetWorld(entity.GetWorldMatrix());
 

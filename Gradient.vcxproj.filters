@@ -34,6 +34,8 @@
     <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
     <ClInclude Include="Core\Effects\IEntityEffect.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
+    <ClInclude Include="PBREffect.h" />
+    <ClInclude Include="Core\Effects\PBREffect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -55,6 +57,7 @@
     <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
     <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
+    <ClCompile Include="Core\Effects\PBREffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -102,6 +105,18 @@
     <Image Include="TilesNormal.jpg">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="DefaultMetalness.bmp">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="TilesMetalness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="TilesRoughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Wood_Crate_001_roughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">
@@ -116,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Effects\blinn_phong_ps.hlsl" />
-    <FxCompile Include="Core\Effects\blinn_phong_vs.hlsl" />
+    <FxCompile Include="Core\Effects\wvp_vs.hlsl" />
+    <FxCompile Include="Core\Effects\pbr_ps.hlsl" />
   </ItemGroup>
 </Project>

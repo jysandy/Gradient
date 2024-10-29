@@ -46,9 +46,11 @@ namespace Gradient::Effects
             void const** pShaderByteCode,
             size_t* pByteCodeLength) override;
 
-        virtual void SetTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual ID3D11InputLayout* GetInputLayout() const override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;

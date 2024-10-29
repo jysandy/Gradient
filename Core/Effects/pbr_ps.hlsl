@@ -1,6 +1,7 @@
+static const float PI = 3.14159265359;
 
-Texture2D texture0 : register(t0);
-SamplerState sampler0 : register(s0);
+Texture2D albedoMap : register(t0);
+SamplerState anisotropicSampler : register(s0);
 
 Texture2D shadowMap : register(t1);
 SamplerComparisonState shadowMapSampler : register(s1);
@@ -11,34 +12,14 @@ SamplerState pointSampler : register(s2);
 Texture2D aoMap : register(t3);
 SamplerState linearSampler : register(s3);
 
-struct PointLight
-{
-    float4 diffuse;
-    float4 ambient;
-    float4 specular;
-    float3 position;
-    float pad;
-};
-
-struct SpotLight
-{
-    float4 diffuse;
-    float4 specular;
-    float3 position;
-    float power;
-    float3 direction;
-    float pad;
-};
+Texture2D metalnessMap : register(t4);
+Texture2D roughnessMap : register(t5);
 
 struct DirectionalLight
 {
-    float4 diffuse;
-    float4 ambient;
-    float4 specular;
+    float4 colour;
     float3 direction;
-    float pad;
 };
-
 
 cbuffer LightBuffer : register(b0)
 {
@@ -101,60 +82,6 @@ float calculateShadowFactor(float3 worldPosition)
     return shadowFactor / 9.f;
 }
 
-float4 calculateDirectionalLighting(DirectionalLight light, 
-    float3 worldPosition, 
-    float3 normal,
-    float aoFactor)
-{
-    float shadowFactor = calculateShadowFactor(worldPosition);
-    
-    float3 toLight = -normalize(light.direction);
-    float intensity = saturate(dot(normal, toLight));
-    float4 colour = light.diffuse * intensity;
-    
-    float3 viewVector = normalize(cameraPosition - worldPosition);
-    float3 halfVector = normalize((viewVector + toLight) / 2.f);
-    float4 specularColour = pow(max(dot(halfVector, normal), 0), 256)
-        * light.specular;
-  
-    float4 nonAmbient = specularColour + colour;
-    nonAmbient.rgb *= shadowFactor;
-    
-    return float4(light.ambient.rgb * aoFactor, 1.f) + nonAmbient;
-}
-
-float4 calculatePointLighting(PointLight light, float3 worldPosition, float3 normal)
-{
-    float3 toLight = normalize(light.position - worldPosition);
-    float d = distance(worldPosition, light.position);
-    float intensity = saturate(dot(normal, toLight));
-    float4 colour = light.diffuse * intensity;
-    
-    float3 viewVector = normalize(cameraPosition - worldPosition);
-    float3 halfVector = normalize((viewVector + toLight) / 2.f);
-    float4 specularColour = pow(max(dot(halfVector, normal), 0), 128)
-        * light.specular;
-    
-    return specularColour / (1 + 0.5f * d) + // weaker attenuation for the specular component
-    (light.ambient + colour) / (1 + 0.2f * d + 0.1 * d * d); // some quadratic attenuation for diffuse and ambient
-}
-
-float4 calculateSpotLighting(SpotLight light, float3 worldPosition, float3 normal)
-{
-    float3 toLight = normalize(light.position - worldPosition);
-    float intensity = saturate(dot(normal, toLight));
-    float4 diffuseColour = light.diffuse * intensity;
-    float spotCoefficient = max(dot(-toLight, normalize(light.direction)), 0);
-    spotCoefficient = pow(spotCoefficient, light.power);
-    
-    float3 viewVector = normalize(cameraPosition - worldPosition);
-    float3 halfVector = normalize((viewVector + toLight) / 2.f);
-    float4 specularColour = pow(max(dot(halfVector, normal), 0), 128)
-        * light.specular;
-    
-    return (diffuseColour + specularColour) * spotCoefficient;
-}
-
 // Construct a cotangent frame for normal mapping as described in 
 // http://www.thetenthplanet.de/archives/1180
 float3x3 cotangentFrame(float3 normal, float3 worldPosition, float2 tex)
@@ -198,22 +125,103 @@ float3 ACESFilm(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
+// PBR lighting -----------------------
+
+float3 directionalLightRadiance(DirectionalLight dlight)
+{
+    return 5.f * dlight.colour.rgb;
+}
+
+float3 fresnelSchlick(
+    float3 H, 
+    float3 V, 
+    float3 albedo, 
+    float metallic)
+{
+    float3 F0 = float3(0.04, 0.04, 0.04);
+    F0 = lerp(F0, albedo, metallic);
+    float cosTheta = max(dot(H, V), 0);
+    
+    return F0 + (1.f - F0) * pow(saturate(1.f - cosTheta), 5.f);
+}
+
+float distributionGGX(float3 N, float3 H, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.f);
+    float NdotH2 = NdotH * NdotH;
+	
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+	
+    return num / denom;
+}
+
+float geometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+	
+    return num / denom;
+}
+
+float geometrySmith(float3 N, float3 V, float3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.f);
+    float NdotL = max(dot(N, L), 0.f);
+    float ggx2 = geometrySchlickGGX(NdotV, roughness);
+    float ggx1 = geometrySchlickGGX(NdotL, roughness);
+	
+    return ggx1 * ggx2;
+}
+
+// ------------------------------------
+
 float4 main(InputType input) : SV_TARGET
 {
     input.normal = normalize(input.normal);
     
-    float3 normal = perturbNormal(input.normal, input.worldPosition, input.tex);
-    float4 textureColour = texture0.Sample(sampler0, input.tex);
-    float aoFactor = aoMap.Sample(linearSampler, input.tex).r;
+    float3 N = perturbNormal(input.normal, input.worldPosition, input.tex);
+    float3 V = normalize(cameraPosition - input.worldPosition);
+    float3 L = normalize(-directionalLight.direction);
+    float3 H = normalize(V + L);
     
-    float4 directionalLightColour = calculateDirectionalLighting(directionalLight, 
-        input.worldPosition, 
-        normal,
-        aoFactor);
+    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
+    float3 albedo = albedoSample.rgb;
+    float ao = aoMap.Sample(linearSampler, input.tex).r;
+    float metalness = metalnessMap.Sample(pointSampler, input.tex).r;
+    float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     
-    float4 outputColour = directionalLightColour * textureColour;	
-    return float4(ACESFilm(outputColour.rgb), outputColour.a);
+    float3 radiance = directionalLightRadiance(directionalLight);
     
-    // For normal debugging
-    //return float4(pow(normal * 0.5 + 0.5, 2.2), 1.f);
+    float3 F = fresnelSchlick(H, V, albedo, metalness);
+    float D = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    
+    float NdotL = max(dot(N, L), 0.f);
+    
+    float3 numerator = D * G * F;
+    float denominator = 4.f * max(dot(N, V), 0.f) * NdotL + 0.0001;
+    
+    float3 specular = numerator / denominator;
+    
+    float3 kS = F;
+    float3 kD = float3(1.f, 1.f, 1.f) - kS;
+    kD *= 1.f - metalness;
+    
+    float3 outgoingRadiance = (kD * (albedo / PI) + specular)
+        * radiance
+        * NdotL;
+    
+    float3 ambient = float3(0.1, 0.1, 0.1) * albedo * ao;
+    float shadowFactor = calculateShadowFactor(input.worldPosition);
+    
+    float3 outputColour = ambient + shadowFactor * outgoingRadiance;
+    
+    return float4(ACESFilm(outputColour), albedoSample.a);
 }

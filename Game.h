@@ -17,6 +17,7 @@
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Effects/BlinnPhongEffect.h"
+#include "Core/Effects/PBREffect.h"
 #include "Core/Effects/ShadowMapEffect.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "GUI/PhysicsWindow.h"
@@ -91,6 +92,7 @@ private:
 
     Gradient::Camera m_camera;
     std::unique_ptr<Gradient::Effects::BlinnPhongEffect> m_effect;
+    std::unique_ptr<Gradient::Effects::PBREffect> m_pbrEffect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
 
