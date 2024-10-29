@@ -301,6 +301,54 @@ void Game::CreateEntities()
         "tilesRoughness",
         L"TilesRoughness.jpg");
 
+    textureManager->LoadWICsRGB(device,
+        "tiles06Albedo",
+        L"Tiles_Decorative_06_basecolor.jpg");
+    textureManager->LoadWICLinear(device,
+        "tiles06Normal",
+        L"Tiles_Decorative_06_normal.jpg");
+    textureManager->LoadWICLinear(device,
+        "tiles06AO",
+        L"Tiles_Decorative_06_ambientocclusion.jpg");
+    textureManager->LoadWICLinear(device,
+        "tiles06Metalness",
+        L"Tiles_Decorative_06_metallic.jpg");
+    textureManager->LoadWICLinear(device,
+        "tiles06Roughness",
+        L"Tiles_Decorative_06_roughness.jpg");
+
+    textureManager->LoadWICsRGB(device,
+        "metal01Albedo",
+        L"Metal_Floor_01_basecolor.jpg");
+    textureManager->LoadWICLinear(device,
+        "metal01Normal",
+        L"Metal_Floor_01_normal.jpg");
+    textureManager->LoadWICLinear(device,
+        "metal01AO",
+        L"Metal_Floor_01_ambientocclusion.jpg");
+    textureManager->LoadWICLinear(device,
+        "metal01Metalness",
+        L"Metal_Floor_01_metallic.jpg");
+    textureManager->LoadWICLinear(device,
+        "metal01Roughness",
+        L"Metal_Floor_01_roughness.jpg");
+
+    textureManager->LoadWICsRGB(device,
+        "metalSAlbedo",
+        L"Metal_Semirough_01_basecolor.jpg");
+    textureManager->LoadWICLinear(device,
+        "metalSNormal",
+        L"Metal_Semirough_01_normal.jpg");
+    textureManager->LoadWICLinear(device,
+        "metalSAO",
+        L"Metal_Semirough_01_ambientocclusion.jpg");
+    textureManager->LoadWICLinear(device,
+        "metalSMetalness",
+        L"Metal_Semirough_01_metallic.jpg");
+    textureManager->LoadWICLinear(device,
+        "metalSRoughness",
+        L"Metal_Semirough_01_roughness.jpg");
+
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
@@ -310,7 +358,10 @@ void Game::CreateEntities()
     Entity sphere1;
     sphere1.id = "sphere1";
     sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
-    sphere1.Texture = textureManager->GetTexture("basketball");
+    sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
+    sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
+    sphere1.AOMap = textureManager->GetTexture("metalSAO");
+    sphere1.RoughnessMap = textureManager->GetTexture("metalSRoughness");
     sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
     JPH::BodyCreationSettings sphere1Settings(
         new JPH::SphereShape(1.f),
@@ -346,11 +397,11 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-    floor.Texture = textureManager->GetTexture("tilesDiffuse");
-    floor.NormalMap = textureManager->GetTexture("tilesNormal");
-    floor.AOMap = textureManager->GetTexture("tilesAO");
-    floor.MetalnessMap = textureManager->GetTexture("tilesMetalness");
-    floor.RoughnessMap = textureManager->GetTexture("tilesRoughness");
+    floor.Texture = textureManager->GetTexture("tiles06Albedo");
+    floor.NormalMap = textureManager->GetTexture("tiles06Normal");
+    floor.AOMap = textureManager->GetTexture("tiles06AO");
+    floor.MetalnessMap = textureManager->GetTexture("tiles06Metalness");
+    floor.RoughnessMap = textureManager->GetTexture("tiles06Roughness");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -369,10 +420,10 @@ void Game::CreateEntities()
     Entity box1;
     box1.id = "box1";
     box1.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
-    box1.Texture = textureManager->GetTexture("crate");
-    box1.NormalMap = textureManager->GetTexture("crateNormal");
-    box1.AOMap = textureManager->GetTexture("crateAO");
-    box1.RoughnessMap = textureManager->GetTexture("crateRoughness");
+    box1.Texture = textureManager->GetTexture("metal01Albedo");
+    box1.NormalMap = textureManager->GetTexture("metal01Normal");
+    box1.AOMap = textureManager->GetTexture("metal01AO");
+    box1.RoughnessMap = textureManager->GetTexture("metal01Roughness");
     box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(
@@ -385,6 +436,26 @@ void Game::CreateEntities()
     auto box1BodyId = bodyInterface.CreateAndAddBody(box1Settings, JPH::EActivation::Activate);
     box1.BodyID = box1BodyId;
     entityManager->AddEntity(std::move(box1));
+
+    Entity box2;
+    box2.id = "box2";
+    box2.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box2.Texture = textureManager->GetTexture("crate");
+    box2.NormalMap = textureManager->GetTexture("crateNormal");
+    box2.AOMap = textureManager->GetTexture("crateAO");
+    box2.RoughnessMap = textureManager->GetTexture("crateRoughness");
+    box2.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
+    JPH::BoxShape* box2Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
+    JPH::BodyCreationSettings box2Settings(
+        box2Shape,
+        JPH::RVec3(-5.f, 1.5f, 1.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Gradient::Physics::ObjectLayers::MOVING
+    );
+    auto box2BodyId = bodyInterface.CreateAndAddBody(box2Settings, JPH::EActivation::Activate);
+    box2.BodyID = box2BodyId;
+    entityManager->AddEntity(std::move(box2));
 }
 
 #pragma region Direct3D Resources
