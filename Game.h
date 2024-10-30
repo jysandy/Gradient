@@ -9,6 +9,7 @@
 #include <directxtk/Keyboard.h>
 #include <directxtk/Mouse.h>
 #include <directxtk/CommonStates.h>
+#include <directxtk/SpriteBatch.h>
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
@@ -75,6 +76,11 @@ private:
     void CreateWindowSizeDependentResources();
     void CreateEntities();
 
+    void DrawRenderTexture(
+        Gradient::Rendering::RenderTexture* source,
+        Gradient::Rendering::RenderTexture* destination,
+        std::function<void __cdecl()> customState = nullptr);
+
     // Device resources.
     std::unique_ptr<DX::DeviceResources> m_deviceResources;
 
@@ -82,6 +88,8 @@ private:
     DX::StepTimer m_timer;
 
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_postProcessRenderTexture;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampledRenderTexture;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
@@ -96,4 +104,6 @@ private:
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
     
+    std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ppPS;
 };

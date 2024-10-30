@@ -23,6 +23,12 @@ namespace Gradient::Rendering
         m_format(format),
         m_states(commonStates)
     {
+        m_outputSize = RECT();
+        m_outputSize.left = 0;
+        m_outputSize.right = width;
+        m_outputSize.top = 0;
+        m_outputSize.bottom = height;
+
         CD3D11_TEXTURE2D_DESC rtDesc;
         CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
         CD3D11_TEXTURE2D_DESC dsDesc;
@@ -61,7 +67,7 @@ namespace Gradient::Rendering
         {
             rtDesc = CD3D11_TEXTURE2D_DESC(format,
                 width, height, 1, 1,
-                D3D11_BIND_RENDER_TARGET,
+                D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
                 D3D11_USAGE_DEFAULT);
 
             rtvDesc = CD3D11_RENDER_TARGET_VIEW_DESC(
@@ -74,7 +80,6 @@ namespace Gradient::Rendering
 
             dsvDesc = CD3D11_DEPTH_STENCIL_VIEW_DESC(D3D11_DSV_DIMENSION_TEXTURE2D);
         }
-
 
         DX::ThrowIfFailed(
             device->CreateTexture2D(&rtDesc, nullptr,
@@ -99,6 +104,29 @@ namespace Gradient::Rendering
 
         DX::ThrowIfFailed(device->CreateRasterizerState(&rastDesc,
             m_multisampledRSState.ReleaseAndGetAddressOf()));
+
+        CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+
+        if (multisamplingEnabled)
+        {
+            srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(m_singleSampledRT.Get(),
+                D3D11_SRV_DIMENSION_TEXTURE2D,
+                m_format);
+            DX::ThrowIfFailed(
+                device->CreateShaderResourceView(m_singleSampledRT.Get(),
+                    &srvDesc,
+                    m_srv.ReleaseAndGetAddressOf()));
+        }
+        else
+        {
+            srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(m_offscreenRenderTarget.Get(),
+                D3D11_SRV_DIMENSION_TEXTURE2D,
+                m_format);
+            DX::ThrowIfFailed(
+                device->CreateShaderResourceView(m_offscreenRenderTarget.Get(),
+                    &srvDesc,
+                    m_srv.ReleaseAndGetAddressOf()));
+        }
     }
 
     ID3D11Texture2D* RenderTexture::GetTexture()
@@ -146,5 +174,28 @@ namespace Gradient::Rendering
             context->RSSetState(m_multisampledRSState.Get());
         else
             context->RSSetState(m_states->CullClockwise());
+    }
+
+    void RenderTexture::SetTargets(ID3D11DeviceContext* context)
+    {
+        auto renderTarget = m_offscreenRTV.Get();
+        auto depthStencil = m_depthStencilSRV.Get();
+
+        context->OMSetRenderTargets(1, &renderTarget, depthStencil);
+
+        if (m_multisamplingEnabled)
+            context->RSSetState(m_multisampledRSState.Get());
+        else
+            context->RSSetState(m_states->CullClockwise());
+    }
+
+    ID3D11ShaderResourceView* RenderTexture::GetSRV()
+    {
+        return m_srv.Get();
+    }
+
+    RECT RenderTexture::GetOutputSize()
+    {
+        return m_outputSize;
     }
 }

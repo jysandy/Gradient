@@ -11,6 +11,7 @@
 #include <imgui.h>
 #include "GUI/imgui_impl_win32.h"
 #include "GUI/imgui_impl_dx11.h"
+#include "Core/ReadData.h"
 
 extern void ExitGame() noexcept;
 
@@ -111,7 +112,6 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
     m_shadowMapEffect->SetDirectionalLight(m_dLight.get());
-
     entityManager->DrawAll(m_shadowMapEffect.get());
 
     m_deviceResources->PIXEndEvent();
@@ -124,7 +124,6 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Render");
 
-    // TODO: Pass the shadow map SRV here for sampling
     m_pbrEffect->SetCameraPosition(m_camera.GetPosition());
     m_pbrEffect->SetDirectionalLight(m_dLight.get());
     m_pbrEffect->SetView(m_camera.GetViewMatrix());
@@ -132,7 +131,19 @@ void Game::Render()
 
     entityManager->DrawAll(m_pbrEffect.get());
 
+    m_multisampledRenderTexture->CopyToSingleSampled(context);
     m_deviceResources->PIXEndEvent();
+
+    // Post-process ----
+
+    DrawRenderTexture(m_multisampledRenderTexture.get(),
+        m_postProcessRenderTexture.get(), 
+        [=]
+        {
+            context->PSSetShader(m_ppPS.Get(), nullptr, 0);
+        });
+
+    m_postProcessRenderTexture->SetTargets(context);
 
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
@@ -140,13 +151,27 @@ void Game::Render()
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-    m_multisampledRenderTexture->CopyToSingleSampled(context);
     context->CopyResource(m_deviceResources->GetRenderTarget(),
-        m_multisampledRenderTexture->GetSingleSampledTexture()
-    );
+        m_postProcessRenderTexture->GetSingleSampledTexture());
 
     // Show the new frame.
     m_deviceResources->Present();
+}
+
+void Game::DrawRenderTexture(
+    Gradient::Rendering::RenderTexture* source,
+    Gradient::Rendering::RenderTexture* destination,
+    std::function<void __cdecl()> customState)
+{
+    auto context = m_deviceResources->GetD3DDeviceContext();
+
+    destination->ClearAndSetTargets(context);
+
+    m_spriteBatch->Begin(SpriteSortMode_Immediate,
+        nullptr, nullptr, nullptr, nullptr, customState);
+    m_spriteBatch->Draw(source->GetSRV(),
+        destination->GetOutputSize());
+    m_spriteBatch->End();
 }
 
 // Helper method to clear the back buffers.
@@ -449,10 +474,19 @@ void Game::CreateDeviceDependentResources()
     using namespace Gradient;
 
     auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
+    m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
+
+    auto psData = DX::ReadData(L"post_process.cso");
+    DX::ThrowIfFailed(
+        device->CreatePixelShader(psData.data(),
+            psData.size(),
+            nullptr,
+            m_ppPS.ReleaseAndGetAddressOf()));
 
     EntityManager::Initialize();
     TextureManager::Initialize(device);
@@ -486,6 +520,24 @@ void Game::CreateWindowSizeDependentResources()
         height,
         DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
         true
+    );
+
+    m_postProcessRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width,
+        height,
+        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+        false
+    );
+
+    m_downsampledRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width / 8,
+        height / 8,
+        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+        false
     );
 }
 

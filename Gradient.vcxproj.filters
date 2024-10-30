@@ -135,5 +135,6 @@
     <FxCompile Include="Core\Effects\blinn_phong_ps.hlsl" />
     <FxCompile Include="Core\Effects\wvp_vs.hlsl" />
     <FxCompile Include="Core\Effects\pbr_ps.hlsl" />
+    <FxCompile Include="Core\Effects\post_process.hlsl" />
   </ItemGroup>
 </Project>
