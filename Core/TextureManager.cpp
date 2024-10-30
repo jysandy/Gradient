@@ -15,9 +15,9 @@ namespace Gradient
     {
         auto tm = new TextureManager();
         s_textureManager = std::unique_ptr<TextureManager>(tm);
-        s_textureManager->LoadWICsRGB(device, "default", L"DefaultTexture.png");
-        s_textureManager->LoadWICLinear(device, "defaultNormal", L"DefaultNormalMap.png");
-        s_textureManager->LoadWICLinear(device, "defaultMetalness", L"DefaultMetalness.bmp");
+        s_textureManager->LoadWICsRGB(device, "default", L"Assets\\DefaultTexture.png");
+        s_textureManager->LoadWICLinear(device, "defaultNormal", L"Assets\\DefaultNormalMap.png");
+        s_textureManager->LoadWICLinear(device, "defaultMetalness", L"Assets\\DefaultMetalness.bmp");
     }
 
     void TextureManager::Shutdown()

@@ -209,7 +209,6 @@
     <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
-    <ClInclude Include="PBREffect.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
@@ -243,24 +242,39 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="BasketballColor.jpg" />
-    <Image Include="CobbleAO.bmp" />
-    <Image Include="CobbleDiffuse.bmp" />
-    <Image Include="CobbleNormal.bmp" />
-    <Image Include="DefaultMetalness.bmp" />
-    <Image Include="DefaultNormalMap.png" />
-    <Image Include="DefaultTexture.png" />
+    <Image Include="Assets\BasketballColor.jpg" />
+    <Image Include="Assets\CobbleAO.bmp" />
+    <Image Include="Assets\CobbleDiffuse.bmp" />
+    <Image Include="Assets\CobbleNormal.bmp" />
+    <Image Include="Assets\DefaultMetalness.bmp" />
+    <Image Include="Assets\DefaultNormalMap.png" />
+    <Image Include="Assets\DefaultTexture.png" />
     <Image Include="directx.ico" />
-    <Image Include="SoftballColor.jpg" />
-    <Image Include="TilesAO.jpg" />
-    <Image Include="TilesDiffuse.jpg" />
-    <Image Include="TilesMetalness.jpg" />
-    <Image Include="TilesNormal.jpg" />
-    <Image Include="TilesRoughness.jpg" />
-    <Image Include="Wood_Crate_001_ambientOcclusion.jpg" />
-    <Image Include="Wood_Crate_001_basecolor.jpg" />
-    <Image Include="Wood_Crate_001_normal.jpg" />
-    <Image Include="Wood_Crate_001_roughness.jpg" />
+    <Image Include="Assets\Metal_Floor_01_ambientocclusion.jpg" />
+    <Image Include="Assets\Metal_Floor_01_basecolor.jpg" />
+    <Image Include="Assets\Metal_Floor_01_metallic.jpg" />
+    <Image Include="Assets\Metal_Floor_01_normal.jpg" />
+    <Image Include="Assets\Metal_Floor_01_roughness.jpg" />
+    <Image Include="Assets\Metal_Semirough_01_ambientocclusion.jpg" />
+    <Image Include="Assets\Metal_Semirough_01_basecolor.jpg" />
+    <Image Include="Assets\Metal_Semirough_01_metallic.jpg" />
+    <Image Include="Assets\Metal_Semirough_01_normal.jpg" />
+    <Image Include="Assets\Metal_Semirough_01_roughness.jpg" />
+    <Image Include="Assets\SoftballColor.jpg" />
+    <Image Include="Assets\TilesAO.jpg" />
+    <Image Include="Assets\TilesDiffuse.jpg" />
+    <Image Include="Assets\TilesMetalness.jpg" />
+    <Image Include="Assets\TilesNormal.jpg" />
+    <Image Include="Assets\TilesRoughness.jpg" />
+    <Image Include="Assets\Tiles_Decorative_06_ambientocclusion.jpg" />
+    <Image Include="Assets\Tiles_Decorative_06_basecolor.jpg" />
+    <Image Include="Assets\Tiles_Decorative_06_metallic.jpg" />
+    <Image Include="Assets\Tiles_Decorative_06_normal.jpg" />
+    <Image Include="Assets\Tiles_Decorative_06_roughness.jpg" />
+    <Image Include="Assets\Wood_Crate_001_ambientOcclusion.jpg" />
+    <Image Include="Assets\Wood_Crate_001_basecolor.jpg" />
+    <Image Include="Assets\Wood_Crate_001_normal.jpg" />
+    <Image Include="Assets\Wood_Crate_001_roughness.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest" />

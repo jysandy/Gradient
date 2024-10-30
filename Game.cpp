@@ -265,98 +265,98 @@ void Game::CreateEntities()
     auto device = m_deviceResources->GetD3DDevice();
     textureManager->LoadWICsRGB(device,
         "basketball",
-        L"BasketballColor.jpg"
+        L"Assets\\BasketballColor.jpg"
     );
     textureManager->LoadWICsRGB(device,
         "softball",
-        L"SoftballColor.jpg"
+        L"Assets\\SoftballColor.jpg"
     );
     textureManager->LoadWICsRGB(device,
         "crate",
-        L"Wood_Crate_001_basecolor.jpg");
+        L"Assets\\Wood_Crate_001_basecolor.jpg");
     textureManager->LoadWICLinear(device,
         "crateNormal",
-        L"Wood_Crate_001_normal.jpg");
+        L"Assets\\Wood_Crate_001_normal.jpg");
     textureManager->LoadWICLinear(device,
         "crateRoughness",
-        L"Wood_Crate_001_roughness.jpg");
+        L"Assets\\Wood_Crate_001_roughness.jpg");
     textureManager->LoadWICLinear(device,
         "crateAO",
-        L"Wood_Crate_001_ambientOcclusion.jpg");
+        L"Assets\\Wood_Crate_001_ambientOcclusion.jpg");
 
     textureManager->LoadWICsRGB(device,
         "cobbleDiffuse",
-        L"CobbleDiffuse.bmp");
+        L"Assets\\CobbleDiffuse.bmp");
     textureManager->LoadWICLinear(device,
         "cobbleNormal",
-        L"CobbleNormal.bmp");
+        L"Assets\\CobbleNormal.bmp");
     textureManager->LoadWICLinear(device,
         "cobbleAO",
-        L"CobbleAO.bmp");
+        L"Assets\\CobbleAO.bmp");
 
     textureManager->LoadWICsRGB(device,
         "tilesDiffuse",
-        L"TilesDiffuse.jpg");
+        L"Assets\\TilesDiffuse.jpg");
     textureManager->LoadWICLinear(device,
         "tilesNormal",
-        L"TilesNormal.jpg");
+        L"Assets\\TilesNormal.jpg");
     textureManager->LoadWICLinear(device,
         "tilesAO",
-        L"TilesAO.jpg");
+        L"Assets\\TilesAO.jpg");
     textureManager->LoadWICLinear(device,
         "tilesMetalness",
-        L"TilesMetalness.jpg");
+        L"Assets\\TilesMetalness.jpg");
     textureManager->LoadWICLinear(device,
         "tilesRoughness",
-        L"TilesRoughness.jpg");
+        L"Assets\\TilesRoughness.jpg");
 
     textureManager->LoadWICsRGB(device,
         "tiles06Albedo",
-        L"Tiles_Decorative_06_basecolor.jpg");
+        L"Assets\\Tiles_Decorative_06_basecolor.jpg");
     textureManager->LoadWICLinear(device,
         "tiles06Normal",
-        L"Tiles_Decorative_06_normal.jpg");
+        L"Assets\\Tiles_Decorative_06_normal.jpg");
     textureManager->LoadWICLinear(device,
         "tiles06AO",
-        L"Tiles_Decorative_06_ambientocclusion.jpg");
+        L"Assets\\Tiles_Decorative_06_ambientocclusion.jpg");
     textureManager->LoadWICLinear(device,
         "tiles06Metalness",
-        L"Tiles_Decorative_06_metallic.jpg");
+        L"Assets\\Tiles_Decorative_06_metallic.jpg");
     textureManager->LoadWICLinear(device,
         "tiles06Roughness",
-        L"Tiles_Decorative_06_roughness.jpg");
+        L"Assets\\Tiles_Decorative_06_roughness.jpg");
 
     textureManager->LoadWICsRGB(device,
         "metal01Albedo",
-        L"Metal_Floor_01_basecolor.jpg");
+        L"Assets\\Metal_Floor_01_basecolor.jpg");
     textureManager->LoadWICLinear(device,
         "metal01Normal",
-        L"Metal_Floor_01_normal.jpg");
+        L"Assets\\Metal_Floor_01_normal.jpg");
     textureManager->LoadWICLinear(device,
         "metal01AO",
-        L"Metal_Floor_01_ambientocclusion.jpg");
+        L"Assets\\Metal_Floor_01_ambientocclusion.jpg");
     textureManager->LoadWICLinear(device,
         "metal01Metalness",
-        L"Metal_Floor_01_metallic.jpg");
+        L"Assets\\Metal_Floor_01_metallic.jpg");
     textureManager->LoadWICLinear(device,
         "metal01Roughness",
-        L"Metal_Floor_01_roughness.jpg");
+        L"Assets\\Metal_Floor_01_roughness.jpg");
 
     textureManager->LoadWICsRGB(device,
         "metalSAlbedo",
-        L"Metal_Semirough_01_basecolor.jpg");
+        L"Assets\\Metal_Semirough_01_basecolor.jpg");
     textureManager->LoadWICLinear(device,
         "metalSNormal",
-        L"Metal_Semirough_01_normal.jpg");
+        L"Assets\\Metal_Semirough_01_normal.jpg");
     textureManager->LoadWICLinear(device,
         "metalSAO",
-        L"Metal_Semirough_01_ambientocclusion.jpg");
+        L"Assets\\Metal_Semirough_01_ambientocclusion.jpg");
     textureManager->LoadWICLinear(device,
         "metalSMetalness",
-        L"Metal_Semirough_01_metallic.jpg");
+        L"Assets\\Metal_Semirough_01_metallic.jpg");
     textureManager->LoadWICLinear(device,
         "metalSRoughness",
-        L"Metal_Semirough_01_roughness.jpg");
+        L"Assets\\Metal_Semirough_01_roughness.jpg");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
