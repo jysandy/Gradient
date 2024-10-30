@@ -137,14 +137,13 @@ void Game::Render()
     // Post-process ----
 
     DrawRenderTexture(m_multisampledRenderTexture.get(),
-        m_postProcessRenderTexture.get(), 
+        m_tonemappedRenderTexture.get(),
         [=]
         {
-            context->PSSetShader(m_ppPS.Get(), nullptr, 0);
+            context->PSSetShader(m_tonemapperPS.Get(), nullptr, 0);
         });
 
-    m_postProcessRenderTexture->SetTargets(context);
-
+    m_tonemappedRenderTexture->SetTargets(context);
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
 
@@ -152,7 +151,7 @@ void Game::Render()
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     context->CopyResource(m_deviceResources->GetRenderTarget(),
-        m_postProcessRenderTexture->GetSingleSampledTexture());
+        m_tonemappedRenderTexture->GetSingleSampledTexture());
 
     // Show the new frame.
     m_deviceResources->Present();
@@ -467,6 +466,21 @@ void Game::CreateEntities()
     entityManager->AddEntity(std::move(box2));
 }
 
+Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const std::wstring& path)
+{
+    auto device = m_deviceResources->GetD3DDevice();
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
+
+    auto psData = DX::ReadData(path.c_str());
+    DX::ThrowIfFailed(
+        device->CreatePixelShader(psData.data(),
+            psData.size(),
+            nullptr,
+            ps.ReleaseAndGetAddressOf()));
+
+    return ps;
+}
+
 #pragma region Direct3D Resources
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
@@ -480,13 +494,8 @@ void Game::CreateDeviceDependentResources()
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
     m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
-
-    auto psData = DX::ReadData(L"post_process.cso");
-    DX::ThrowIfFailed(
-        device->CreatePixelShader(psData.data(),
-            psData.size(),
-            nullptr,
-            m_ppPS.ReleaseAndGetAddressOf()));
+    m_ppPS = LoadPixelShader(L"post_process.cso");
+    m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
 
     EntityManager::Initialize();
     TextureManager::Initialize(device);
@@ -518,24 +527,15 @@ void Game::CreateWindowSizeDependentResources()
         m_states,
         width,
         height,
-        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+        DXGI_FORMAT_R32G32B32A32_FLOAT,
         true
     );
 
-    m_postProcessRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+    m_tonemappedRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
         m_states,
         width,
         height,
-        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-        false
-    );
-
-    m_downsampledRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
-        device,
-        m_states,
-        width / 8,
-        height / 8,
         DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
         false
     );

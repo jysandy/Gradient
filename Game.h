@@ -81,6 +81,8 @@ private:
         Gradient::Rendering::RenderTexture* destination,
         std::function<void __cdecl()> customState = nullptr);
 
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring& path);
+
     // Device resources.
     std::unique_ptr<DX::DeviceResources> m_deviceResources;
 
@@ -88,8 +90,7 @@ private:
     DX::StepTimer m_timer;
 
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_postProcessRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampledRenderTexture;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
@@ -106,4 +107,5 @@ private:
     
     std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ppPS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
 };
