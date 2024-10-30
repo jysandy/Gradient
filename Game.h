@@ -20,6 +20,7 @@
 #include "Core/Effects/PBREffect.h"
 #include "Core/Effects/ShadowMapEffect.h"
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Rendering/RenderTexture.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -80,11 +81,7 @@ private:
     // Rendering loop timer.
     DX::StepTimer m_timer;
 
-    // TODO: Move these into DeviceResources
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_offscreenRenderTarget;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_offscreenRenderTargetSRV;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilSRV;
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rsState;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;

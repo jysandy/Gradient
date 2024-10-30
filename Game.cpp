@@ -18,12 +18,6 @@ using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
 
-namespace
-{
-    constexpr UINT MSAA_COUNT = 4;
-    constexpr UINT MSAA_QUALITY = 0;
-}
-
 Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>(
@@ -146,10 +140,11 @@ void Game::Render()
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+    m_multisampledRenderTexture->CopyToSingleSampled(context);
+    context->CopyResource(m_deviceResources->GetRenderTarget(),
+        m_multisampledRenderTexture->GetSingleSampledTexture()
+    );
 
-    context->ResolveSubresource(m_deviceResources->GetRenderTarget(), 0,
-        m_offscreenRenderTarget.Get(), 0,
-        m_deviceResources->GetBackBufferFormat());
     // Show the new frame.
     m_deviceResources->Present();
 }
@@ -162,14 +157,7 @@ void Game::Clear()
     // Clear the views.
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-    auto renderTarget = m_offscreenRenderTargetSRV.Get();
-    auto depthStencil = m_depthStencilSRV.Get();
-
-    context->ClearRenderTargetView(renderTarget, ColorsLinear::CornflowerBlue);
-    context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-    context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-
-    context->RSSetState(m_rsState.Get());
+    m_multisampledRenderTexture->ClearAndSetTargets(context);
 
     // Set the viewport.
     auto const viewport = m_deviceResources->GetScreenViewport();
@@ -462,13 +450,6 @@ void Game::CreateDeviceDependentResources()
 
     auto device = m_deviceResources->GetD3DDevice();
 
-    CD3D11_RASTERIZER_DESC rastDesc(D3D11_FILL_SOLID, D3D11_CULL_BACK, FALSE,
-        D3D11_DEFAULT_DEPTH_BIAS, D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
-        D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS, TRUE, FALSE, TRUE, FALSE);
-
-    DX::ThrowIfFailed(device->CreateRasterizerState(&rastDesc,
-        m_rsState.ReleaseAndGetAddressOf()));
-
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
@@ -498,37 +479,14 @@ void Game::CreateWindowSizeDependentResources()
     auto width = static_cast<UINT>(windowSize.right);
     auto height = static_cast<UINT>(windowSize.bottom);
 
-    CD3D11_TEXTURE2D_DESC rtDesc(DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-        width, height, 1, 1,
-        D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0,
-        MSAA_COUNT, MSAA_QUALITY);
-
-    DX::ThrowIfFailed(
-        device->CreateTexture2D(&rtDesc, nullptr,
-            m_offscreenRenderTarget.ReleaseAndGetAddressOf()));
-
-    CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc(D3D11_RTV_DIMENSION_TEXTURE2DMS);
-
-    DX::ThrowIfFailed(
-        device->CreateRenderTargetView(m_offscreenRenderTarget.Get(),
-            &rtvDesc,
-            m_offscreenRenderTargetSRV.ReleaseAndGetAddressOf()));
-
-    CD3D11_TEXTURE2D_DESC dsDesc(DXGI_FORMAT_D32_FLOAT,
-        width, height, 1, 1,
-        D3D11_BIND_DEPTH_STENCIL, D3D11_USAGE_DEFAULT, 0,
-        MSAA_COUNT, MSAA_QUALITY);
-
-    ComPtr<ID3D11Texture2D> depthBuffer;
-    DX::ThrowIfFailed(
-        device->CreateTexture2D(&dsDesc, nullptr, depthBuffer.GetAddressOf()));
-
-    CD3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc(D3D11_DSV_DIMENSION_TEXTURE2DMS);
-
-    DX::ThrowIfFailed(
-        device->CreateDepthStencilView(depthBuffer.Get(),
-            &dsvDesc,
-            m_depthStencilSRV.ReleaseAndGetAddressOf()));
+    m_multisampledRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width,
+        height,
+        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+        true
+    );
 }
 
 void Game::OnDeviceLost()

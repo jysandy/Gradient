@@ -36,6 +36,7 @@
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="PBREffect.h" />
     <ClInclude Include="Core\Effects\PBREffect.h" />
+    <ClInclude Include="Core\Rendering\RenderTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -58,6 +59,7 @@
     <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Effects\PBREffect.cpp" />
+    <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

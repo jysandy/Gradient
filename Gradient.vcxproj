@@ -201,6 +201,7 @@
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
+    <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="Game.h" />
@@ -222,6 +223,7 @@
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
+    <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="Game.cpp" />
