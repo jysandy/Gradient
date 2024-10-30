@@ -80,10 +80,6 @@ void Game::Update(DX::StepTimer const& timer)
 {
     m_camera.Update(timer);
 
-    auto d = m_dLight->GetDirection();
-    d = Vector3::Transform(d, Matrix::CreateRotationY(0.2f * timer.GetElapsedSeconds()));
-    m_dLight->SetLightDirection(d);
-
     auto entityManager = Gradient::EntityManager::Get();
 
     entityManager->UpdateAll(timer);

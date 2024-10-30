@@ -105,9 +105,9 @@ namespace Gradient::Effects
         if (m_aoMap != nullptr)
             context->PSSetShaderResources(3, 1, m_aoMap.GetAddressOf());
         if (m_metalnessMap != nullptr)
-            context->PSSetShaderResources(4, 1, m_aoMap.GetAddressOf());
+            context->PSSetShaderResources(4, 1, m_metalnessMap.GetAddressOf());
         if (m_roughnessMap != nullptr)
-            context->PSSetShaderResources(5, 1, m_aoMap.GetAddressOf());
+            context->PSSetShaderResources(5, 1, m_roughnessMap.GetAddressOf());
 
         auto samplerState = m_states->AnisotropicWrap();
         context->PSSetSamplers(0, 1, &samplerState);

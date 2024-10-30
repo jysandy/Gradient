@@ -16,7 +16,7 @@ namespace Gradient::Rendering
         m_sceneCentre = sceneCentre;
         SetLightDirection(lightDirection);
 
-        m_diffuse = Color(0.8f, 0.8f, 0.6f, 1.f);
+        m_diffuse = Color(0.8f, 0.8f, 0.7f, 1.f);
         m_ambient = Color(0.1f, 0.1f, 0.1f, 1.f);
         m_specular = Color(0.8f, 0.8f, 0.4f, 1.f);
 

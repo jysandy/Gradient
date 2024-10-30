@@ -102,7 +102,7 @@ float3x3 cotangentFrame(float3 normal, float3 worldPosition, float2 tex)
 
 float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 {
-    float3 map = normalMap.SampleLevel(pointSampler, tex, 0).xyz;
+    float3 map = normalMap.SampleLevel(linearSampler, tex, 0).xyz;
     map.xy = map.xy * 2.f - 1.f;
     // Using right-handed coordinates, and assuming green up
     map.x = -map.x;
@@ -129,7 +129,7 @@ float3 ACESFilm(float3 x)
 
 float3 directionalLightRadiance(DirectionalLight dlight)
 {
-    return 5.f * dlight.colour.rgb;
+    return 3 * dlight.colour.rgb;
 }
 
 float3 fresnelSchlick(
@@ -194,7 +194,7 @@ float4 main(InputType input) : SV_TARGET
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
     float3 albedo = albedoSample.rgb;
     float ao = aoMap.Sample(linearSampler, input.tex).r;
-    float metalness = metalnessMap.Sample(pointSampler, input.tex).r;
+    float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     
     float3 radiance = directionalLightRadiance(directionalLight);
