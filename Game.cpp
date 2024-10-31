@@ -137,6 +137,37 @@ void Game::Render()
     // Post-process ----
 
     DrawRenderTexture(m_multisampledRenderTexture.get(),
+        m_blur1RenderTexture.get(),
+        [=]
+        {
+            context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
+        });
+
+    DrawRenderTexture(m_blur1RenderTexture.get(),
+        m_blur2RenderTexture.get(),
+        [=]
+        {
+            context->PSSetShader(m_blurPS.Get(), nullptr, 0);
+        });
+
+    DrawRenderTexture(m_blur2RenderTexture.get(),
+        m_blur1RenderTexture.get(),
+        [=]
+        {
+            context->PSSetShader(m_blurPS.Get(), nullptr, 0);
+        });
+
+    DrawRenderTexture(m_multisampledRenderTexture.get(),
+        m_screensizeRenderTexture.get(),
+        [=]
+        {
+            auto srv = m_blur1RenderTexture->GetSRV();
+            context->PSSetShader(m_additiveBlendPS.Get(), nullptr, 0);
+            context->PSSetShaderResources(1, 1, &srv);
+        });
+
+    // Tonemap and draw GUI
+    DrawRenderTexture(m_screensizeRenderTexture.get(),
         m_tonemappedRenderTexture.get(),
         [=]
         {
@@ -494,8 +525,11 @@ void Game::CreateDeviceDependentResources()
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
     m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
-    m_ppPS = LoadPixelShader(L"post_process.cso");
+    
+    m_blurPS = LoadPixelShader(L"blur.cso");
     m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
+    m_brightnessFilterPS = LoadPixelShader(L"brightness_filter.cso");
+    m_additiveBlendPS = LoadPixelShader(L"additive_blend.cso");
 
     EntityManager::Initialize();
     TextureManager::Initialize(device);
@@ -529,6 +563,33 @@ void Game::CreateWindowSizeDependentResources()
         height,
         DXGI_FORMAT_R32G32B32A32_FLOAT,
         true
+    );
+
+    m_blur1RenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width / 2,
+        height / 2,
+        DXGI_FORMAT_R32G32B32A32_FLOAT,
+        false
+    );
+
+    m_blur2RenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width / 2,
+        height / 2,
+        DXGI_FORMAT_R32G32B32A32_FLOAT,
+        false
+    );
+
+    m_screensizeRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
+        device,
+        m_states,
+        width,
+        height,
+        DXGI_FORMAT_R32G32B32A32_FLOAT,
+        false
     );
 
     m_tonemappedRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(

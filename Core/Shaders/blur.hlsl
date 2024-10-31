@@ -27,9 +27,9 @@ float4 main(float4 color : COLOR0,
     
     float kernel[9] =
     {
-        0, -1, 0,
-        -1, 5, -1,
-        0, -1, 0
+        1 / 16.f, 2 / 16.f, 1 / 16.f,
+        2 / 16.f, 4 / 16.f, 2 / 16.f,
+        1 / 16.f, 2 / 16.f, 1 / 16.f
     };
     
     float4 outputColor = { 0, 0, 0, 0 };
