@@ -9,9 +9,9 @@ float4 main(float4 color : COLOR0,
     
     float luminance = dot(luminanceFactors, outputColor.rgb);
     
-    if (luminance > 4.5f)
-    {
-        return outputColor;
-    }
-    return float4(0, 0, 0, 1);
+    float luminanceDiff = max((luminance - 4.5f) / (luminance + 0.1), 
+    0);
+    
+
+    return float4(outputColor.rgb * luminanceDiff, outputColor.a);    
 }

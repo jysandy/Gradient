@@ -90,9 +90,10 @@ private:
     DX::StepTimer m_timer;
 
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_blur1RenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_blur2RenderTexture;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled1;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled2;
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensizeRenderTexture;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensize2RenderTexture;
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
