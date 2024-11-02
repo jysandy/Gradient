@@ -140,8 +140,10 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     // Post-process ----
+    m_deviceResources->PIXBeginEvent(L"Bloom");
     auto bloomOutput = m_bloomProcessor->Process(context,
         m_multisampledRenderTexture.get());
+    m_deviceResources->PIXEndEvent();
 
     // Tonemap and draw GUI
     bloomOutput->DrawTo(context,

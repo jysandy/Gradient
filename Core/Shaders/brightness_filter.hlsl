@@ -9,8 +9,7 @@ float4 main(float4 color : COLOR0,
     
     float luminance = dot(luminanceFactors, outputColor.rgb);
     
-    float luminanceFilter = max((luminance - 4.5f) / (luminance + 0.1), 
-        0);
+    float luminanceFilter = saturate(luminance - 4.5f);
     
-    return float4(outputColor.rgb * luminanceFilter, outputColor.a);    
+    return float4(outputColor.rgb * luminanceFilter * 0.05, outputColor.a);    
 }

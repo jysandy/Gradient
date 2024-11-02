@@ -86,6 +86,11 @@ namespace Gradient::Rendering
             {
                 context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
             });
+        
+        m_screensize2RenderTexture->DrawTo(context, m_downsampled1.get());
+        m_downsampled1->DrawTo(context, m_downsampled2.get());
+        m_downsampled2->DrawTo(context, m_downsampled1.get());
+        m_downsampled1->DrawTo(context, m_screensize2RenderTexture.get());
 
         input->DrawTo(context,
             m_screensizeRenderTexture.get(),
