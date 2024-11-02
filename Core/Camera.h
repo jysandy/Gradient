@@ -40,5 +40,6 @@ namespace Gradient
         void SetAspectRatio(float const& aspectRatio);
         void SetPosition(DirectX::SimpleMath::Vector3 const&);
         DirectX::SimpleMath::Vector3 GetPosition();
+        DirectX::SimpleMath::Vector3 GetDirection();
     };
 }

@@ -15,7 +15,7 @@ namespace Gradient::Rendering
             float sceneRadius,
             DirectX::SimpleMath::Vector3 sceneCentre = DirectX::SimpleMath::Vector3::Zero);
 
-        DirectX::SimpleMath::Matrix GetShadowTransform();
+        DirectX::SimpleMath::Matrix GetShadowTransform() const;
         
         // Colours must be in linear space.
         void SetColours(DirectX::SimpleMath::Color ambient,
@@ -25,15 +25,15 @@ namespace Gradient::Rendering
         void SetLightDirection(const DirectX::SimpleMath::Vector3& direction);
         void ClearAndSetDSV(ID3D11DeviceContext*);
 
-        DirectX::SimpleMath::Color GetAmbient();
-        DirectX::SimpleMath::Color GetDiffuse();
-        DirectX::SimpleMath::Color GetSpecular();
-        DirectX::SimpleMath::Vector3 GetDirection();
+        DirectX::SimpleMath::Color GetAmbient() const;
+        DirectX::SimpleMath::Color GetDiffuse() const;
+        DirectX::SimpleMath::Color GetSpecular() const;
+        DirectX::SimpleMath::Vector3 GetDirection() const;
 
-        DirectX::SimpleMath::Matrix GetView();
-        DirectX::SimpleMath::Matrix GetProjection();
+        DirectX::SimpleMath::Matrix GetView() const;
+        DirectX::SimpleMath::Matrix GetProjection() const;
 
-        ID3D11ShaderResourceView* GetShadowMapSRV();
+        ID3D11ShaderResourceView* GetShadowMapSRV() const;
 
     private:
         D3D11_VIEWPORT m_shadowMapViewport;

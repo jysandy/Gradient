@@ -37,6 +37,7 @@
     <ClInclude Include="Core\Effects\PBREffect.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
+    <ClInclude Include="Core\Effects\SkyDomeEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -61,6 +62,7 @@
     <ClCompile Include="Core\Effects\PBREffect.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
+    <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -185,5 +187,7 @@
     <FxCompile Include="Core\Shaders\pbr_ps.hlsl" />
     <FxCompile Include="Core\Shaders\blur.hlsl" />
     <FxCompile Include="Core\Shaders\wvp_vs.hlsl" />
+    <FxCompile Include="Core\Shaders\skydome_vs.hlsl" />
+    <FxCompile Include="Core\Shaders\skydome_ps.hlsl" />
   </ItemGroup>
 </Project>

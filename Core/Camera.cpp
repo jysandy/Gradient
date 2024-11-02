@@ -148,4 +148,9 @@ namespace Gradient
     {
         return m_position;
     }
+
+    Vector3 Camera::GetDirection()
+    {
+        return m_direction;
+    }
 }

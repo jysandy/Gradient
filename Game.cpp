@@ -124,6 +124,11 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Render");
 
+    m_skyDomeEffect->SetDirectionalLight(m_dLight.get());
+    m_skyDomeEffect->SetProjection(m_camera.GetProjectionMatrix());
+    m_skyDomeEffect->SetView(m_camera.GetViewMatrix());
+    m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
+
     m_pbrEffect->SetCameraPosition(m_camera.GetPosition());
     m_pbrEffect->SetDirectionalLight(m_dLight.get());
     m_pbrEffect->SetView(m_camera.GetViewMatrix());
@@ -475,6 +480,7 @@ void Game::CreateDeviceDependentResources()
     using namespace Gradient;
 
     auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
@@ -488,12 +494,17 @@ void Game::CreateDeviceDependentResources()
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
-        { -0.3f, -0.6f, 0.3f },
+        { -0.7f, -0.1f, 0.7f },
         15.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
+    Color lightColour = Color(0.86, 0.49, 0.06);
+    m_dLight->SetColours(lightColour, lightColour, lightColour);
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
+    m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
+    m_sky = GeometricPrimitive::CreateGeoSphere(context, 2.f, 3,
+        false);
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

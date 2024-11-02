@@ -7,8 +7,8 @@ namespace Gradient::Rendering
     using namespace DirectX;
     using namespace DirectX::SimpleMath;
 
-    DirectionalLight::DirectionalLight(ID3D11Device* device, 
-        Vector3 lightDirection,        
+    DirectionalLight::DirectionalLight(ID3D11Device* device,
+        Vector3 lightDirection,
         float sceneRadius,
         Vector3 sceneCentre)
     {
@@ -100,29 +100,29 @@ namespace Gradient::Rendering
             SimpleMath::Vector3::UnitY);
     }
 
-    Color DirectionalLight::GetAmbient()
+    Color DirectionalLight::GetAmbient() const
     {
         return m_ambient;
     }
 
-    Color DirectionalLight::GetDiffuse()
+    Color DirectionalLight::GetDiffuse() const
     {
         return m_diffuse;
     }
 
-    Color DirectionalLight::GetSpecular()
+    Color DirectionalLight::GetSpecular() const
     {
         return m_specular;
     }
 
-    Vector3 DirectionalLight::GetDirection()
+    Vector3 DirectionalLight::GetDirection() const
     {
         return m_lightDirection;
     }
 
     // Transforms a world space point into shadow map space.
     // X and Y become texcoords and Z becomes the depth.
-    Matrix DirectionalLight::GetShadowTransform()
+    Matrix DirectionalLight::GetShadowTransform() const
     {
         const static auto t = DirectX::SimpleMath::Matrix(
             0.5f, 0.f, 0.f, 0.f,
@@ -134,12 +134,12 @@ namespace Gradient::Rendering
         return m_shadowMapView * m_shadowMapProj * t;
     }
 
-    Matrix DirectionalLight::GetView()
+    Matrix DirectionalLight::GetView() const
     {
         return m_shadowMapView;
     }
 
-    Matrix DirectionalLight::GetProjection()
+    Matrix DirectionalLight::GetProjection() const
     {
         return m_shadowMapProj;
     }
@@ -156,7 +156,7 @@ namespace Gradient::Rendering
         context->RSSetViewports(1, &m_shadowMapViewport);
     }
 
-    ID3D11ShaderResourceView* DirectionalLight::GetShadowMapSRV()
+    ID3D11ShaderResourceView* DirectionalLight::GetShadowMapSRV() const
     {
         return m_shadowMapSRV.Get();
     }

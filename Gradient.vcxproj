@@ -194,6 +194,7 @@
     <ClInclude Include="Core\Effects\IEntityEffect.h" />
     <ClInclude Include="Core\Effects\PBREffect.h" />
     <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
+    <ClInclude Include="Core\Effects\SkyDomeEffect.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
     <ClCompile Include="Core\Effects\PBREffect.cpp" />
     <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
+    <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
@@ -322,6 +324,20 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\skydome_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\skydome_vs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Core\Shaders\wvp_vs.hlsl">

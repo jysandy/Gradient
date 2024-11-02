@@ -20,6 +20,7 @@
 #include "Core/Effects/BlinnPhongEffect.h"
 #include "Core/Effects/PBREffect.h"
 #include "Core/Effects/ShadowMapEffect.h"
+#include "Core/Effects/SkyDomeEffect.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
@@ -101,6 +102,9 @@ private:
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
+
+    std::unique_ptr<DirectX::GeometricPrimitive> m_sky;
+    std::unique_ptr<Gradient::Effects::SkyDomeEffect> m_skyDomeEffect;
     
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
 };
