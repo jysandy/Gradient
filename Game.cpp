@@ -143,30 +143,29 @@ void Game::Render()
         m_downsampled2.get());
 
     DrawRenderTexture(m_downsampled2.get(),
-        m_downsampled1.get(),
+        m_downsampled1.get());
+
+    DrawRenderTexture(m_downsampled1.get(),
+        m_screensizeRenderTexture.get());
+
+    DrawRenderTexture(m_screensizeRenderTexture.get(),
+        m_screensize2RenderTexture.get(),
         [=]
         {
             context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
         });
 
-    DrawRenderTexture(m_downsampled1.get(),
+    DrawRenderTexture(m_multisampledRenderTexture.get(),
         m_screensizeRenderTexture.get(),
         [=]
         {
-            context->PSSetShader(m_blurPS.Get(), nullptr, 0);
-        });
-
-    DrawRenderTexture(m_multisampledRenderTexture.get(),
-        m_screensize2RenderTexture.get(),
-        [=]
-        {
-            auto srv = m_screensizeRenderTexture->GetSRV();
+            auto srv = m_screensize2RenderTexture->GetSRV();
             context->PSSetShader(m_additiveBlendPS.Get(), nullptr, 0);
             context->PSSetShaderResources(1, 1, &srv);
         });
 
     // Tonemap and draw GUI
-    DrawRenderTexture(m_screensize2RenderTexture.get(),
+    DrawRenderTexture(m_screensizeRenderTexture.get(),
         m_tonemappedRenderTexture.get(),
         [=]
         {
@@ -567,8 +566,8 @@ void Game::CreateWindowSizeDependentResources()
     m_downsampled1 = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
         m_states,
-        width / 1.5,
-        height / 1.5,
+        width / 2,
+        height / 2,
         DXGI_FORMAT_R32G32B32A32_FLOAT,
         false
     );
@@ -576,8 +575,8 @@ void Game::CreateWindowSizeDependentResources()
     m_downsampled2 = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
         m_states,
-        width / 2,
-        height / 2,
+        width / 4,
+        height / 4,
         DXGI_FORMAT_R32G32B32A32_FLOAT,
         false
     );
