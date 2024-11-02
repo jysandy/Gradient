@@ -28,19 +28,11 @@ namespace Gradient::Rendering
         std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensizeRenderTexture;
         std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensize2RenderTexture;
 
-        std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_brightnessFilterPS;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_additiveBlendPS;
 
         Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(
             ID3D11Device* device,
             const std::wstring& path);
-
-        void DrawRenderTexture(
-            ID3D11DeviceContext* context,
-            Gradient::Rendering::RenderTexture* source,
-            Gradient::Rendering::RenderTexture* destination,
-            std::function<void __cdecl()> customState = nullptr);
     };
 }

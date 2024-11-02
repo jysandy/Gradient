@@ -3,7 +3,6 @@
 #include "Core/Rendering/RenderTexture.h"
 #include <directxtk/SimpleMath.h>
 
-
 namespace
 {
     constexpr UINT MSAA_COUNT = 4;
@@ -14,6 +13,7 @@ namespace Gradient::Rendering
 {
     RenderTexture::RenderTexture(
         ID3D11Device* device,
+        ID3D11DeviceContext* context,
         std::shared_ptr<DirectX::CommonStates> commonStates,
         UINT width,
         UINT height,
@@ -23,6 +23,8 @@ namespace Gradient::Rendering
         m_format(format),
         m_states(commonStates)
     {
+        m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
+
         m_outputSize = RECT();
         m_outputSize.left = 0;
         m_outputSize.right = width;
@@ -161,7 +163,7 @@ namespace Gradient::Rendering
         }
     }
 
-    void RenderTexture::ClearAndSetTargets(ID3D11DeviceContext* context)
+    void RenderTexture::ClearAndSetAsTarget(ID3D11DeviceContext* context)
     {
         auto renderTarget = m_offscreenRTV.Get();
         auto depthStencil = m_depthStencilSRV.Get();
@@ -176,7 +178,7 @@ namespace Gradient::Rendering
             context->RSSetState(m_states->CullClockwise());
     }
 
-    void RenderTexture::SetTargets(ID3D11DeviceContext* context)
+    void RenderTexture::SetAsTarget(ID3D11DeviceContext* context)
     {
         auto renderTarget = m_offscreenRTV.Get();
         auto depthStencil = m_depthStencilSRV.Get();
@@ -197,5 +199,19 @@ namespace Gradient::Rendering
     RECT RenderTexture::GetOutputSize()
     {
         return m_outputSize;
+    }
+
+    void RenderTexture::DrawTo(
+        ID3D11DeviceContext* context,
+        Gradient::Rendering::RenderTexture* destination,
+        std::function<void __cdecl()> customState)
+    {
+        destination->ClearAndSetAsTarget(context);
+
+        m_spriteBatch->Begin(DirectX::SpriteSortMode_Immediate,
+            nullptr, nullptr, nullptr, nullptr, customState);
+        m_spriteBatch->Draw(this->GetSRV(),
+            destination->GetOutputSize());
+        m_spriteBatch->End();
     }
 }

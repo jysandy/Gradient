@@ -139,14 +139,14 @@ void Game::Render()
         m_multisampledRenderTexture.get());
 
     // Tonemap and draw GUI
-    DrawRenderTexture(bloomOutput,
+    bloomOutput->DrawTo(context,
         m_tonemappedRenderTexture.get(),
         [=]
         {
             context->PSSetShader(m_tonemapperPS.Get(), nullptr, 0);
         });
 
-    m_tonemappedRenderTexture->SetTargets(context);
+    m_tonemappedRenderTexture->SetAsTarget(context);
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
 
@@ -160,22 +160,6 @@ void Game::Render()
     m_deviceResources->Present();
 }
 
-void Game::DrawRenderTexture(
-    Gradient::Rendering::RenderTexture* source,
-    Gradient::Rendering::RenderTexture* destination,
-    std::function<void __cdecl()> customState)
-{
-    auto context = m_deviceResources->GetD3DDeviceContext();
-
-    destination->ClearAndSetTargets(context);
-
-    m_spriteBatch->Begin(SpriteSortMode_Immediate,
-        nullptr, nullptr, nullptr, nullptr, customState);
-    m_spriteBatch->Draw(source->GetSRV(),
-        destination->GetOutputSize());
-    m_spriteBatch->End();
-}
-
 // Helper method to clear the back buffers.
 void Game::Clear()
 {
@@ -184,7 +168,7 @@ void Game::Clear()
     // Clear the views.
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-    m_multisampledRenderTexture->ClearAndSetTargets(context);
+    m_multisampledRenderTexture->ClearAndSetAsTarget(context);
 
     // Set the viewport.
     auto const viewport = m_deviceResources->GetScreenViewport();
@@ -491,12 +475,10 @@ void Game::CreateDeviceDependentResources()
     using namespace Gradient;
 
     auto device = m_deviceResources->GetD3DDevice();
-    auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
-    m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
     m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
 
     EntityManager::Initialize();
@@ -527,6 +509,7 @@ void Game::CreateWindowSizeDependentResources()
 
     m_multisampledRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
+        context,
         m_states,
         width,
         height,
@@ -536,6 +519,7 @@ void Game::CreateWindowSizeDependentResources()
 
     m_tonemappedRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
+        context,
         m_states,
         width,
         height,

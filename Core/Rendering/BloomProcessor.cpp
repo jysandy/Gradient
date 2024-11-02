@@ -15,6 +15,7 @@ namespace Gradient::Rendering
     {
         m_downsampled1 = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
+            context,
             m_states,
             width / 2,
             height / 2,
@@ -24,6 +25,7 @@ namespace Gradient::Rendering
 
         m_downsampled2 = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
+            context,
             m_states,
             width / 4,
             height / 4,
@@ -33,6 +35,7 @@ namespace Gradient::Rendering
 
         m_screensizeRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
+            context,
             m_states,
             width,
             height,
@@ -42,15 +45,13 @@ namespace Gradient::Rendering
 
         m_screensize2RenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
+            context,
             m_states,
             width,
             height,
             DXGI_FORMAT_R32G32B32A32_FLOAT,
             false
         );
-
-        m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
-
 
         m_brightnessFilterPS = LoadPixelShader(device, L"brightness_filter.cso");
         m_additiveBlendPS = LoadPixelShader(device, L"additive_blend.cso");
@@ -72,50 +73,21 @@ namespace Gradient::Rendering
         return ps;
     }
 
-    void BloomProcessor::DrawRenderTexture(
-        ID3D11DeviceContext* context,
-        Gradient::Rendering::RenderTexture* source,
-        Gradient::Rendering::RenderTexture* destination,
-        std::function<void __cdecl()> customState)
-    {
-        destination->ClearAndSetTargets(context);
-
-        m_spriteBatch->Begin(DirectX::SpriteSortMode_Immediate,
-            nullptr, nullptr, nullptr, nullptr, customState);
-        m_spriteBatch->Draw(source->GetSRV(),
-            destination->GetOutputSize());
-        m_spriteBatch->End();
-    }
-
     RenderTexture* BloomProcessor::Process(ID3D11DeviceContext* context,
         RenderTexture* input)
     {
-        DrawRenderTexture(context,
-            input,
-            m_downsampled1.get());
-
-        DrawRenderTexture(context, 
-            m_downsampled1.get(),
-            m_downsampled2.get());
-
-        DrawRenderTexture(context, 
-            m_downsampled2.get(),
-            m_downsampled1.get());
-
-        DrawRenderTexture(context, 
-            m_downsampled1.get(),
-            m_screensizeRenderTexture.get());
-
-        DrawRenderTexture(context, 
-            m_screensizeRenderTexture.get(),
+        input->DrawTo(context, m_downsampled1.get());
+        m_downsampled1->DrawTo(context, m_downsampled2.get());
+        m_downsampled2->DrawTo(context, m_downsampled1.get());
+        m_downsampled1->DrawTo(context, m_screensizeRenderTexture.get());
+        m_screensizeRenderTexture->DrawTo(context,
             m_screensize2RenderTexture.get(),
             [=]
             {
                 context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
             });
 
-        DrawRenderTexture(context, 
-            input,
+        input->DrawTo(context,
             m_screensizeRenderTexture.get(),
             [=]
             {

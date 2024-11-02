@@ -77,11 +77,6 @@ private:
     void CreateWindowSizeDependentResources();
     void CreateEntities();
 
-    void DrawRenderTexture(
-        Gradient::Rendering::RenderTexture* source,
-        Gradient::Rendering::RenderTexture* destination,
-        std::function<void __cdecl()> customState = nullptr);
-
     Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring& path);
 
     // Device resources.
@@ -107,6 +102,5 @@ private:
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
     
-    std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
 };
