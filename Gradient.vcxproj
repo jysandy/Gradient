@@ -200,6 +200,7 @@
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\ReadData.h" />
+    <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\TextureManager.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
+    <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />

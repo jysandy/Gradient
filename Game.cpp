@@ -135,37 +135,11 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     // Post-process ----
-
-    DrawRenderTexture(m_multisampledRenderTexture.get(),
-        m_downsampled1.get());
-
-    DrawRenderTexture(m_downsampled1.get(),
-        m_downsampled2.get());
-
-    DrawRenderTexture(m_downsampled2.get(),
-        m_downsampled1.get());
-
-    DrawRenderTexture(m_downsampled1.get(),
-        m_screensizeRenderTexture.get());
-
-    DrawRenderTexture(m_screensizeRenderTexture.get(),
-        m_screensize2RenderTexture.get(),
-        [=]
-        {
-            context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
-        });
-
-    DrawRenderTexture(m_multisampledRenderTexture.get(),
-        m_screensizeRenderTexture.get(),
-        [=]
-        {
-            auto srv = m_screensize2RenderTexture->GetSRV();
-            context->PSSetShader(m_additiveBlendPS.Get(), nullptr, 0);
-            context->PSSetShaderResources(1, 1, &srv);
-        });
+    auto bloomOutput = m_bloomProcessor->Process(context,
+        m_multisampledRenderTexture.get());
 
     // Tonemap and draw GUI
-    DrawRenderTexture(m_screensizeRenderTexture.get(),
+    DrawRenderTexture(bloomOutput,
         m_tonemappedRenderTexture.get(),
         [=]
         {
@@ -523,11 +497,7 @@ void Game::CreateDeviceDependentResources()
     m_effect = std::make_unique<Effects::BlinnPhongEffect>(device, m_states);
     m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
     m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
-
-    m_blurPS = LoadPixelShader(L"blur.cso");
     m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
-    m_brightnessFilterPS = LoadPixelShader(L"brightness_filter.cso");
-    m_additiveBlendPS = LoadPixelShader(L"additive_blend.cso");
 
     EntityManager::Initialize();
     TextureManager::Initialize(device);
@@ -551,6 +521,7 @@ void Game::CreateWindowSizeDependentResources()
     m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
 
     auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
     auto width = static_cast<UINT>(windowSize.right);
     auto height = static_cast<UINT>(windowSize.bottom);
 
@@ -563,42 +534,6 @@ void Game::CreateWindowSizeDependentResources()
         true
     );
 
-    m_downsampled1 = std::make_unique<Gradient::Rendering::RenderTexture>(
-        device,
-        m_states,
-        width / 2,
-        height / 2,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        false
-    );
-
-    m_downsampled2 = std::make_unique<Gradient::Rendering::RenderTexture>(
-        device,
-        m_states,
-        width / 4,
-        height / 4,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        false
-    );
-
-    m_screensizeRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
-        device,
-        m_states,
-        width,
-        height,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        false
-    );
-
-    m_screensize2RenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
-        device,
-        m_states,
-        width,
-        height,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        false
-    );
-
     m_tonemappedRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
         m_states,
@@ -606,6 +541,15 @@ void Game::CreateWindowSizeDependentResources()
         height,
         DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
         false
+    );
+
+    m_bloomProcessor = std::make_unique<Gradient::Rendering::BloomProcessor>(
+        device,
+        context,
+        m_states,
+        width,
+        height,
+        DXGI_FORMAT_R32G32B32A32_FLOAT
     );
 }
 

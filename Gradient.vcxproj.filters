@@ -34,9 +34,9 @@
     <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
     <ClInclude Include="Core\Effects\IEntityEffect.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
-    <ClInclude Include="PBREffect.h" />
     <ClInclude Include="Core\Effects\PBREffect.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
+    <ClInclude Include="Core\Rendering\BloomProcessor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -60,6 +60,7 @@
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Effects\PBREffect.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
+    <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -68,55 +69,100 @@
     <Image Include="directx.ico">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="BasketballColor.jpg">
+    <Image Include="Assets\BasketballColor.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="SoftballColor.jpg">
+    <Image Include="Assets\CobbleAO.bmp">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="DefaultTexture.png">
+    <Image Include="Assets\CobbleDiffuse.bmp">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Wood_Crate_001_basecolor.jpg">
+    <Image Include="Assets\CobbleNormal.bmp">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="DefaultNormalMap.png">
+    <Image Include="Assets\DefaultMetalness.bmp">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Wood_Crate_001_normal.jpg">
+    <Image Include="Assets\DefaultNormalMap.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="CobbleDiffuse.bmp">
+    <Image Include="Assets\DefaultTexture.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="CobbleNormal.bmp">
+    <Image Include="Assets\Metal_Floor_01_ambientocclusion.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="CobbleAO.bmp">
+    <Image Include="Assets\Metal_Floor_01_basecolor.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Wood_Crate_001_ambientOcclusion.jpg">
+    <Image Include="Assets\Metal_Floor_01_metallic.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="TilesAO.jpg">
+    <Image Include="Assets\Metal_Floor_01_normal.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="TilesDiffuse.jpg">
+    <Image Include="Assets\Metal_Floor_01_roughness.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="TilesNormal.jpg">
+    <Image Include="Assets\Metal_Semirough_01_ambientocclusion.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="DefaultMetalness.bmp">
+    <Image Include="Assets\Metal_Semirough_01_basecolor.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="TilesMetalness.jpg">
+    <Image Include="Assets\Metal_Semirough_01_metallic.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="TilesRoughness.jpg">
+    <Image Include="Assets\Metal_Semirough_01_normal.jpg">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Wood_Crate_001_roughness.jpg">
+    <Image Include="Assets\Metal_Semirough_01_roughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SoftballColor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\TilesAO.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\TilesDiffuse.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\TilesMetalness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\TilesNormal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\TilesRoughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Tiles_Decorative_06_ambientocclusion.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Tiles_Decorative_06_basecolor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Tiles_Decorative_06_metallic.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Tiles_Decorative_06_normal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Tiles_Decorative_06_roughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wood_Crate_001_ambientOcclusion.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wood_Crate_001_basecolor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wood_Crate_001_normal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wood_Crate_001_roughness.jpg">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -132,9 +178,12 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Core\Effects\blinn_phong_ps.hlsl" />
-    <FxCompile Include="Core\Effects\wvp_vs.hlsl" />
-    <FxCompile Include="Core\Effects\pbr_ps.hlsl" />
-    <FxCompile Include="Core\Effects\post_process.hlsl" />
+    <FxCompile Include="Core\Shaders\aces_tonemapper.hlsl" />
+    <FxCompile Include="Core\Shaders\additive_blend.hlsl" />
+    <FxCompile Include="Core\Shaders\blinn_phong_ps.hlsl" />
+    <FxCompile Include="Core\Shaders\brightness_filter.hlsl" />
+    <FxCompile Include="Core\Shaders\pbr_ps.hlsl" />
+    <FxCompile Include="Core\Shaders\blur.hlsl" />
+    <FxCompile Include="Core\Shaders\wvp_vs.hlsl" />
   </ItemGroup>
 </Project>

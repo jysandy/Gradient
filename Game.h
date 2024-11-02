@@ -22,6 +22,7 @@
 #include "Core/Effects/ShadowMapEffect.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/RenderTexture.h"
+#include "Core/Rendering/BloomProcessor.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -90,11 +91,8 @@ private:
     DX::StepTimer m_timer;
 
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled1;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled2;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensizeRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_screensize2RenderTexture;
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
+    std::unique_ptr<Gradient::Rendering::BloomProcessor> m_bloomProcessor;
 
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
@@ -110,8 +108,5 @@ private:
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
     
     std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_blurPS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_brightnessFilterPS;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_additiveBlendPS;
 };
