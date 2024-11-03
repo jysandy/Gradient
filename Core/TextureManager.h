@@ -9,12 +9,12 @@ namespace Gradient
     class TextureManager
     {
     public:
-        static void Initialize(ID3D11Device* device);
+        static void Initialize(ID3D11Device* device, ID3D11DeviceContext* context);
         static void Shutdown();
 
         static TextureManager* Get();
-        void LoadWICsRGB(ID3D11Device* device, std::string key, std::wstring path);
-        void LoadWICLinear(ID3D11Device* device, std::string key, std::wstring path);
+        void LoadWICsRGB(ID3D11Device* device, ID3D11DeviceContext* context, std::string key, std::wstring path);
+        void LoadWICLinear(ID3D11Device* device, ID3D11DeviceContext* context, std::string key, std::wstring path);
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetTexture(std::string key);
 
     private:

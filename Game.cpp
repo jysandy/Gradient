@@ -271,100 +271,100 @@ void Game::CreateEntities()
     auto entityManager = EntityManager::Get();
     auto textureManager = TextureManager::Get();
     auto device = m_deviceResources->GetD3DDevice();
-    textureManager->LoadWICsRGB(device,
-        "basketball",
-        L"Assets\\BasketballColor.jpg"
-    );
-    textureManager->LoadWICsRGB(device,
-        "softball",
-        L"Assets\\SoftballColor.jpg"
-    );
-    textureManager->LoadWICsRGB(device,
+    auto context = m_deviceResources->GetD3DDeviceContext();
+
+    textureManager->LoadWICsRGB(device, context,
         "crate",
         L"Assets\\Wood_Crate_001_basecolor.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "crateNormal",
         L"Assets\\Wood_Crate_001_normal.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "crateRoughness",
         L"Assets\\Wood_Crate_001_roughness.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "crateAO",
         L"Assets\\Wood_Crate_001_ambientOcclusion.jpg");
 
-    textureManager->LoadWICsRGB(device,
-        "cobbleDiffuse",
-        L"Assets\\CobbleDiffuse.bmp");
-    textureManager->LoadWICLinear(device,
-        "cobbleNormal",
-        L"Assets\\CobbleNormal.bmp");
-    textureManager->LoadWICLinear(device,
-        "cobbleAO",
-        L"Assets\\CobbleAO.bmp");
-
-    textureManager->LoadWICsRGB(device,
-        "tilesDiffuse",
+    textureManager->LoadWICsRGB(device, context,
+        "tilesAlbedo",
         L"Assets\\TilesDiffuse.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tilesNormal",
         L"Assets\\TilesNormal.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tilesAO",
         L"Assets\\TilesAO.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tilesMetalness",
         L"Assets\\TilesMetalness.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tilesRoughness",
         L"Assets\\TilesRoughness.jpg");
 
-    textureManager->LoadWICsRGB(device,
+    textureManager->LoadWICsRGB(device, context,
         "tiles06Albedo",
         L"Assets\\Tiles_Decorative_06_basecolor.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tiles06Normal",
         L"Assets\\Tiles_Decorative_06_normal.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tiles06AO",
         L"Assets\\Tiles_Decorative_06_ambientocclusion.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tiles06Metalness",
         L"Assets\\Tiles_Decorative_06_metallic.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "tiles06Roughness",
         L"Assets\\Tiles_Decorative_06_roughness.jpg");
 
-    textureManager->LoadWICsRGB(device,
+    textureManager->LoadWICsRGB(device, context,
         "metal01Albedo",
         L"Assets\\Metal_Floor_01_basecolor.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metal01Normal",
         L"Assets\\Metal_Floor_01_normal.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metal01AO",
         L"Assets\\Metal_Floor_01_ambientocclusion.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metal01Metalness",
         L"Assets\\Metal_Floor_01_metallic.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metal01Roughness",
         L"Assets\\Metal_Floor_01_roughness.jpg");
 
-    textureManager->LoadWICsRGB(device,
+    textureManager->LoadWICsRGB(device, context,
         "metalSAlbedo",
         L"Assets\\Metal_Semirough_01_basecolor.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metalSNormal",
         L"Assets\\Metal_Semirough_01_normal.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metalSAO",
         L"Assets\\Metal_Semirough_01_ambientocclusion.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metalSMetalness",
         L"Assets\\Metal_Semirough_01_metallic.jpg");
-    textureManager->LoadWICLinear(device,
+    textureManager->LoadWICLinear(device, context,
         "metalSRoughness",
         L"Assets\\Metal_Semirough_01_roughness.jpg");
+
+    textureManager->LoadWICsRGB(device, context,
+        "ornamentAlbedo",
+        L"Assets\\Metal_Ornament_01_basecolor.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "ornamentNormal",
+        L"Assets\\Metal_Ornament_01_normal.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "ornamentAO",
+        L"Assets\\Metal_Ornament_01_ambientocclusion.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "ornamentMetalness",
+        L"Assets\\Metal_Ornament_01_metallic.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "ornamentRoughness",
+        L"Assets\\Metal_Ornament_01_roughness.jpg");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -398,7 +398,11 @@ void Game::CreateEntities()
     Entity sphere2;
     sphere2.id = "sphere2";
     sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
-    sphere2.Texture = textureManager->GetTexture("softball");
+    sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
+    sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
+    sphere2.AOMap = textureManager->GetTexture("ornamentAO");
+    sphere2.MetalnessMap = textureManager->GetTexture("ornamentMetalness");
+    sphere2.RoughnessMap = textureManager->GetTexture("ornamentRoughness");
     sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 5.f, 0.f });
     JPH::BodyCreationSettings sphere2Settings(
         new JPH::SphereShape(1.f),
@@ -415,11 +419,11 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-    floor.Texture = textureManager->GetTexture("tiles06Albedo");
-    floor.NormalMap = textureManager->GetTexture("tiles06Normal");
-    floor.AOMap = textureManager->GetTexture("tiles06AO");
-    floor.MetalnessMap = textureManager->GetTexture("tiles06Metalness");
-    floor.RoughnessMap = textureManager->GetTexture("tiles06Roughness");
+    floor.Texture = textureManager->GetTexture("tilesAlbedo");
+    floor.NormalMap = textureManager->GetTexture("tilesNormal");
+    floor.AOMap = textureManager->GetTexture("tilesAO");
+    floor.MetalnessMap = textureManager->GetTexture("tilesMetalness");
+    floor.RoughnessMap = textureManager->GetTexture("tilesRoughness");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -506,7 +510,7 @@ void Game::CreateDeviceDependentResources()
     m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
 
     EntityManager::Initialize();
-    TextureManager::Initialize(device);
+    TextureManager::Initialize(device, context);
 
     CreateEntities();
 

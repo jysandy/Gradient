@@ -11,13 +11,13 @@ namespace Gradient
     {
     }
 
-    void TextureManager::Initialize(ID3D11Device* device)
+    void TextureManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context)
     {
         auto tm = new TextureManager();
         s_textureManager = std::unique_ptr<TextureManager>(tm);
-        s_textureManager->LoadWICsRGB(device, "default", L"Assets\\DefaultTexture.png");
-        s_textureManager->LoadWICLinear(device, "defaultNormal", L"Assets\\DefaultNormalMap.png");
-        s_textureManager->LoadWICLinear(device, "defaultMetalness", L"Assets\\DefaultMetalness.bmp");
+        s_textureManager->LoadWICsRGB(device, context, "default", L"Assets\\DefaultTexture.png");
+        s_textureManager->LoadWICLinear(device, context, "defaultNormal", L"Assets\\DefaultNormalMap.png");
+        s_textureManager->LoadWICLinear(device, context, "defaultMetalness", L"Assets\\DefaultMetalness.bmp");
     }
 
     void TextureManager::Shutdown()
@@ -31,6 +31,7 @@ namespace Gradient
     }
 
     void TextureManager::LoadWICsRGB(ID3D11Device* device,
+        ID3D11DeviceContext* context,
         std::string key,
         std::wstring path)
     {
@@ -41,17 +42,19 @@ namespace Gradient
                 path.c_str(),
                 0,
                 D3D11_USAGE_DEFAULT,
-                D3D11_BIND_SHADER_RESOURCE,
+                D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
                 0,
-                0,
+                D3D11_RESOURCE_MISC_GENERATE_MIPS,
                 DirectX::WIC_LOADER_FORCE_SRGB,
                 nullptr,
                 srv.ReleaseAndGetAddressOf()));
 
         m_textureMap.insert({ key, srv });
+        context->GenerateMips(srv.Get());
     }
 
     void TextureManager::LoadWICLinear(ID3D11Device* device,
+        ID3D11DeviceContext* context,
         std::string key,
         std::wstring path)
     {
@@ -62,14 +65,15 @@ namespace Gradient
                 path.c_str(),
                 0,
                 D3D11_USAGE_DEFAULT,
-                D3D11_BIND_SHADER_RESOURCE,
+                D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
                 0,
-                0,
+                D3D11_RESOURCE_MISC_GENERATE_MIPS,
                 DirectX::WIC_LOADER_IGNORE_SRGB,
                 nullptr,
                 srv.ReleaseAndGetAddressOf()));
 
         m_textureMap.insert({ key, srv });
+        context->GenerateMips(srv.Get());
     }
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureManager::GetTexture(std::string key)

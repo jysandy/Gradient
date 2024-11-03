@@ -239,15 +239,14 @@ float3 cookTorranceEnvironmentMap(float3 N,
     float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
     
-    float3 radiance = 0.05 * sampleEnvironmentMap(L);
+    float3 radiance = 0.01 * sampleEnvironmentMap(L);
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance
     );
     
     float3 black = float3(0, 0, 0);
-    return ao * lerp(black, ct,
-                     clamp(metalness * (1 - roughness), 0.1, 0.5));
+    return ao * ct;
 }
 
 // ------------------------------------
@@ -276,7 +275,7 @@ float4 main(InputType input) : SV_TARGET
     
     float shadowFactor = calculateShadowFactor(input.worldPosition);
     
-    float3 outputColour = ambient + shadowFactor * directRadiance;
+    float3 outputColour = ao * 0.01 + clamp(shadowFactor, 0.2, 0.6) * ambient + shadowFactor * directRadiance;
     
     return float4(outputColour, albedoSample.a);
 }
