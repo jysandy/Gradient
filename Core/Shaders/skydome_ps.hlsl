@@ -25,7 +25,7 @@ float4 main(VSOutput input) : SV_TARGET
     
     if (cosTheta < 0)
     {          
-        float lerpFactor = saturate(-5 * cosTheta);
+        float lerpFactor = saturate(-2 * cosTheta);
         skyColour = lerp(orange, black, lerpFactor);
     }
     else

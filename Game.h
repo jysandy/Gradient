@@ -24,6 +24,7 @@
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
+#include "Core/Rendering/CubeMap.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 
@@ -105,6 +106,7 @@ private:
 
     std::unique_ptr<DirectX::GeometricPrimitive> m_sky;
     std::unique_ptr<Gradient::Effects::SkyDomeEffect> m_skyDomeEffect;
+    std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
 };

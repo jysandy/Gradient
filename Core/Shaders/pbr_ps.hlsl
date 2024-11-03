@@ -15,6 +15,8 @@ SamplerState linearSampler : register(s3);
 Texture2D metalnessMap : register(t4);
 Texture2D roughnessMap : register(t5);
 
+TextureCube environmentMap : register(t6);
+
 struct DirectionalLight
 {
     float4 colour;
@@ -118,20 +120,20 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 
 float3 directionalLightRadiance(DirectionalLight dlight)
 {
-    return 3 * dlight.colour.rgb;
+    return 10 * dlight.colour.rgb;
 }
 
 float3 fresnelSchlick(
-    float3 H, 
-    float3 V, 
-    float3 albedo, 
+    float3 H,
+    float3 V,
+    float3 albedo,
     float metallic)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);
     float cosTheta = max(dot(H, V), 0);
     
-    return F0 + (1.f - F0) * pow(saturate(1.f - cosTheta), 5.f);
+    return saturate(F0 + (1.f - F0) * pow(saturate(1.f - cosTheta), 5.f));
 }
 
 float distributionGGX(float3 N, float3 H, float roughness)
@@ -169,25 +171,17 @@ float geometrySmith(float3 N, float3 V, float3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-// ------------------------------------
-
-float4 main(InputType input) : SV_TARGET
+float3 cookTorranceRadiance(
+    float3 N,
+    float3 V,
+    float3 L,
+    float3 H,
+    float3 albedo,
+    float metalness,
+    float roughness,
+    float3 radiance
+)
 {
-    input.normal = normalize(input.normal);
-    
-    float3 N = perturbNormal(input.normal, input.worldPosition, input.tex);
-    float3 V = normalize(cameraPosition - input.worldPosition);
-    float3 L = normalize(-directionalLight.direction);
-    float3 H = normalize(V + L);
-    
-    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
-    float3 albedo = albedoSample.rgb;
-    float ao = aoMap.Sample(linearSampler, input.tex).r;
-    float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
-    float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
-    
-    float3 radiance = directionalLightRadiance(directionalLight);
-    
     float3 F = fresnelSchlick(H, V, albedo, metalness);
     float D = distributionGGX(N, H, roughness);
     float G = geometrySmith(N, V, L, roughness);
@@ -207,10 +201,78 @@ float4 main(InputType input) : SV_TARGET
         * radiance
         * NdotL;
     
-    float3 ambient = float3(0.1, 0.1, 0.1) * albedo * ao;
+    return clamp(outgoingRadiance,
+                 float3(0, 0, 0),
+                 float3(50, 50, 50));
+}
+
+float3 cookTorranceDirectionalLight(float3 N,
+    float3 V,
+    float3 albedo,
+    float metalness,
+    float roughness,
+    DirectionalLight light)
+{
+    float3 L = normalize(-directionalLight.direction);
+    float3 H = normalize(V + L);
+    
+    float3 radiance = directionalLightRadiance(light);
+    
+    return cookTorranceRadiance(
+        N, V, L, H, albedo, metalness, roughness, radiance
+    );
+}
+
+float3 sampleEnvironmentMap(float3 sampleVec)
+{
+    sampleVec.z = -sampleVec.z;
+    return environmentMap.Sample(linearSampler, sampleVec).rgb;
+}
+
+float3 cookTorranceEnvironmentMap(float3 N,
+    float3 V, 
+    float3 albedo,
+    float ao, 
+    float metalness,
+    float roughness)
+{
+    float3 L = normalize(reflect(-V, N));
+    float3 H = normalize(V + L);
+    
+    float3 radiance = 0.1 * sampleEnvironmentMap(L);
+    
+    return ao * cookTorranceRadiance(
+        N, V, L, H, albedo, metalness, roughness, radiance
+    );
+}
+
+// ------------------------------------
+
+float4 main(InputType input) : SV_TARGET
+{
+    input.normal = normalize(input.normal);
+    
+    float3 N = perturbNormal(input.normal, input.worldPosition, input.tex);
+    float3 V = normalize(cameraPosition - input.worldPosition);
+    
+    
+    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
+    float3 albedo = albedoSample.rgb;
+    float ao = aoMap.Sample(linearSampler, input.tex).r;
+    float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
+    float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
+    
+    float3 directRadiance = cookTorranceDirectionalLight(
+        N, V, albedo, metalness, roughness, directionalLight
+    );
+    
+    float3 ambient = cookTorranceEnvironmentMap(
+        N, V, albedo, ao, metalness, roughness
+    );
+    
     float shadowFactor = calculateShadowFactor(input.worldPosition);
     
-    float3 outputColour = ambient + shadowFactor * outgoingRadiance;
+    float3 outputColour = ambient + shadowFactor * directRadiance;
     
     return float4(outputColour, albedoSample.a);
 }

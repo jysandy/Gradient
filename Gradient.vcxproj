@@ -202,6 +202,7 @@
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
+    <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\TextureManager.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
+    <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
@@ -331,6 +333,8 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Core\Shaders\skydome_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

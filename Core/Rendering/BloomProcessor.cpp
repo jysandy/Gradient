@@ -76,11 +76,7 @@ namespace Gradient::Rendering
     RenderTexture* BloomProcessor::Process(ID3D11DeviceContext* context,
         RenderTexture* input)
     {
-        input->DrawTo(context, m_downsampled1.get());
-        m_downsampled1->DrawTo(context, m_downsampled2.get());
-        m_downsampled2->DrawTo(context, m_downsampled1.get());
-        m_downsampled1->DrawTo(context, m_screensizeRenderTexture.get());
-        m_screensizeRenderTexture->DrawTo(context,
+        input->DrawTo(context,
             m_screensize2RenderTexture.get(),
             [=]
             {

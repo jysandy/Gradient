@@ -120,11 +120,23 @@ void Game::Render()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    m_skyDomeEffect->SetDirectionalLight(m_dLight.get());
+
+    m_deviceResources->PIXBeginEvent(L"Environment Map");
+
+    m_environmentMap->Render(context,
+        [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
+        {
+            m_skyDomeEffect->SetProjection(proj);
+            m_skyDomeEffect->SetView(view);
+            m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
+        });
+
+    m_deviceResources->PIXEndEvent();
+
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
-
-    m_skyDomeEffect->SetDirectionalLight(m_dLight.get());
     m_skyDomeEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_skyDomeEffect->SetView(m_camera.GetViewMatrix());
     m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
@@ -133,6 +145,7 @@ void Game::Render()
     m_pbrEffect->SetDirectionalLight(m_dLight.get());
     m_pbrEffect->SetView(m_camera.GetViewMatrix());
     m_pbrEffect->SetProjection(m_camera.GetProjectionMatrix());
+    m_pbrEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
 
     entityManager->DrawAll(m_pbrEffect.get());
 
@@ -507,6 +520,9 @@ void Game::CreateDeviceDependentResources()
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
     m_sky = GeometricPrimitive::CreateGeoSphere(context, 2.f, 3,
         false);
+    m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
+        256,
+        DXGI_FORMAT_R32G32B32A32_FLOAT);
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

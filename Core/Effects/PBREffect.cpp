@@ -108,6 +108,8 @@ namespace Gradient::Effects
             context->PSSetShaderResources(4, 1, m_metalnessMap.GetAddressOf());
         if (m_roughnessMap != nullptr)
             context->PSSetShaderResources(5, 1, m_roughnessMap.GetAddressOf());
+        if (m_environmentMap != nullptr)
+            context->PSSetShaderResources(6, 1, m_environmentMap.GetAddressOf());
 
         auto samplerState = m_states->AnisotropicWrap();
         context->PSSetSamplers(0, 1, &samplerState);
@@ -143,6 +145,10 @@ namespace Gradient::Effects
         m_roughnessMap = srv;
     }
 
+    void PBREffect::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_environmentMap = srv;
+    }
 
     void PBREffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {

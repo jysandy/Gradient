@@ -57,6 +57,7 @@ namespace Gradient::Effects
 
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
+        void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
 
     private:
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
@@ -67,6 +68,7 @@ namespace Gradient::Effects
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_aoMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_metalnessMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roughnessMap;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
