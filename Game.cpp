@@ -366,6 +366,22 @@ void Game::CreateEntities()
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.jpg");
 
+    textureManager->LoadWICsRGB(device, context,
+        "leavesAlbedo",
+        L"Assets\\Ground_Leaves_01_basecolor.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "leavesNormal",
+        L"Assets\\Ground_Leaves_01_normal.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "leavesAO",
+        L"Assets\\Ground_Leaves_01_ambientocclusion.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "leavesMetalness",
+        L"Assets\\Ground_Leaves_01_metallic.jpg");
+    textureManager->LoadWICLinear(device, context,
+        "leavesRoughness",
+        L"Assets\\Ground_Leaves_01_roughness.jpg");
+
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
@@ -419,11 +435,11 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-    floor.Texture = textureManager->GetTexture("tilesAlbedo");
-    floor.NormalMap = textureManager->GetTexture("tilesNormal");
-    floor.AOMap = textureManager->GetTexture("tilesAO");
-    floor.MetalnessMap = textureManager->GetTexture("tilesMetalness");
-    floor.RoughnessMap = textureManager->GetTexture("tilesRoughness");
+    floor.Texture = textureManager->GetTexture("leavesAlbedo");
+    floor.NormalMap = textureManager->GetTexture("leavesNormal");
+    floor.AOMap = textureManager->GetTexture("leavesAO");
+    floor.MetalnessMap = textureManager->GetTexture("leavesMetalness");
+    floor.RoughnessMap = textureManager->GetTexture("leavesRoughness");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -516,12 +532,10 @@ void Game::CreateDeviceDependentResources()
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
-        { -0.7f, -0.1f, 0.7f },
+        { -0.7f, -0.7f, 0.7f },
         15.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
-    Color lightColour = Color(0.86, 0.49, 0.06);
-    m_dLight->SetColours(lightColour, lightColour, lightColour);
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);

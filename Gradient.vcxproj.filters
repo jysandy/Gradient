@@ -169,6 +169,36 @@
     <Image Include="Assets\Wood_Crate_001_roughness.jpg">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\Metal_Ornament_01_ambientocclusion.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Metal_Ornament_01_basecolor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Metal_Ornament_01_metallic.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Metal_Ornament_01_normal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Metal_Ornament_01_roughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ground_Leaves_01_ambientocclusion.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ground_Leaves_01_basecolor.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ground_Leaves_01_metallic.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ground_Leaves_01_normal.jpg">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ground_Leaves_01_roughness.jpg">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest">

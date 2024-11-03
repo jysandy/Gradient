@@ -255,6 +255,16 @@
     <Image Include="Assets\DefaultMetalness.bmp" />
     <Image Include="Assets\DefaultNormalMap.png" />
     <Image Include="Assets\DefaultTexture.png" />
+    <Image Include="Assets\Ground_Leaves_01_ambientocclusion.jpg" />
+    <Image Include="Assets\Ground_Leaves_01_basecolor.jpg" />
+    <Image Include="Assets\Ground_Leaves_01_metallic.jpg" />
+    <Image Include="Assets\Ground_Leaves_01_normal.jpg" />
+    <Image Include="Assets\Ground_Leaves_01_roughness.jpg" />
+    <Image Include="Assets\Metal_Ornament_01_ambientocclusion.jpg" />
+    <Image Include="Assets\Metal_Ornament_01_basecolor.jpg" />
+    <Image Include="Assets\Metal_Ornament_01_metallic.jpg" />
+    <Image Include="Assets\Metal_Ornament_01_normal.jpg" />
+    <Image Include="Assets\Metal_Ornament_01_roughness.jpg" />
     <Image Include="directx.ico" />
     <Image Include="Assets\Metal_Floor_01_ambientocclusion.jpg" />
     <Image Include="Assets\Metal_Floor_01_basecolor.jpg" />
