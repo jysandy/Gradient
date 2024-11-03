@@ -140,7 +140,7 @@ float distributionGGX(float3 N, float3 H, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.f);
+    float NdotH = max(dot(N, H), 0.0001f);
     float NdotH2 = NdotH * NdotH;
 	
     float num = a2;
@@ -153,7 +153,7 @@ float distributionGGX(float3 N, float3 H, float roughness)
 float geometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
+    float k = (r * r) / 2.0;
 
     float num = NdotV;
     float denom = NdotV * (1.0 - k) + k;
@@ -163,8 +163,8 @@ float geometrySchlickGGX(float NdotV, float roughness)
 
 float geometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.f);
-    float NdotL = max(dot(N, L), 0.f);
+    float NdotV = max(dot(N, V), 0.0001f);
+    float NdotL = max(dot(N, L), 0.0001f);
     float ggx2 = geometrySchlickGGX(NdotV, roughness);
     float ggx1 = geometrySchlickGGX(NdotL, roughness);
 	
@@ -189,7 +189,7 @@ float3 cookTorranceRadiance(
     float NdotL = max(dot(N, L), 0.f);
     
     float3 numerator = D * G * F;
-    float denominator = 4.f * max(dot(N, V), 0.f) * NdotL + 0.0001;
+    float denominator = 4.f * max(dot(N, V), 0.0001f) * max(dot(N, L), 0.0001f);
     
     float3 specular = numerator / denominator;
     
@@ -203,7 +203,7 @@ float3 cookTorranceRadiance(
     
     return clamp(outgoingRadiance,
                  float3(0, 0, 0),
-                 float3(50, 50, 50));
+                 float3(100, 100, 100));
 }
 
 float3 cookTorranceDirectionalLight(float3 N,
@@ -239,13 +239,12 @@ float3 cookTorranceEnvironmentMap(float3 N,
     float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
     
-    float3 radiance = 0.01 * sampleEnvironmentMap(L);
+    float3 radiance = 0.05 * sampleEnvironmentMap(L);
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance
     );
     
-    float3 black = float3(0, 0, 0);
     return ao * ct;
 }
 

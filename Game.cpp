@@ -435,11 +435,11 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
-    floor.Texture = textureManager->GetTexture("leavesAlbedo");
-    floor.NormalMap = textureManager->GetTexture("leavesNormal");
-    floor.AOMap = textureManager->GetTexture("leavesAO");
-    floor.MetalnessMap = textureManager->GetTexture("leavesMetalness");
-    floor.RoughnessMap = textureManager->GetTexture("leavesRoughness");
+    floor.Texture = textureManager->GetTexture("tiles06Albedo");
+    floor.NormalMap = textureManager->GetTexture("tiles06Normal");
+    floor.AOMap = textureManager->GetTexture("tiles06AO");
+    floor.MetalnessMap = textureManager->GetTexture("tiles06Metalness");
+    floor.RoughnessMap = textureManager->GetTexture("tiles06Roughness");
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -532,10 +532,12 @@ void Game::CreateDeviceDependentResources()
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
-        { -0.7f, -0.7f, 0.7f },
+        { -0.7f, -0.1f, 0.7f },
         15.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
+    auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
+    m_dLight->SetColours(lightColor, lightColor, lightColor);
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
