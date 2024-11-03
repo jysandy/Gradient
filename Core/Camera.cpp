@@ -97,7 +97,7 @@ namespace Gradient
 
         translation.Normalize();
 
-        const float speed = 4.f;
+        const float speed = 6.f;
         m_position += (speed * elapsedSeconds) * translation;
          
         m_mouseButtonTracker.Update(mouseState);

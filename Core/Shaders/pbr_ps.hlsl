@@ -120,7 +120,7 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 
 float3 directionalLightRadiance(DirectionalLight dlight)
 {
-    return 10 * dlight.colour.rgb;
+    return 4 * dlight.colour.rgb;
 }
 
 float3 fresnelSchlick(
@@ -239,11 +239,15 @@ float3 cookTorranceEnvironmentMap(float3 N,
     float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
     
-    float3 radiance = 0.1 * sampleEnvironmentMap(L);
+    float3 radiance = 0.05 * sampleEnvironmentMap(L);
     
-    return ao * cookTorranceRadiance(
+    float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance
     );
+    
+    float3 black = float3(0, 0, 0);
+    return ao * lerp(black, ct,
+                     clamp(metalness * (1 - roughness), 0.1, 0.5));
 }
 
 // ------------------------------------

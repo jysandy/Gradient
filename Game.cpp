@@ -127,6 +127,7 @@ void Game::Render()
     m_environmentMap->Render(context,
         [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
         {
+            m_skyDomeEffect->SetSunCircleEnabled(false);
             m_skyDomeEffect->SetProjection(proj);
             m_skyDomeEffect->SetView(view);
             m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
@@ -137,6 +138,7 @@ void Game::Render()
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
+    m_skyDomeEffect->SetSunCircleEnabled(true);
     m_skyDomeEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_skyDomeEffect->SetView(m_camera.GetViewMatrix());
     m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
@@ -376,6 +378,7 @@ void Game::CreateEntities()
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
+    sphere1.MetalnessMap = textureManager->GetTexture("metalSMetalness");
     sphere1.RoughnessMap = textureManager->GetTexture("metalSRoughness");
     sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
     JPH::BodyCreationSettings sphere1Settings(
