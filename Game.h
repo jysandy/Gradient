@@ -82,7 +82,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring& path);
 
     // Device resources.
-    std::unique_ptr<DX::DeviceResources> m_deviceResources;
+    std::unique_ptr<DX::DeviceResources> m_deviceResources;                    
 
     // Rendering loop timer.
     DX::StepTimer m_timer;

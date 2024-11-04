@@ -26,7 +26,8 @@ Game::Game() noexcept(false)
         DXGI_FORMAT_UNKNOWN,
         DXGI_FORMAT_D32_FLOAT,
         2,
-        D3D_FEATURE_LEVEL_11_1
+        D3D_FEATURE_LEVEL_11_1,
+        DX::DeviceResources::c_FlipPresent | DX::DeviceResources::c_AllowTearing
     );
     // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
     //   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.

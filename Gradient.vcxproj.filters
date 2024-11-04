@@ -221,5 +221,7 @@
     <FxCompile Include="Core\Shaders\wvp_vs.hlsl" />
     <FxCompile Include="Core\Shaders\skydome_vs.hlsl" />
     <FxCompile Include="Core\Shaders\skydome_ps.hlsl" />
+    <FxCompile Include="Core\Shaders\gaussian_horizontal.hlsl" />
+    <FxCompile Include="Core\Shaders\gaussian_vertical.hlsl" />
   </ItemGroup>
 </Project>

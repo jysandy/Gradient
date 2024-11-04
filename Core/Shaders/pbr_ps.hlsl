@@ -150,19 +150,27 @@ float distributionGGX(float3 N, float3 H, float roughness)
     return num / denom;
 }
 
-float geometrySchlickGGX(float NdotV, float roughness)
+float geometrySchlickGGX(float NdotV, float k)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 2.0;
-
     float num = NdotV;
     float denom = NdotV * (1.0 - k) + k;
 	
     return num / denom;
 }
 
-float geometrySmith(float3 N, float3 V, float3 L, float roughness)
+float geometrySmith(float3 N, float3 V, float3 L, float roughness, bool directLighting)
 {
+    float k;
+    if (directLighting)
+    {
+        float r = roughness + 1;
+        k = (r * r) / 8.f;
+    }
+    else
+    {
+        k = roughness * roughness / 2;
+    }
+    
     float NdotV = max(dot(N, V), 0.0001f);
     float NdotL = max(dot(N, L), 0.0001f);
     float ggx2 = geometrySchlickGGX(NdotV, roughness);
@@ -179,12 +187,13 @@ float3 cookTorranceRadiance(
     float3 albedo,
     float metalness,
     float roughness,
-    float3 radiance
+    float3 radiance,
+    bool directLighting
 )
 {
     float3 F = fresnelSchlick(H, V, albedo, metalness);
     float D = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
+    float G = geometrySmith(N, V, L, roughness, directLighting);
     
     float NdotL = max(dot(N, L), 0.f);
     
@@ -219,7 +228,7 @@ float3 cookTorranceDirectionalLight(float3 N,
     float3 radiance = directionalLightRadiance(light);
     
     return cookTorranceRadiance(
-        N, V, L, H, albedo, metalness, roughness, radiance
+        N, V, L, H, albedo, metalness, roughness, radiance, true
     );
 }
 
@@ -230,9 +239,9 @@ float3 sampleEnvironmentMap(float3 sampleVec)
 }
 
 float3 cookTorranceEnvironmentMap(float3 N,
-    float3 V, 
+    float3 V,
     float3 albedo,
-    float ao, 
+    float ao,
     float metalness,
     float roughness)
 {
@@ -242,7 +251,7 @@ float3 cookTorranceEnvironmentMap(float3 N,
     float3 radiance = 0.05 * sampleEnvironmentMap(L);
     
     float3 ct = cookTorranceRadiance(
-        N, V, L, H, albedo, metalness, roughness, radiance
+        N, V, L, H, albedo, metalness, roughness, radiance, false
     );
     
     return ao * ct;

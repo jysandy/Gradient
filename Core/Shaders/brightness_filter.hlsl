@@ -11,5 +11,5 @@ float4 main(float4 color : COLOR0,
     
     float luminanceFilter = saturate(luminance - 4.5f);
     
-    return float4(outputColor.rgb * luminanceFilter * 0.05, outputColor.a);    
+    return float4(outputColor.rgb * luminanceFilter * 0.2, outputColor.a);    
 }
