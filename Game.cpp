@@ -538,6 +538,7 @@ void Game::CreateDeviceDependentResources()
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
+    //auto lightColor = DirectX::SimpleMath::Color(0.9, 0.9, 0.6, 1);
     m_dLight->SetColours(lightColor, lightColor, lightColor);
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);

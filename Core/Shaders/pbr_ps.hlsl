@@ -120,7 +120,7 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 
 float3 directionalLightRadiance(DirectionalLight dlight)
 {
-    return 4 * dlight.colour.rgb;
+    return 10 * dlight.colour.rgb;
 }
 
 float3 fresnelSchlick(
@@ -133,7 +133,7 @@ float3 fresnelSchlick(
     F0 = lerp(F0, albedo, metallic);
     float cosTheta = max(dot(H, V), 0);
     
-    return saturate(F0 + (1.f - F0) * pow(saturate(1.f - cosTheta), 5.f));
+    return saturate(F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f));
 }
 
 float distributionGGX(float3 N, float3 H, float roughness)
@@ -150,10 +150,10 @@ float distributionGGX(float3 N, float3 H, float roughness)
     return num / denom;
 }
 
-float geometrySchlickGGX(float NdotV, float k)
+float geometrySchlickGGX(float3 N, float3 VorL, float k)
 {
-    float num = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
+    float num = max(dot(N, VorL), 0);
+    float denom = max(dot(N, VorL), 0.0001) * (1.0 - k) + k;
 	
     return num / denom;
 }
@@ -171,12 +171,36 @@ float geometrySmith(float3 N, float3 V, float3 L, float roughness, bool directLi
         k = roughness * roughness / 2;
     }
     
-    float NdotV = max(dot(N, V), 0.0001f);
-    float NdotL = max(dot(N, L), 0.0001f);
-    float ggx2 = geometrySchlickGGX(NdotV, roughness);
-    float ggx1 = geometrySchlickGGX(NdotL, roughness);
+    float ggx2 = geometrySchlickGGX(N, V, roughness);
+    float ggx1 = geometrySchlickGGX(N, L, roughness);
 	
     return ggx1 * ggx2;
+}
+
+float3 limitRadiance(float3 radiance, float3 limit)
+{
+    float factor = 1.f;
+    float maxRadiance = 0.f;
+    
+    if (radiance.r > limit.r && radiance.r > maxRadiance)
+    {
+        factor = limit.r / radiance.r;
+        maxRadiance = radiance.r;
+    }
+        
+    if (radiance.b > limit.b && radiance.b > maxRadiance)
+    {
+        factor = limit.b / radiance.b;
+        maxRadiance = radiance.b;
+    }
+    if (radiance.g > limit.g && radiance.g > factor)
+    {
+        factor = limit.g / radiance.g;
+        maxRadiance = radiance.g;
+    }
+    
+    return max(float3(0, 0, 0),
+        radiance * factor);
 }
 
 float3 cookTorranceRadiance(
@@ -210,9 +234,8 @@ float3 cookTorranceRadiance(
         * radiance
         * NdotL;
     
-    return clamp(outgoingRadiance,
-                 float3(0, 0, 0),
-                 float3(100, 100, 100));
+    return limitRadiance(outgoingRadiance,
+                 radiance * 7.5);
 }
 
 float3 cookTorranceDirectionalLight(float3 N,
@@ -283,7 +306,7 @@ float4 main(InputType input) : SV_TARGET
     
     float shadowFactor = calculateShadowFactor(input.worldPosition);
     
-    float3 outputColour = ao * 0.01 + clamp(shadowFactor, 0.2, 0.6) * ambient + shadowFactor * directRadiance;
+    float3 outputColour = ambient + shadowFactor * directRadiance;
     
     return float4(outputColour, albedoSample.a);
 }
