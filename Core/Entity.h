@@ -6,6 +6,7 @@
 #include <directxtk/GeometricPrimitive.h>
 #include <memory>
 #include <string>
+#include "Core/Rendering/IDrawable.h"
 
 namespace Gradient
 {
@@ -18,7 +19,8 @@ namespace Gradient
         DirectX::SimpleMath::Matrix Scale;
         DirectX::SimpleMath::Matrix Rotation;
         DirectX::SimpleMath::Matrix Translation;
-        std::unique_ptr<DirectX::GeometricPrimitive> Primitive;
+        std::unique_ptr<Rendering::IDrawable> Drawable;
+        bool CastsShadows = true;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Texture = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> NormalMap = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> AOMap = nullptr;

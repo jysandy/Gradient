@@ -39,6 +39,8 @@
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Effects\SkyDomeEffect.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
+    <ClInclude Include="Core\Rendering\IDrawable.h" />
+    <ClInclude Include="Core\Rendering\Primitive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -65,6 +67,7 @@
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
+    <ClCompile Include="Core\Rendering\Primitive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

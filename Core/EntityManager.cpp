@@ -108,15 +108,16 @@ namespace Gradient
         }
     }
 
-    void EntityManager::DrawAll(Effects::IEntityEffect* effect, std::function<void()> setCustomState)
+    void EntityManager::DrawAll(Effects::IEntityEffect* effect, bool drawingShadows, std::function<void()> setCustomState)
     {
         auto textureManager = TextureManager::Get();
+        auto blankTexture = textureManager->GetTexture("default");
+        auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
+        auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
+        auto smoothMap = dielectricMetalnessMap;
         for (auto const& entity : m_entities)
         {
-            auto blankTexture = textureManager->GetTexture("default");
-            auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
-            auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
-            auto smoothMap = dielectricMetalnessMap;
+            if (drawingShadows && !entity.CastsShadows) continue;
 
             if (entity.Texture != nullptr)
                 effect->SetAlbedo(entity.Texture);
@@ -145,11 +146,7 @@ namespace Gradient
 
             effect->SetWorld(entity.GetWorldMatrix());
 
-            entity.Primitive->Draw(effect,
-                effect->GetInputLayout(),
-                false,
-                false,
-                setCustomState);
+            entity.Drawable->Draw(effect, setCustomState);
         }
     }
 

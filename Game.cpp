@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
+#include "Core/Rendering/Primitive.h"
 #include <directxtk/SimpleMath.h>
 
 #include <imgui.h>
@@ -113,7 +114,7 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
     m_shadowMapEffect->SetDirectionalLight(m_dLight.get());
-    entityManager->DrawAll(m_shadowMapEffect.get());
+    entityManager->DrawAll(m_shadowMapEffect.get(), true);
 
     m_deviceResources->PIXEndEvent();
 
@@ -391,7 +392,8 @@ void Game::CreateEntities()
 
     Entity sphere1;
     sphere1.id = "sphere1";
-    sphere1.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere1.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f));
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
@@ -414,7 +416,8 @@ void Game::CreateEntities()
 
     Entity sphere2;
     sphere2.id = "sphere2";
-    sphere2.Primitive = DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f);
+    sphere2.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f));
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
     sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
     sphere2.AOMap = textureManager->GetTexture("ornamentAO");
@@ -435,7 +438,8 @@ void Game::CreateEntities()
 
     Entity floor;
     floor.id = "floor";
-    floor.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f });
+    floor.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f }));
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
     floor.NormalMap = textureManager->GetTexture("tiles06Normal");
     floor.AOMap = textureManager->GetTexture("tiles06AO");
@@ -458,11 +462,13 @@ void Game::CreateEntities()
 
     Entity box1;
     box1.id = "box1";
-    box1.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box1.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f }));
     box1.Texture = textureManager->GetTexture("metal01Albedo");
     box1.NormalMap = textureManager->GetTexture("metal01Normal");
     box1.AOMap = textureManager->GetTexture("metal01AO");
     box1.RoughnessMap = textureManager->GetTexture("metal01Roughness");
+    box1.MetalnessMap = textureManager->GetTexture("metal01Metalness");
     box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(
@@ -478,7 +484,8 @@ void Game::CreateEntities()
 
     Entity box2;
     box2.id = "box2";
-    box2.Primitive = DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box2.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f }));
     box2.Texture = textureManager->GetTexture("crate");
     box2.NormalMap = textureManager->GetTexture("crateNormal");
     box2.AOMap = textureManager->GetTexture("crateAO");
@@ -495,6 +502,18 @@ void Game::CreateEntities()
     auto box2BodyId = bodyInterface.CreateAndAddBody(box2Settings, JPH::EActivation::Activate);
     box2.BodyID = box2BodyId;
     entityManager->AddEntity(std::move(box2));
+
+    Entity plane;
+    plane.id = "plane";
+    plane.Drawable = Rendering::Primitive::FromGeometricPrimitive(
+        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 10.f, 0.f, 10.f }));
+    plane.Texture = textureManager->GetTexture("metal01Albedo");
+    plane.NormalMap = textureManager->GetTexture("metal01Normal");
+    plane.AOMap = textureManager->GetTexture("metal01AO");
+    plane.RoughnessMap = textureManager->GetTexture("metal01Roughness");
+    plane.MetalnessMap = textureManager->GetTexture("metal01Metalness");
+    plane.Translation = Matrix::CreateTranslation(Vector3{ 0.f, 5.f, 0.f });
+    entityManager->AddEntity(std::move(plane));
 }
 
 Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const std::wstring& path)

@@ -20,7 +20,7 @@ namespace Gradient
 
     void Entity::OnDeviceLost()
     {
-        this->Primitive.reset();
+        this->Drawable.reset();
     }
 
     void Entity::SetRotation(float yaw, float pitch, float roll)

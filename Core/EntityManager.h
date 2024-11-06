@@ -26,6 +26,7 @@ namespace Gradient
 
         void UpdateAll(DX::StepTimer const&);
         void DrawAll(Effects::IEntityEffect* effect,
+            bool drawingShadows = false,
             std::function<void()> setCustomState = nullptr);
 
         void AddEntity(Entity&&);
