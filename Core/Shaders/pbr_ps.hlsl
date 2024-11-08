@@ -133,27 +133,41 @@ float3 fresnelSchlick(
     F0 = lerp(F0, albedo, metallic);
     float cosTheta = max(dot(H, V), 0);
     
-    return saturate(F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f));
+    return F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f);
 }
 
 float distributionGGX(float3 N, float3 H, float roughness)
 {
-    float a = roughness * roughness;
+    float a = max(roughness * roughness, 0.001);
     float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0001f);
+    
+    float NdotH = max(dot(N, H), 0.001);
+    
     float NdotH2 = NdotH * NdotH;
 	
     float num = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 	
-    return num / denom;
+    // When NdotH is 1 (as in the case of a cubemapped reflection),
+    // this function goes to infinity at low roughness values. 
+    // However, the NDF doesn't exceed 3.5 for most values of NdotH 
+    // and r, so clamping it between 0 and 3.5 seems like a reasonable 
+    // approximation. See: https://www.desmos.com/calculator/ppdhhd569k
+    return clamp(num / denom, 0, 3.5);
 }
 
 float geometrySchlickGGX(float3 N, float3 VorL, float k)
 {
-    float num = max(dot(N, VorL), 0);
-    float denom = max(dot(N, VorL), 0.0001) * (1.0 - k) + k;
+    // Try to avoid division by zeroes.
+    // As k approaches 0, the quotient approaches 1
+    if (k == 0)
+        return 1;
+    
+    float NdotVorL = dot(N, VorL);
+    
+    float num = max(NdotVorL, 0.0001);
+    float denom = num * (1.0 - k) + k;
 	
     return num / denom;
 }
@@ -177,32 +191,6 @@ float geometrySmith(float3 N, float3 V, float3 L, float roughness, bool directLi
     return ggx1 * ggx2;
 }
 
-float3 limitRadiance(float3 radiance, float3 limit)
-{
-    float factor = 1.f;
-    float maxRadiance = 0.f;
-    
-    if (radiance.r > limit.r && radiance.r > maxRadiance)
-    {
-        factor = limit.r / radiance.r;
-        maxRadiance = radiance.r;
-    }
-        
-    if (radiance.b > limit.b && radiance.b > maxRadiance)
-    {
-        factor = limit.b / radiance.b;
-        maxRadiance = radiance.b;
-    }
-    if (radiance.g > limit.g && radiance.g > factor)
-    {
-        factor = limit.g / radiance.g;
-        maxRadiance = radiance.g;
-    }
-    
-    return max(float3(0, 0, 0),
-        radiance * factor);
-}
-
 float3 cookTorranceRadiance(
     float3 N,
     float3 V,
@@ -219,23 +207,23 @@ float3 cookTorranceRadiance(
     float D = distributionGGX(N, H, roughness);
     float G = geometrySmith(N, V, L, roughness, directLighting);
     
-    float NdotL = max(dot(N, L), 0.f);
-    
-    float3 numerator = D * G * F;
-    float denominator = 4.f * max(dot(N, V), 0.0001f) * max(dot(N, L), 0.0001f);
-    
-    float3 specular = numerator / denominator;
+    float NdotL = max(dot(N, L), 0.f);    
     
     float3 kS = F;
     float3 kD = float3(1.f, 1.f, 1.f) - kS;
     kD *= 1.f - metalness;
     
-    float3 outgoingRadiance = (kD * (albedo / PI) + specular)
+    float3 fd = kD * (albedo / PI);
+    
+    float3 numerator = D * G * F;
+    float denominator = 4.f * max(dot(N, V), 0.0001f) * max(dot(N, L), 0.0001f);
+    float3 specular = numerator / denominator;
+
+    float3 outgoingRadiance = (fd + specular)
         * radiance
         * NdotL;
     
-    return limitRadiance(outgoingRadiance,
-                 radiance * 7.5);
+    return outgoingRadiance;
 }
 
 float3 cookTorranceDirectionalLight(float3 N,
@@ -271,7 +259,7 @@ float3 cookTorranceEnvironmentMap(float3 N,
     float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
     
-    float3 radiance = 0.05 * sampleEnvironmentMap(L);
+    float3 radiance = 1 * sampleEnvironmentMap(L);
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance, false
