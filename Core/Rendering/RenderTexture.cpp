@@ -188,7 +188,7 @@ namespace Gradient::Rendering
         if (m_multisamplingEnabled)
             context->RSSetState(m_multisampledRSState.Get());
         else
-            context->RSSetState(m_states->CullClockwise());
+            context->RSSetState(m_states->CullCounterClockwise());
     }
 
     ID3D11ShaderResourceView* RenderTexture::GetSRV()
@@ -208,6 +208,9 @@ namespace Gradient::Rendering
     {
         destination->ClearAndSetAsTarget(context);
 
+        context->VSSetShader(nullptr, nullptr, 0);
+        context->HSSetShader(nullptr, nullptr, 0);
+        context->DSSetShader(nullptr, nullptr, 0);
         m_spriteBatch->Begin(DirectX::SpriteSortMode_Immediate,
             nullptr, nullptr, nullptr, nullptr, customState);
         m_spriteBatch->Draw(this->GetSRV(),

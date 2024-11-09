@@ -108,45 +108,53 @@ namespace Gradient
         }
     }
 
-    void EntityManager::DrawAll(Effects::IEntityEffect* effect, bool drawingShadows, std::function<void()> setCustomState)
+    void EntityManager::DrawEntity(const Entity& entity, Effects::IEntityEffect* effect,
+        bool drawingShadows,
+        std::function<void()> setCustomState)
     {
         auto textureManager = TextureManager::Get();
         auto blankTexture = textureManager->GetTexture("default");
         auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
         auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
         auto smoothMap = dielectricMetalnessMap;
+
+        if (drawingShadows && !entity.CastsShadows) return;
+
+        if (entity.Texture != nullptr)
+            effect->SetAlbedo(entity.Texture);
+        else
+            effect->SetAlbedo(blankTexture);
+
+        if (entity.NormalMap != nullptr)
+            effect->SetNormalMap(entity.NormalMap);
+        else
+            effect->SetNormalMap(outwardNormalMap);
+
+        if (entity.AOMap != nullptr)
+            effect->SetAOMap(entity.AOMap);
+        else
+            effect->SetAOMap(blankTexture);
+
+        if (entity.MetalnessMap != nullptr)
+            effect->SetMetalnessMap(entity.MetalnessMap);
+        else
+            effect->SetMetalnessMap(dielectricMetalnessMap);
+
+        if (entity.RoughnessMap != nullptr)
+            effect->SetRoughnessMap(entity.RoughnessMap);
+        else
+            effect->SetRoughnessMap(blankTexture);
+
+        effect->SetWorld(entity.GetWorldMatrix());
+
+        entity.Drawable->Draw(effect, setCustomState);
+    }
+
+    void EntityManager::DrawAll(Effects::IEntityEffect* effect, bool drawingShadows, std::function<void()> setCustomState)
+    {
         for (auto const& entity : m_entities)
         {
-            if (drawingShadows && !entity.CastsShadows) continue;
-
-            if (entity.Texture != nullptr)
-                effect->SetAlbedo(entity.Texture);
-            else
-                effect->SetAlbedo(blankTexture);
-
-            if (entity.NormalMap != nullptr)
-                effect->SetNormalMap(entity.NormalMap);
-            else
-                effect->SetNormalMap(outwardNormalMap);
-
-            if (entity.AOMap != nullptr)
-                effect->SetAOMap(entity.AOMap);
-            else
-                effect->SetAOMap(blankTexture);
-
-            if (entity.MetalnessMap != nullptr)
-                effect->SetMetalnessMap(entity.MetalnessMap);
-            else
-                effect->SetMetalnessMap(dielectricMetalnessMap);
-
-            if (entity.RoughnessMap != nullptr)
-                effect->SetRoughnessMap(entity.RoughnessMap);
-            else
-                effect->SetRoughnessMap(blankTexture);
-
-            effect->SetWorld(entity.GetWorldMatrix());
-
-            entity.Drawable->Draw(effect, setCustomState);
+            DrawEntity(entity, effect, drawingShadows, setCustomState);
         }
     }
 

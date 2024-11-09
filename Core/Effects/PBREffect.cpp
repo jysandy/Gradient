@@ -71,7 +71,8 @@ namespace Gradient::Effects
 
     void PBREffect::Apply(ID3D11DeviceContext* context)
     {
-        context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
+        context->HSSetShader(nullptr, nullptr, 0);
+        context->DSSetShader(nullptr, nullptr, 0);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
@@ -118,6 +119,7 @@ namespace Gradient::Effects
         context->PSSetSamplers(2, 1, &samplerState);
         samplerState = m_states->LinearWrap();
         context->PSSetSamplers(3, 1, &samplerState);
+        context->RSSetState(m_states->CullCounterClockwise());
     }
 
     void PBREffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)

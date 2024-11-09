@@ -29,7 +29,6 @@
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
-    <ClInclude Include="Core\Effects\BlinnPhongEffect.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
     <ClInclude Include="Core\Effects\IEntityEffect.h" />
@@ -41,6 +40,8 @@
     <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
     <ClInclude Include="Core\Rendering\Primitive.h" />
+    <ClInclude Include="Core\Effects\WaterEffect.h" />
+    <ClInclude Include="Core\Rendering\Grid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -59,7 +60,6 @@
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
-    <ClCompile Include="Core\Effects\BlinnPhongEffect.cpp" />
     <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Effects\PBREffect.cpp" />
@@ -68,6 +68,9 @@
     <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\Primitive.cpp" />
+    <ClCompile Include="Core\Effects\IEntityEffect.cpp" />
+    <ClCompile Include="Core\Effects\WaterEffect.cpp" />
+    <ClCompile Include="Core\Rendering\Grid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -213,11 +216,11 @@
     <None Include="vcpkg-configuration.json" />
     <None Include=".gitignore" />
     <None Include="README.md" />
+    <None Include="ImportTex.ps1" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\aces_tonemapper.hlsl" />
     <FxCompile Include="Core\Shaders\additive_blend.hlsl" />
-    <FxCompile Include="Core\Shaders\blinn_phong_ps.hlsl" />
     <FxCompile Include="Core\Shaders\brightness_filter.hlsl" />
     <FxCompile Include="Core\Shaders\pbr_ps.hlsl" />
     <FxCompile Include="Core\Shaders\blur.hlsl" />
@@ -226,5 +229,8 @@
     <FxCompile Include="Core\Shaders\skydome_ps.hlsl" />
     <FxCompile Include="Core\Shaders\gaussian_horizontal.hlsl" />
     <FxCompile Include="Core\Shaders\gaussian_vertical.hlsl" />
+    <FxCompile Include="Core\Shaders\constant_hs.hlsl" />
+    <FxCompile Include="Core\Shaders\domain_shader_ds.hlsl" />
+    <FxCompile Include="Core\Shaders\passthrough_vs.hlsl" />
   </ItemGroup>
 </Project>

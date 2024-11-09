@@ -56,33 +56,6 @@ namespace Gradient::Effects
         return m_inputLayout.Get();
     }
 
-    // TODO: Move all these empty implementations into the base interface?
-
-    void ShadowMapEffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // Ignored
-    }
-
-    void ShadowMapEffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // Ignored
-    }
-
-    void ShadowMapEffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // Ignored
-    }
-
-    void ShadowMapEffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // Ignored
-    }
-
-    void ShadowMapEffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        // Ignored
-    }
-
     void ShadowMapEffect::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;

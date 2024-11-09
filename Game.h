@@ -17,10 +17,10 @@
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
-#include "Core/Effects/BlinnPhongEffect.h"
 #include "Core/Effects/PBREffect.h"
 #include "Core/Effects/ShadowMapEffect.h"
 #include "Core/Effects/SkyDomeEffect.h"
+#include "Core/Effects/WaterEffect.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
@@ -96,8 +96,8 @@ private:
     std::shared_ptr<DirectX::CommonStates> m_states;
 
     Gradient::Camera m_camera;
-    std::unique_ptr<Gradient::Effects::BlinnPhongEffect> m_effect;
     std::unique_ptr<Gradient::Effects::PBREffect> m_pbrEffect;
+    std::unique_ptr<Gradient::Effects::WaterEffect> m_waterEffect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
 
@@ -109,4 +109,9 @@ private:
     std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
+
+
+    // Temporary
+
+    Gradient::Entity m_plane;
 };
