@@ -27,6 +27,7 @@
 #include "Core/Rendering/CubeMap.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
+#include "GUI/RenderingWindow.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -100,6 +101,7 @@ private:
     std::unique_ptr<Gradient::Effects::WaterEffect> m_waterEffect;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
+    Gradient::GUI::RenderingWindow m_renderingWindow;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;

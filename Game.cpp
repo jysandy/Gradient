@@ -94,6 +94,10 @@ void Game::Update(DX::StepTimer const& timer)
     }
 
     m_entityWindow.Update();
+
+    m_dLight->SetLightDirection(m_renderingWindow.LightDirection);
+    auto lightColour = m_renderingWindow.GetLinearLightColour();
+    m_dLight->SetColours(lightColour, lightColour, lightColour);
 }
 #pragma endregion
 
@@ -160,13 +164,7 @@ void Game::Render()
     m_waterEffect->SetView(m_camera.GetViewMatrix());
     m_waterEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_waterEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
-    entityManager->DrawEntity(m_plane, m_waterEffect.get(),
-        false,
-        [=]()
-        {
-            // This doesn't work because GeometricPrimitive is setting its own primitive topology anyway...
-            context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-        });
+    entityManager->DrawEntity(m_plane, m_waterEffect.get());
 
     m_multisampledRenderTexture->CopyToSingleSampled(context);
     m_deviceResources->PIXEndEvent();
@@ -188,6 +186,7 @@ void Game::Render()
     m_tonemappedRenderTexture->SetAsTarget(context);
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
+    m_renderingWindow.Draw();
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -289,6 +288,9 @@ void Game::CreateEntities()
     auto textureManager = TextureManager::Get();
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
+
+    // TODO: display a loading screen while loading all these textures
+    // TODO: cut down on the texture size, these are way too big
 
     textureManager->LoadDDS(device, context,
         "crate",
@@ -566,12 +568,13 @@ void Game::CreateDeviceDependentResources()
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
         { -0.7f, -0.1f, 0.7f },
-        15.f
+        30.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
-    //auto lightColor = DirectX::SimpleMath::Color(0.9, 0.9, 0.6, 1);
     m_dLight->SetColours(lightColor, lightColor, lightColor);
+    m_renderingWindow.SetLinearLightColour(lightColor);
+    m_renderingWindow.LightDirection = m_dLight->GetDirection();
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);

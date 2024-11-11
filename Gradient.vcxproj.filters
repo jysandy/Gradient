@@ -42,6 +42,7 @@
     <ClInclude Include="Core\Rendering\Primitive.h" />
     <ClInclude Include="Core\Effects\WaterEffect.h" />
     <ClInclude Include="Core\Rendering\Grid.h" />
+    <ClInclude Include="GUI\RenderingWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -71,6 +72,7 @@
     <ClCompile Include="Core\Effects\IEntityEffect.cpp" />
     <ClCompile Include="Core\Effects\WaterEffect.cpp" />
     <ClCompile Include="Core\Rendering\Grid.cpp" />
+    <ClCompile Include="GUI\RenderingWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
