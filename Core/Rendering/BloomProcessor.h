@@ -4,6 +4,7 @@
 #include "Core/Rendering/RenderTexture.h"
 #include <directxtk/CommonStates.h>
 #include <directxtk/SpriteBatch.h>
+#include <directxtk/BufferHelpers.h>
 
 namespace Gradient::Rendering
 {
@@ -21,7 +22,19 @@ namespace Gradient::Rendering
         RenderTexture* Process(ID3D11DeviceContext* context,
             RenderTexture* input);
 
+        float GetExposure();
+        float GetIntensity();
+
+        void SetExposure(float bt);
+        void SetIntensity(float intensity);
+
     private:
+        struct __declspec(align(16)) BloomParams
+        {
+            float exposure;
+            float intensity;
+        };
+
         std::shared_ptr<DirectX::CommonStates> m_states;
         std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled1;
         std::unique_ptr<Gradient::Rendering::RenderTexture> m_downsampled2;
@@ -37,5 +50,9 @@ namespace Gradient::Rendering
         Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(
             ID3D11Device* device,
             const std::wstring& path);
+
+        DirectX::ConstantBuffer<BloomParams> m_brightnessFilterCB;
+        float m_exposure;
+        float m_intensity;
     };
 }

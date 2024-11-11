@@ -58,6 +58,8 @@ namespace Gradient::Rendering
         m_blurPS = LoadPixelShader(device, L"blur.cso");
         m_gaussianHorizontalPS = LoadPixelShader(device, L"gaussian_horizontal.cso");
         m_gaussianVerticalPS = LoadPixelShader(device, L"gaussian_vertical.cso");
+
+        m_brightnessFilterCB.Create(device);
     }
 
     Microsoft::WRL::ComPtr<ID3D11PixelShader> BloomProcessor::LoadPixelShader(
@@ -74,6 +76,26 @@ namespace Gradient::Rendering
                 ps.ReleaseAndGetAddressOf()));
 
         return ps;
+    }
+
+    void BloomProcessor::SetExposure(float bt)
+    {
+        m_exposure = bt;
+    }
+
+    void BloomProcessor::SetIntensity(float intensity)
+    {
+        m_intensity = intensity;
+    }
+
+    float BloomProcessor::GetExposure()
+    {
+        return m_exposure;
+    }
+
+    float BloomProcessor::GetIntensity()
+    {
+        return m_intensity;
     }
 
     RenderTexture* BloomProcessor::Process(ID3D11DeviceContext* context,
@@ -99,7 +121,10 @@ namespace Gradient::Rendering
         m_downsampled1->DrawTo(context, m_downsampled3.get(),
             [=]
             {
+                m_brightnessFilterCB.SetData(context, { m_exposure, m_intensity });
                 context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
+                auto cb = m_brightnessFilterCB.GetBuffer();
+                context->PSSetConstantBuffers(0, 1, &cb);
             });
 
         m_downsampled3->DrawTo(context, m_downsampled1.get(),

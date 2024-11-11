@@ -99,6 +99,8 @@ void Game::Update(DX::StepTimer const& timer)
     m_dLight->SetColour(m_renderingWindow.GetLinearLightColour());
     m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
     m_skyDomeEffect->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
+    m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
+    m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
 #pragma endregion
 
@@ -575,10 +577,6 @@ void Game::CreateDeviceDependentResources()
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
     m_dLight->SetColour(lightColor);
     m_dLight->SetIrradiance(7.f);
-    m_renderingWindow.SetLinearLightColour(lightColor);
-    m_renderingWindow.LightDirection = m_dLight->GetDirection();
-    m_renderingWindow.Irradiance = m_dLight->GetIrradiance();
-    m_renderingWindow.AmbientIrradiance = 1.f;
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
@@ -629,6 +627,16 @@ void Game::CreateWindowSizeDependentResources()
         height,
         DXGI_FORMAT_R32G32B32A32_FLOAT
     );
+
+    m_bloomProcessor->SetExposure(6.f);
+    m_bloomProcessor->SetIntensity(0.2f);
+
+    m_renderingWindow.SetLinearLightColour(m_dLight->GetColour());
+    m_renderingWindow.LightDirection = m_dLight->GetDirection();
+    m_renderingWindow.Irradiance = m_dLight->GetIrradiance();
+    m_renderingWindow.AmbientIrradiance = 1.f;
+    m_renderingWindow.BloomExposure = m_bloomProcessor->GetExposure();
+    m_renderingWindow.BloomIntensity = m_bloomProcessor->GetIntensity();
 }
 
 void Game::OnDeviceLost()

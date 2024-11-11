@@ -22,5 +22,8 @@ namespace Gradient::GUI
         DirectX::XMFLOAT3 LightColour = { 0, 0, 0 };
         float Irradiance;
         float AmbientIrradiance;
+
+        float BloomExposure = 0.f;
+        float BloomIntensity = 0.f;
     };
 }

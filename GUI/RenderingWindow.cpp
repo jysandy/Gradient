@@ -10,15 +10,28 @@ namespace Gradient::GUI
     void RenderingWindow::Draw()
     {
         ImGui::Begin("Rendering");
-        ImGui::DragFloat3("Light direction",
-            &LightDirection.x,
-            0.001f,
-            -1.f,
-            1.f);
-        ImGui::ColorEdit3("Light colour",
-            &LightColour.x);
-        ImGui::SliderFloat("Light irradiance", &Irradiance, 0.f, 50.f);
-        ImGui::SliderFloat("Ambient irradiance", &AmbientIrradiance, 0.f, 10.f);
+
+        if (ImGui::TreeNode("Lighting"))
+        {
+            ImGui::DragFloat3("Light direction",
+                &LightDirection.x,
+                0.001f,
+                -1.f,
+                1.f);
+            ImGui::ColorEdit3("Light colour",
+                &LightColour.x);
+            ImGui::SliderFloat("Light irradiance", &Irradiance, 0.f, 50.f);
+            ImGui::SliderFloat("Ambient irradiance", &AmbientIrradiance, 0.f, 10.f);
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("Bloom"))
+        {
+            ImGui::SliderFloat("Exposure", &BloomExposure, 0.f, 20.f);
+            ImGui::SliderFloat("Intensity", &BloomIntensity, 0.f, 1.f);
+            ImGui::TreePop();
+        }
+
         ImGui::End();
     }    
 
