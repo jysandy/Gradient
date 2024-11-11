@@ -98,7 +98,8 @@ namespace Gradient::Effects
         m_pixelCameraCB.SetData(context, pixelConstants);
         
         DLightCB lightConstants;
-        lightConstants.diffuse = m_directionalLightColour;
+        lightConstants.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
+        lightConstants.irradiance = m_lightIrradiance;
         lightConstants.direction = m_lightDirection;
         m_dLightCB.SetData(context, lightConstants);
         
@@ -208,8 +209,11 @@ namespace Gradient::Effects
 
     void WaterEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight) 
     {
-        m_directionalLightColour = dlight->GetDiffuse();
+        m_directionalLightColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
+        m_lightIrradiance = dlight->GetIrradiance();
+        m_shadowMap = dlight->GetShadowMapSRV();
+        m_shadowTransform = dlight->GetShadowTransform();
     }
 
     void WaterEffect::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)

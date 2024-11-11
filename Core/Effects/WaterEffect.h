@@ -32,7 +32,8 @@ namespace Gradient::Effects
 
         struct __declspec(align(16)) DLightCB
         {
-            DirectX::XMFLOAT4 diffuse;
+            DirectX::XMFLOAT3 colour;
+            float irradiance;
             DirectX::XMFLOAT3 direction;
         };
 
@@ -94,6 +95,7 @@ namespace Gradient::Effects
 
         DirectX::SimpleMath::Color   m_directionalLightColour;
         DirectX::SimpleMath::Vector3 m_lightDirection;
+        float m_lightIrradiance;
 
         float m_totalTimeSeconds;
     };

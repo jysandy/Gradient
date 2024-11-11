@@ -30,7 +30,8 @@ namespace Gradient::Effects
 
         struct __declspec(align(16)) DLightCB
         {
-            DirectX::XMFLOAT4 diffuse;
+            DirectX::XMFLOAT3 colour;
+            float irradiance;
             DirectX::XMFLOAT3 direction;
         };
 

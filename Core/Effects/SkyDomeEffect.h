@@ -27,6 +27,8 @@ namespace Gradient::Effects
             float sunExp;
             DirectX::XMFLOAT3 lightDirection;
             float sunCircleEnabled;
+            float irradiance;
+            float ambientIrradiance;
         };
 
         using VertexType = DirectX::VertexPosition;
@@ -46,6 +48,7 @@ namespace Gradient::Effects
         ID3D11InputLayout* GetInputLayout() const;
         void SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight);
         void SetSunCircleEnabled(bool enabled);
+        void SetAmbientIrradiance(float ambientIrradiance);
 
     private:
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
@@ -61,6 +64,8 @@ namespace Gradient::Effects
         DirectX::SimpleMath::Vector3 m_cameraDirection;
         DirectX::SimpleMath::Vector3 m_lightDirection;
         DirectX::SimpleMath::Color m_sunColour;
+        float m_irradiance;
+        float m_ambientIrradiance = 1.f;
         bool m_sunCircleEnabled;
 
         std::vector<uint8_t> m_vsData;

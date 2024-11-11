@@ -10,6 +10,8 @@ cbuffer SunBuffer : register(b0)
     float g_sunExp;
     float3 g_lightdirection;
     float g_drawSunCircle;
+    float g_sunIrradiance;
+    float g_ambientIrradiance;
 };
 
 float4 main(VSOutput input) : SV_TARGET
@@ -32,11 +34,11 @@ float4 main(VSOutput input) : SV_TARGET
     skyBase = lerp(blue, skyBase, cosHorizontalL);
 
     // TODO: Get the sun flare up at the height of the sun
-    skyColour = lerp(skyBase, blue, pow(abs(cosTheta), lerp(0.8, 1, g_drawSunCircle)));
+    skyColour = g_ambientIrradiance * lerp(skyBase, blue, pow(abs(cosTheta), lerp(0.8, 1, g_drawSunCircle)));
 
     float LdotV = max(dot(L, V), 0);
     
-    float3 sunCircle = g_drawSunCircle * (g_sunExp / 16) * g_sunColour * pow(LdotV, g_sunExp);
+    float3 sunCircle = g_drawSunCircle * g_sunIrradiance * g_sunColour * pow(LdotV, g_sunExp);
     
     return float4(sunCircle + skyColour, 1);
 }

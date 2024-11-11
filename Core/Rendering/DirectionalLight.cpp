@@ -16,9 +16,8 @@ namespace Gradient::Rendering
         m_sceneCentre = sceneCentre;
         SetLightDirection(lightDirection);
 
-        m_diffuse = Color(0.8f, 0.8f, 0.7f, 1.f);
-        m_ambient = Color(0.1f, 0.1f, 0.1f, 1.f);
-        m_specular = Color(0.8f, 0.8f, 0.4f, 1.f);
+        m_colour = Color(0.8f, 0.8f, 0.7f, 1.f);
+        m_irradiance = 10.f;
 
         m_shadowMapProj = SimpleMath::Matrix::CreateOrthographicOffCenter(
             -sceneRadius,
@@ -79,13 +78,9 @@ namespace Gradient::Rendering
 
     }
 
-    void DirectionalLight::SetColours(Color ambient,
-        Color diffuse,
-        Color specular)
+    void DirectionalLight::SetColour(DirectX::SimpleMath::Color colour)
     {
-        m_ambient = ambient;
-        m_diffuse = diffuse;
-        m_specular = specular;
+        m_colour = colour;
     }
 
     void DirectionalLight::SetLightDirection(const Vector3& lightDirection)
@@ -100,19 +95,19 @@ namespace Gradient::Rendering
             SimpleMath::Vector3::UnitY);
     }
 
-    Color DirectionalLight::GetAmbient() const
+    void DirectionalLight::SetIrradiance(float irradiance)
     {
-        return m_ambient;
+        m_irradiance = irradiance;
     }
 
-    Color DirectionalLight::GetDiffuse() const
+    Color DirectionalLight::GetColour() const
     {
-        return m_diffuse;
+        return m_colour;
     }
 
-    Color DirectionalLight::GetSpecular() const
+    float DirectionalLight::GetIrradiance() const
     {
-        return m_specular;
+        return m_irradiance;
     }
 
     Vector3 DirectionalLight::GetDirection() const

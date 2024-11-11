@@ -19,7 +19,8 @@ TextureCube environmentMap : register(t6);
 
 struct DirectionalLight
 {
-    float4 colour;
+    float3 colour;
+    float irradiance;
     float3 direction;
 };
 
@@ -118,9 +119,9 @@ float3 perturbNormal(float3 N, float3 worldPosition, float2 tex)
 
 // PBR lighting -----------------------
 
-float3 directionalLightRadiance(DirectionalLight dlight)
+float3 directionalLightIrradiance(DirectionalLight dlight)
 {
-    return 10 * dlight.colour.rgb;
+    return dlight.irradiance * dlight.colour.rgb;
 }
 
 float3 fresnelSchlick(
@@ -236,10 +237,10 @@ float3 cookTorranceDirectionalLight(float3 N,
     float3 L = normalize(-directionalLight.direction);
     float3 H = normalize(V + L);
     
-    float3 radiance = directionalLightRadiance(light);
+    float3 irradiance = directionalLightIrradiance(light);
     
     return cookTorranceRadiance(
-        N, V, L, H, albedo, metalness, roughness, radiance, true
+        N, V, L, H, albedo, metalness, roughness, irradiance, true
     );
 }
 

@@ -96,8 +96,9 @@ void Game::Update(DX::StepTimer const& timer)
     m_entityWindow.Update();
 
     m_dLight->SetLightDirection(m_renderingWindow.LightDirection);
-    auto lightColour = m_renderingWindow.GetLinearLightColour();
-    m_dLight->SetColours(lightColour, lightColour, lightColour);
+    m_dLight->SetColour(m_renderingWindow.GetLinearLightColour());
+    m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
+    m_skyDomeEffect->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
 }
 #pragma endregion
 
@@ -572,12 +573,16 @@ void Game::CreateDeviceDependentResources()
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
-    m_dLight->SetColours(lightColor, lightColor, lightColor);
+    m_dLight->SetColour(lightColor);
+    m_dLight->SetIrradiance(7.f);
     m_renderingWindow.SetLinearLightColour(lightColor);
     m_renderingWindow.LightDirection = m_dLight->GetDirection();
+    m_renderingWindow.Irradiance = m_dLight->GetIrradiance();
+    m_renderingWindow.AmbientIrradiance = 1.f;
 
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
+    m_skyDomeEffect->SetAmbientIrradiance(1.f);
     m_sky = GeometricPrimitive::CreateGeoSphere(context, 2.f, 3,
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,

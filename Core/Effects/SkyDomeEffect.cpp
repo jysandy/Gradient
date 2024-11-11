@@ -89,6 +89,8 @@ namespace Gradient::Effects
         pixelConstants.sunColour = m_sunColour.ToVector3();
         pixelConstants.sunExp = 512;
         pixelConstants.lightDirection = m_lightDirection;
+        pixelConstants.irradiance = m_irradiance;
+        pixelConstants.ambientIrradiance = m_ambientIrradiance;
         if (m_sunCircleEnabled)
             pixelConstants.sunCircleEnabled = 1;
         else
@@ -102,9 +104,15 @@ namespace Gradient::Effects
 
     void SkyDomeEffect::SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight)
     {
-        m_sunColour = dlight->GetDiffuse();
+        m_sunColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
         m_lightDirection.Normalize();
+        m_irradiance = dlight->GetIrradiance();
+    }
+
+    void SkyDomeEffect::SetAmbientIrradiance(float ambientIrradiance)
+    {
+        m_ambientIrradiance = ambientIrradiance;
     }
 
     void SkyDomeEffect::SetSunCircleEnabled(bool enabled)

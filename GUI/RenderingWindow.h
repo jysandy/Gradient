@@ -20,5 +20,7 @@ namespace Gradient::GUI
 
         DirectX::XMFLOAT3 LightDirection = { 0, 0, 0 };
         DirectX::XMFLOAT3 LightColour = { 0, 0, 0 };
+        float Irradiance;
+        float AmbientIrradiance;
     };
 }

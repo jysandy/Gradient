@@ -43,9 +43,9 @@ namespace Gradient::Effects
 
         CD3D11_SAMPLER_DESC cmpDesc(
             D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
             0,
             1,
             D3D11_COMPARISON_LESS,
@@ -157,7 +157,8 @@ namespace Gradient::Effects
         m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
         m_shadowTransform = dlight->GetShadowTransform();
 
-        m_dLightCBData.diffuse = dlight->GetDiffuse();
+        m_dLightCBData.colour = static_cast<DirectX::XMFLOAT3>(dlight->GetColour());
+        m_dLightCBData.irradiance = dlight->GetIrradiance();
         m_dLightCBData.direction = dlight->GetDirection();
     }
 
