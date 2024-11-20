@@ -184,7 +184,7 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     // Tonemap and draw GUI
-    m_multisampledRenderTexture->DrawTo(context,
+    bloomOutput->DrawTo(context,
         m_tonemappedRenderTexture.get(),
         [=]
         {
@@ -392,22 +392,6 @@ void Game::CreateEntities()
     textureManager->LoadDDS(device, context,
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.dds");
-
-    textureManager->LoadDDS(device, context,
-        "leavesAlbedo",
-        L"Assets\\Ground_Leaves_01_basecolor.dds");
-    textureManager->LoadDDS(device, context,
-        "leavesNormal",
-        L"Assets\\Ground_Leaves_01_normal.dds");
-    textureManager->LoadDDS(device, context,
-        "leavesAO",
-        L"Assets\\Ground_Leaves_01_ambientocclusion.dds");
-    textureManager->LoadDDS(device, context,
-        "leavesMetalness",
-        L"Assets\\Ground_Leaves_01_metallic.dds");
-    textureManager->LoadDDS(device, context,
-        "leavesRoughness",
-        L"Assets\\Ground_Leaves_01_roughness.dds");
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -628,8 +612,8 @@ void Game::CreateWindowSizeDependentResources()
         DXGI_FORMAT_R32G32B32A32_FLOAT
     );
 
-    m_bloomProcessor->SetExposure(6.f);
-    m_bloomProcessor->SetIntensity(0.2f);
+    m_bloomProcessor->SetExposure(18.f);
+    m_bloomProcessor->SetIntensity(0.3f);
 
     m_renderingWindow.SetLinearLightColour(m_dLight->GetColour());
     m_renderingWindow.LightDirection = m_dLight->GetDirection();

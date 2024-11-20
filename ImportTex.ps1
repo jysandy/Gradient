@@ -12,4 +12,4 @@ else
     exiftool.exe -ColorSpace=Uncalibrated -overwrite_original $filePath
 }
 
-texconv $filePath -o Assets -y 
+texconv $filePath -o Assets -y -w 2048 -h 2048 -m 5
