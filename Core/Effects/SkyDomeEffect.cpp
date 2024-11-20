@@ -100,6 +100,8 @@ namespace Gradient::Effects
         cb = m_pixelCB.GetBuffer();
         context->PSSetConstantBuffers(0, 1, &cb);
         context->PSSetShader(m_ps.Get(), nullptr, 0);
+
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void SkyDomeEffect::SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight)

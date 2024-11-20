@@ -39,10 +39,10 @@
     <ClInclude Include="Core\Effects\SkyDomeEffect.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
-    <ClInclude Include="Core\Rendering\Primitive.h" />
     <ClInclude Include="Core\Effects\WaterEffect.h" />
     <ClInclude Include="Core\Rendering\Grid.h" />
     <ClInclude Include="GUI\RenderingWindow.h" />
+    <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -68,11 +68,11 @@
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
-    <ClCompile Include="Core\Rendering\Primitive.cpp" />
     <ClCompile Include="Core\Effects\IEntityEffect.cpp" />
     <ClCompile Include="Core\Effects\WaterEffect.cpp" />
     <ClCompile Include="Core\Rendering\Grid.cpp" />
     <ClCompile Include="GUI\RenderingWindow.cpp" />
+    <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

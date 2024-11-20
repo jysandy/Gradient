@@ -93,6 +93,9 @@ namespace Gradient::Effects
 
         context->PSSetShader(nullptr, nullptr, 0);
         context->RSSetState(m_shadowMapRSState.Get());
+
+        context->IASetInputLayout(m_inputLayout.Get());
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void ShadowMapEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)

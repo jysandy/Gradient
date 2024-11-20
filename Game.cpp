@@ -6,8 +6,8 @@
 #include "Game.h"
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
-#include "Core/Rendering/Primitive.h"
 #include "Core/Rendering/Grid.h"
+#include "Core/Rendering/GeometricPrimitive.h"
 #include <directxtk/SimpleMath.h>
 
 #include <imgui.h>
@@ -412,8 +412,7 @@ void Game::CreateEntities()
 
     Entity sphere1;
     sphere1.id = "sphere1";
-    sphere1.Drawable = Rendering::Primitive::FromGeometricPrimitive(
-        DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f));
+    sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
@@ -436,8 +435,7 @@ void Game::CreateEntities()
 
     Entity sphere2;
     sphere2.id = "sphere2";
-    sphere2.Drawable = Rendering::Primitive::FromGeometricPrimitive(
-        DirectX::GeometricPrimitive::CreateSphere(deviceContext, 2.f));
+    sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
     sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
     sphere2.AOMap = textureManager->GetTexture("ornamentAO");
@@ -458,8 +456,7 @@ void Game::CreateEntities()
 
     Entity floor;
     floor.id = "floor";
-    floor.Drawable = Rendering::Primitive::FromGeometricPrimitive(
-        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 20.f, 0.5f, 20.f }));
+    floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 20.f, 0.5f, 20.f });
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
     floor.NormalMap = textureManager->GetTexture("tiles06Normal");
     floor.AOMap = textureManager->GetTexture("tiles06AO");
@@ -482,8 +479,7 @@ void Game::CreateEntities()
 
     Entity box1;
     box1.id = "box1";
-    box1.Drawable = Rendering::Primitive::FromGeometricPrimitive(
-        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f }));
+    box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
     box1.Texture = textureManager->GetTexture("metal01Albedo");
     box1.NormalMap = textureManager->GetTexture("metal01Normal");
     box1.AOMap = textureManager->GetTexture("metal01AO");
@@ -504,8 +500,7 @@ void Game::CreateEntities()
 
     Entity box2;
     box2.id = "box2";
-    box2.Drawable = Rendering::Primitive::FromGeometricPrimitive(
-        DirectX::GeometricPrimitive::CreateBox(deviceContext, Vector3{ 3.f, 3.f, 3.f }));
+    box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
     box2.Texture = textureManager->GetTexture("crate");
     box2.NormalMap = textureManager->GetTexture("crateNormal");
     box2.AOMap = textureManager->GetTexture("crateAO");

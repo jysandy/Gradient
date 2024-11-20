@@ -120,6 +120,9 @@ namespace Gradient::Effects
         samplerState = m_states->LinearWrap();
         context->PSSetSamplers(3, 1, &samplerState);
         context->RSSetState(m_states->CullCounterClockwise());
+
+        context->IASetInputLayout(m_inputLayout.Get());
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void PBREffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)

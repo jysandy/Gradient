@@ -204,9 +204,9 @@
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
+    <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
     <ClInclude Include="Core\Rendering\Grid.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
-    <ClInclude Include="Core\Rendering\Primitive.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="DeviceResources.h" />
@@ -233,8 +233,8 @@
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
+    <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
     <ClCompile Include="Core\Rendering\Grid.cpp" />
-    <ClCompile Include="Core\Rendering\Primitive.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="DeviceResources.cpp" />

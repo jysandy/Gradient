@@ -19,7 +19,8 @@ namespace Gradient::GUI
                 -1.f,
                 1.f);
             ImGui::ColorEdit3("Light colour",
-                &LightColour.x);
+                &LightColour.x,
+                ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
             ImGui::SliderFloat("Light irradiance", &Irradiance, 0.f, 50.f);
             ImGui::SliderFloat("Ambient irradiance", &AmbientIrradiance, 0.f, 10.f);
             ImGui::TreePop();
