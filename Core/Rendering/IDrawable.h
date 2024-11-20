@@ -11,6 +11,6 @@ namespace Gradient::Rendering
     public:
         virtual ~IDrawable() = default;
 
-        virtual void Draw(Effects::IEntityEffect* effect, std::function<void()> setCustomState) = 0;
+        virtual void Draw(ID3D11DeviceContext* context) = 0;
     };
 }

@@ -16,14 +16,11 @@ namespace Gradient::Rendering
         Grid(ID3D11Device* device, ID3D11DeviceContext* context);
         virtual ~Grid() = default;
         
-        virtual void Draw(Effects::IEntityEffect* effect, std::function<void()> setCustomState = nullptr) override;
+        virtual void Draw(ID3D11DeviceContext* context) override;
 
     private:
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
         UINT m_indexCount;
-
-        // TODO: Remove the reference to the context
-        ID3D11DeviceContext* m_context;
     };
 }

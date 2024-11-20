@@ -8,7 +8,7 @@
 
 namespace Gradient::Rendering
 {
-    Grid::Grid(ID3D11Device* device, ID3D11DeviceContext* context) : m_context(context)
+    Grid::Grid(ID3D11Device* device, ID3D11DeviceContext* context)
     {
         using namespace DirectX;
         using namespace DirectX::SimpleMath;
@@ -36,22 +36,14 @@ namespace Gradient::Rendering
         m_indexCount = s_indexData.size();
     }
 
-    void Grid::Draw(Effects::IEntityEffect* effect, std::function<void()> setCustomState)
+    void Grid::Draw(ID3D11DeviceContext* context)
     {
         constexpr UINT vertexStride = sizeof(VertexType);
         constexpr UINT vertexOffset = 0;
 
-        m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &vertexStride, &vertexOffset);
-        m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+        context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &vertexStride, &vertexOffset);
+        context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
         
-        assert(effect != nullptr);
-        effect->Apply(m_context);
-
-        if (setCustomState)
-        {
-            setCustomState();
-        }
-
-        m_context->DrawIndexed(m_indexCount, 0, 0);
+        context->DrawIndexed(m_indexCount, 0, 0);
     }
 }

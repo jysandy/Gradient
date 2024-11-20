@@ -171,7 +171,7 @@ namespace Gradient::Rendering
         context->ClearRenderTargetView(renderTarget, DirectX::ColorsLinear::CornflowerBlue);
         context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-
+        
         if (m_multisamplingEnabled)
             context->RSSetState(m_multisampledRSState.Get());
         else

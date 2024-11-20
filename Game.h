@@ -25,6 +25,7 @@
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
 #include "Core/Rendering/CubeMap.h"
+#include "Core/Rendering/GeometricPrimitive.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 #include "GUI/RenderingWindow.h"
@@ -106,7 +107,7 @@ private:
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
 
-    std::unique_ptr<DirectX::GeometricPrimitive> m_sky;
+    std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;
     std::unique_ptr<Gradient::Effects::SkyDomeEffect> m_skyDomeEffect;
     std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     

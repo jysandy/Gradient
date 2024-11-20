@@ -18,7 +18,7 @@ namespace Gradient::Rendering
 
         virtual ~GeometricPrimitive() = default;
 
-        virtual void Draw(Effects::IEntityEffect* effect, std::function<void()> setCustomState = nullptr) override;
+        virtual void Draw(ID3D11DeviceContext* context) override;
 
         static std::unique_ptr<GeometricPrimitive> CreateBox(ID3D11Device* device,
             ID3D11DeviceContext* deviceContext,
@@ -34,7 +34,7 @@ namespace Gradient::Rendering
             bool rhcoords = true,
             bool invertn = false);
 
-        std::unique_ptr<GeometricPrimitive> CreateGeoSphere(
+        static std::unique_ptr<GeometricPrimitive> CreateGeoSphere(
             ID3D11Device* device,
             ID3D11DeviceContext* deviceContext,
             float diameter = 1,
@@ -45,16 +45,11 @@ namespace Gradient::Rendering
         GeometricPrimitive() = default;
 
         void Initialize(ID3D11Device* device, 
-            ID3D11DeviceContext* context,
             VertexCollection vertices,
             IndexCollection indices);
 
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
         UINT m_indexCount;
-
-        // TODO: Remove the reference to the context
-        ID3D11DeviceContext* m_context;
-
     };
 }

@@ -24,12 +24,15 @@ namespace Gradient
         static EntityManager* Get();
 
         void UpdateAll(DX::StepTimer const&);
-        void DrawEntity(const Entity& entity, Effects::IEntityEffect* effect,
-            bool drawingShadows = false,
-            std::function<void()> setCustomState = nullptr);
-        void DrawAll(Effects::IEntityEffect* effect,
-            bool drawingShadows = false,
-            std::function<void()> setCustomState = nullptr);
+        void DrawEntity(
+            ID3D11DeviceContext* context,
+            const Entity& entity, 
+            Effects::IEntityEffect* effect,
+            bool drawingShadows = false);
+        void DrawAll(
+            ID3D11DeviceContext* context,
+            Effects::IEntityEffect* effect,
+            bool drawingShadows = false);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);

@@ -533,31 +533,21 @@ namespace Gradient::Rendering
 
     //  End geometry building code -----------------------------------------------------------------------
 
-    void GeometricPrimitive::Draw(Effects::IEntityEffect* effect, std::function<void()> setCustomState)
+    void GeometricPrimitive::Draw(ID3D11DeviceContext* context)
     {
         constexpr UINT vertexStride = sizeof(VertexType);
         constexpr UINT vertexOffset = 0;
 
-        m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &vertexStride, &vertexOffset);
-        m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+        context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &vertexStride, &vertexOffset);
+        context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
-        assert(effect != nullptr);
-        effect->Apply(m_context);
-
-        if (setCustomState)
-        {
-            setCustomState();
-        }
-
-        m_context->DrawIndexed(m_indexCount, 0, 0);
+        context->DrawIndexed(m_indexCount, 0, 0);
     }
 
     void GeometricPrimitive::Initialize(ID3D11Device* device,
-        ID3D11DeviceContext* context,
         VertexCollection vertices,
         IndexCollection indices)
     {
-        m_context = context;
         DX::ThrowIfFailed(
             DirectX::CreateStaticBuffer(device, vertices,
                 D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.ReleaseAndGetAddressOf()));
@@ -578,7 +568,7 @@ namespace Gradient::Rendering
         ComputeBox(vertices, indices, size, rhcoords, invertn);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, deviceContext, vertices, indices);
+        primitive->Initialize(device, vertices, indices);
 
         return primitive;
     }
@@ -597,7 +587,7 @@ namespace Gradient::Rendering
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
 
-        primitive->Initialize(device, deviceContext, vertices, indices);
+        primitive->Initialize(device, vertices, indices);
 
         return primitive;
     }
@@ -615,7 +605,7 @@ namespace Gradient::Rendering
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
 
-        primitive->Initialize(device, deviceContext, vertices, indices);
+        primitive->Initialize(device, vertices, indices);
 
         return primitive;
     }

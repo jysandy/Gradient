@@ -108,9 +108,11 @@ namespace Gradient
         }
     }
 
-    void EntityManager::DrawEntity(const Entity& entity, Effects::IEntityEffect* effect,
-        bool drawingShadows,
-        std::function<void()> setCustomState)
+    void EntityManager::DrawEntity(
+        ID3D11DeviceContext* context,
+        const Entity& entity,
+        Effects::IEntityEffect* effect,
+        bool drawingShadows)
     {
         auto textureManager = TextureManager::Get();
         auto blankTexture = textureManager->GetTexture("default");
@@ -146,15 +148,19 @@ namespace Gradient
             effect->SetRoughnessMap(blankTexture);
 
         effect->SetWorld(entity.GetWorldMatrix());
+        effect->Apply(context);
 
-        entity.Drawable->Draw(effect, setCustomState);
+        entity.Drawable->Draw(context);
     }
 
-    void EntityManager::DrawAll(Effects::IEntityEffect* effect, bool drawingShadows, std::function<void()> setCustomState)
+    void EntityManager::DrawAll(
+        ID3D11DeviceContext* context,
+        Effects::IEntityEffect* effect, 
+        bool drawingShadows)
     {
         for (auto const& entity : m_entities)
         {
-            DrawEntity(entity, effect, drawingShadows, setCustomState);
+            DrawEntity(context, entity, effect, drawingShadows);
         }
     }
 

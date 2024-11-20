@@ -100,7 +100,8 @@ namespace Gradient::Effects
         cb = m_pixelCB.GetBuffer();
         context->PSSetConstantBuffers(0, 1, &cb);
         context->PSSetShader(m_ps.Get(), nullptr, 0);
-
+         
+        context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 

@@ -119,11 +119,13 @@ void Game::Render()
 
 
     m_dLight->ClearAndSetDSV(context);
+    // TODO: Put this somewhere else
+    context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
 
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
     m_shadowMapEffect->SetDirectionalLight(m_dLight.get());
-    entityManager->DrawAll(m_shadowMapEffect.get(), true);
+    entityManager->DrawAll(context, m_shadowMapEffect.get(), true);
 
     m_deviceResources->PIXEndEvent();
 
@@ -141,7 +143,8 @@ void Game::Render()
             m_skyDomeEffect->SetSunCircleEnabled(false);
             m_skyDomeEffect->SetProjection(proj);
             m_skyDomeEffect->SetView(view);
-            m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
+            m_skyDomeEffect->Apply(context);
+            m_sky->Draw(context);
         });
 
     m_deviceResources->PIXEndEvent();
@@ -152,7 +155,8 @@ void Game::Render()
     m_skyDomeEffect->SetSunCircleEnabled(true);
     m_skyDomeEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_skyDomeEffect->SetView(m_camera.GetViewMatrix());
-    m_sky->Draw(m_skyDomeEffect.get(), m_skyDomeEffect->GetInputLayout());
+    m_skyDomeEffect->Apply(context);
+    m_sky->Draw(context);
 
     m_pbrEffect->SetCameraPosition(m_camera.GetPosition());
     m_pbrEffect->SetDirectionalLight(m_dLight.get());
@@ -160,14 +164,15 @@ void Game::Render()
     m_pbrEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_pbrEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
 
-    entityManager->DrawAll(m_pbrEffect.get());
+    entityManager->DrawAll(context, m_pbrEffect.get());
 
     m_waterEffect->SetCameraPosition(m_camera.GetPosition());
     m_waterEffect->SetDirectionalLight(m_dLight.get());
     m_waterEffect->SetView(m_camera.GetViewMatrix());
     m_waterEffect->SetProjection(m_camera.GetProjectionMatrix());
     m_waterEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
-    entityManager->DrawEntity(m_plane, m_waterEffect.get());
+    m_waterEffect->Apply(context);
+    entityManager->DrawEntity(context, m_plane, m_waterEffect.get());
 
     m_multisampledRenderTexture->CopyToSingleSampled(context);
     m_deviceResources->PIXEndEvent();
@@ -179,7 +184,7 @@ void Game::Render()
     m_deviceResources->PIXEndEvent();
 
     // Tonemap and draw GUI
-    bloomOutput->DrawTo(context,
+    m_multisampledRenderTexture->DrawTo(context,
         m_tonemappedRenderTexture.get(),
         [=]
         {
@@ -576,7 +581,7 @@ void Game::CreateDeviceDependentResources()
     m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
     m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
     m_skyDomeEffect->SetAmbientIrradiance(1.f);
-    m_sky = GeometricPrimitive::CreateGeoSphere(context, 2.f, 3,
+    m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, context, 2.f, 3,
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
         256,
