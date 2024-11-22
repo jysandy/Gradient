@@ -63,7 +63,7 @@ DS_OUTPUT main(
     };
 
     float3 c = cross(bitangent, tangent);
-    if (dot(c, c) == 0)
+    if (abs(dot(c, c)) == 1 || dot(c, c) == 0)
     {
         Output.normal = float3(0, 1, 0);
     }
