@@ -150,12 +150,7 @@ float distributionGGX(float3 N, float3 H, float roughness)
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 	
-    // When NdotH is 1 (as in the case of a cubemapped reflection),
-    // this function goes to infinity at low roughness values. 
-    // However, the NDF doesn't exceed 3.5 for most values of NdotH 
-    // and r, so clamping it between 0 and 3.5 seems like a reasonable 
-    // approximation. See: https://www.desmos.com/calculator/ppdhhd569k
-    return clamp(num / denom, 0, 3.5);
+    return num / denom;
 }
 
 float geometrySchlickGGX(float3 N, float3 VorL, float k)
@@ -206,6 +201,18 @@ float3 cookTorranceRadiance(
 {
     float3 F = fresnelSchlick(H, V, albedo, metalness);
     float D = distributionGGX(N, H, roughness);
+    
+    // When NdotH is 1 (as in the case of a cubemapped reflection),
+    // this function goes to infinity at low roughness values. 
+    // However, the NDF doesn't exceed 3.5 for most values of NdotH 
+    // and r, so clamping it between 0 and 3.5 seems like a reasonable 
+    // approximation. See: https://www.desmos.com/calculator/ppdhhd569k
+    // From testing, this works well for direct lighting.
+    // For indirect lighting from cubemapped reflections, we clamp the 
+    // entire specular factor without F instead (see below)
+    if (directLighting)
+        D = clamp(D, 0, 3.5);
+    
     float G = geometrySmith(N, V, L, roughness, directLighting);
     
     float NdotL = max(dot(N, L), 0.f);    
@@ -216,10 +223,18 @@ float3 cookTorranceRadiance(
     
     float3 fd = kD * (albedo / PI);
     
-    float3 numerator = D * G * F;
-    float denominator = 4.f * max(dot(N, V), 0.0001f) * max(dot(N, L), 0.0001f);
-    float3 specular = numerator / denominator;
-
+    float denominator = 4.f * max(dot(N, V), 0.0001f) * max(dot(N, L), 0.0001f);    
+    float numWithoutF = D * G;
+    
+    float3 specular = float3(0.f, 0.f, 0.f);
+    
+    // Clamp the specular factor without F to 1, 
+    // for indirect lighting
+    if (!directLighting)
+        specular = F * saturate(numWithoutF / denominator);
+    else
+        specular = F * numWithoutF / denominator;
+    
     float3 outgoingRadiance = (fd + specular)
         * radiance
         * NdotL;
