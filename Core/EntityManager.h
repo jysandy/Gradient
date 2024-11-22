@@ -27,12 +27,10 @@ namespace Gradient
         void DrawEntity(
             ID3D11DeviceContext* context,
             const Entity& entity, 
-            Pipelines::IRenderPipeline* effect,
-            bool drawingShadows = false);
+            Pipelines::IRenderPipeline* shadowPipeline = nullptr);
         void DrawAll(
             ID3D11DeviceContext* context,
-            Pipelines::IRenderPipeline* effect,
-            bool drawingShadows = false);
+            Pipelines::IRenderPipeline* shadowPipeline = nullptr);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);

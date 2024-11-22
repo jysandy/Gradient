@@ -112,9 +112,4 @@ private:
     std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
-
-
-    // Temporary
-
-    Gradient::Entity m_plane;
 };

@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include "Core/Rendering/IDrawable.h"
+#include "Core/Pipelines/IRenderPipeline.h"
 
 namespace Gradient
 {
@@ -20,7 +21,9 @@ namespace Gradient
         DirectX::SimpleMath::Matrix Rotation;
         DirectX::SimpleMath::Matrix Translation;
         std::unique_ptr<Rendering::IDrawable> Drawable;
+        Pipelines::IRenderPipeline* RenderPipeline;
         bool CastsShadows = true;
+
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Texture = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> NormalMap = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> AOMap = nullptr;

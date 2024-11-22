@@ -38,7 +38,7 @@ namespace Gradient
         auto& bodyInterface = Physics::PhysicsEngine::Get()->GetBodyInterface();
         for (auto& entity : m_entities)
         {
-            if (!entity.BodyID.IsInvalid() 
+            if (!entity.BodyID.IsInvalid()
                 && bodyInterface.IsActive(entity.BodyID)
                 && bodyInterface.GetMotionType(entity.BodyID) != JPH::EMotionType::Static)
             {
@@ -116,8 +116,7 @@ namespace Gradient
     void EntityManager::DrawEntity(
         ID3D11DeviceContext* context,
         const Entity& entity,
-        Pipelines::IRenderPipeline* pipeline,
-        bool drawingShadows)
+        Pipelines::IRenderPipeline* shadowPipeline)
     {
         auto textureManager = TextureManager::Get();
         auto blankTexture = textureManager->GetTexture("default");
@@ -125,32 +124,42 @@ namespace Gradient
         auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
         auto smoothMap = dielectricMetalnessMap;
 
-        if (drawingShadows && !entity.CastsShadows) return;
+        if (shadowPipeline != nullptr && !entity.CastsShadows) return;
 
-        if (entity.Texture != nullptr)
-            pipeline->SetAlbedo(entity.Texture);
-        else
-            pipeline->SetAlbedo(blankTexture);
+        Pipelines::IRenderPipeline* pipeline;
 
-        if (entity.NormalMap != nullptr)
-            pipeline->SetNormalMap(entity.NormalMap);
+        if (shadowPipeline != nullptr)
+            pipeline = shadowPipeline;
         else
-            pipeline->SetNormalMap(outwardNormalMap);
+            pipeline = entity.RenderPipeline;
 
-        if (entity.AOMap != nullptr)
-            pipeline->SetAOMap(entity.AOMap);
-        else
-            pipeline->SetAOMap(blankTexture);
+        if (shadowPipeline == nullptr)
+        {
+            if (entity.Texture != nullptr)
+                pipeline->SetAlbedo(entity.Texture);
+            else
+                pipeline->SetAlbedo(blankTexture);
 
-        if (entity.MetalnessMap != nullptr)
-            pipeline->SetMetalnessMap(entity.MetalnessMap);
-        else
-            pipeline->SetMetalnessMap(dielectricMetalnessMap);
+            if (entity.NormalMap != nullptr)
+                pipeline->SetNormalMap(entity.NormalMap);
+            else
+                pipeline->SetNormalMap(outwardNormalMap);
 
-        if (entity.RoughnessMap != nullptr)
-            pipeline->SetRoughnessMap(entity.RoughnessMap);
-        else
-            pipeline->SetRoughnessMap(blankTexture);
+            if (entity.AOMap != nullptr)
+                pipeline->SetAOMap(entity.AOMap);
+            else
+                pipeline->SetAOMap(blankTexture);
+
+            if (entity.MetalnessMap != nullptr)
+                pipeline->SetMetalnessMap(entity.MetalnessMap);
+            else
+                pipeline->SetMetalnessMap(dielectricMetalnessMap);
+
+            if (entity.RoughnessMap != nullptr)
+                pipeline->SetRoughnessMap(entity.RoughnessMap);
+            else
+                pipeline->SetRoughnessMap(blankTexture);
+        }
 
         pipeline->SetWorld(entity.GetWorldMatrix());
         pipeline->Apply(context);
@@ -160,12 +169,11 @@ namespace Gradient
 
     void EntityManager::DrawAll(
         ID3D11DeviceContext* context,
-        Pipelines::IRenderPipeline* pipeline, 
-        bool drawingShadows)
+        Pipelines::IRenderPipeline* shadowPipeline)
     {
         for (auto const& entity : m_entities)
         {
-            DrawEntity(context, entity, pipeline, drawingShadows);
+            DrawEntity(context, entity, shadowPipeline);
         }
     }
 

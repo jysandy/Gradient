@@ -123,7 +123,7 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
     m_shadowMapEffect->SetDirectionalLight(m_dLight.get());
-    entityManager->DrawAll(context, m_shadowMapEffect.get(), true);
+    entityManager->DrawAll(context, m_shadowMapEffect.get());
 
     m_deviceResources->PIXEndEvent();
 
@@ -161,16 +161,13 @@ void Game::Render()
     m_pbrPipeline->SetView(m_camera.GetViewMatrix());
     m_pbrPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_pbrPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
-
-    entityManager->DrawAll(context, m_pbrPipeline.get());
-
     m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
     m_waterPipeline->SetDirectionalLight(m_dLight.get());
     m_waterPipeline->SetView(m_camera.GetViewMatrix());
     m_waterPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_waterPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
-    m_waterPipeline->Apply(context);
-    entityManager->DrawEntity(context, m_plane, m_waterPipeline.get());
+
+    entityManager->DrawAll(context);
 
     m_multisampledRenderTexture->CopyToSingleSampled(context);
     m_deviceResources->PIXEndEvent();
@@ -295,6 +292,7 @@ void Game::CreateEntities()
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
+#pragma region Textures
     // TODO: display a loading screen while loading all these textures
     // TODO: cut down on the texture size, these are way too big
 
@@ -390,6 +388,7 @@ void Game::CreateEntities()
     textureManager->LoadDDS(device, context,
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.dds");
+#pragma endregion
 
     auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
@@ -400,6 +399,7 @@ void Game::CreateEntities()
     Entity sphere1;
     sphere1.id = "sphere1";
     sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
+    sphere1.RenderPipeline = m_pbrPipeline.get();
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
@@ -423,6 +423,7 @@ void Game::CreateEntities()
     Entity sphere2;
     sphere2.id = "sphere2";
     sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
+    sphere2.RenderPipeline = m_pbrPipeline.get();
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
     sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
     sphere2.AOMap = textureManager->GetTexture("ornamentAO");
@@ -444,6 +445,7 @@ void Game::CreateEntities()
     Entity floor;
     floor.id = "floor";
     floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 20.f, 0.5f, 20.f });
+    floor.RenderPipeline = m_pbrPipeline.get();
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
     floor.NormalMap = textureManager->GetTexture("tiles06Normal");
     floor.AOMap = textureManager->GetTexture("tiles06AO");
@@ -467,6 +469,7 @@ void Game::CreateEntities()
     Entity box1;
     box1.id = "box1";
     box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box1.RenderPipeline = m_pbrPipeline.get();
     box1.Texture = textureManager->GetTexture("metal01Albedo");
     box1.NormalMap = textureManager->GetTexture("metal01Normal");
     box1.AOMap = textureManager->GetTexture("metal01AO");
@@ -488,6 +491,7 @@ void Game::CreateEntities()
     Entity box2;
     box2.id = "box2";
     box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box2.RenderPipeline = m_pbrPipeline.get();
     box2.Texture = textureManager->GetTexture("crate");
     box2.NormalMap = textureManager->GetTexture("crateNormal");
     box2.AOMap = textureManager->GetTexture("crateAO");
@@ -505,15 +509,19 @@ void Game::CreateEntities()
     box2.BodyID = box2BodyId;
     entityManager->AddEntity(std::move(box2));
 
-    m_plane.id = "plane";
-    m_plane.Drawable = std::make_unique<Rendering::Grid>(device, deviceContext);
-    m_plane.Texture = textureManager->GetTexture("metal01Albedo");
-    m_plane.NormalMap = textureManager->GetTexture("metal01Normal");
-    m_plane.AOMap = textureManager->GetTexture("metal01AO");
-    m_plane.RoughnessMap = textureManager->GetTexture("metal01Roughness");
-    m_plane.MetalnessMap = textureManager->GetTexture("metal01Metalness");
-    m_plane.Translation = Matrix::CreateTranslation(Vector3{ 30.f, 5.f, 0.f });
-    m_plane.Scale = Matrix::CreateScale(20);
+    Entity water;
+    water.id = "water";
+    water.Drawable = std::make_unique<Rendering::Grid>(device, deviceContext);
+    water.RenderPipeline = m_waterPipeline.get();
+    water.Texture = textureManager->GetTexture("metal01Albedo");
+    water.NormalMap = textureManager->GetTexture("metal01Normal");
+    water.AOMap = textureManager->GetTexture("metal01AO");
+    water.RoughnessMap = textureManager->GetTexture("metal01Roughness");
+    water.MetalnessMap = textureManager->GetTexture("metal01Metalness");
+    water.Translation = Matrix::CreateTranslation(Vector3{ 30.f, 5.f, 0.f });
+    water.Scale = Matrix::CreateScale(20);
+    water.CastsShadows = false;
+    entityManager->AddEntity(std::move(water));
 }
 
 Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const std::wstring& path)
@@ -548,8 +556,6 @@ void Game::CreateDeviceDependentResources()
     EntityManager::Initialize();
     TextureManager::Initialize(device, context);
 
-    CreateEntities();
-
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
         { -0.7f, -0.1f, 0.7f },
@@ -568,6 +574,8 @@ void Game::CreateDeviceDependentResources()
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
         256,
         DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+    CreateEntities();
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
