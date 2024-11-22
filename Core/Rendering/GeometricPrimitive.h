@@ -41,6 +41,13 @@ namespace Gradient::Rendering
             size_t tessellation = 3,
             bool rhcoords = true);
 
+        static std::unique_ptr<GeometricPrimitive> CreateGrid(
+            ID3D11Device* device,
+            ID3D11DeviceContext* deviceContext,
+            const float& width = 10,
+            const float& height = 10,
+            const float& divisions = 10);
+
     private:
         GeometricPrimitive() = default;
 

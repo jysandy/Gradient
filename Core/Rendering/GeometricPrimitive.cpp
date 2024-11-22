@@ -533,6 +533,58 @@ namespace Gradient::Rendering
 
     //  End geometry building code -----------------------------------------------------------------------
 
+    void ComputeGrid(GeometricPrimitive::VertexCollection& vertices,
+        GeometricPrimitive::IndexCollection& indices,
+        const float& width,
+        const float& height,
+        const float& divisions)
+    {
+        using namespace DirectX::SimpleMath;
+
+        auto xStep = width / divisions;
+        auto zStep = height / divisions;
+        auto topLeftX = -width / 2.f;
+        auto topLeftZ = -height / 2.f;
+
+        for (int i = 0; i < divisions + 1; i++)
+        {
+            GeometricPrimitive::VertexType vertex;
+            vertex.position = Vector3{ topLeftX + i * xStep, 0, topLeftZ };
+            vertex.normal = Vector3::UnitY;
+            vertex.textureCoordinate = Vector2{ (float)i, 0.f };
+
+            vertices.push_back(vertex);
+        }
+
+        for (int zIndex = 1; zIndex < divisions + 1; zIndex++)
+        {
+            for (int i = 0; i < divisions + 1; i++)
+            {
+                GeometricPrimitive::VertexType vertex;
+                vertex.position = Vector3{
+                    topLeftX + i * xStep,
+                    0,
+                    topLeftZ + zIndex * zStep
+                };
+                vertex.normal = Vector3::UnitY;
+                vertex.textureCoordinate = Vector2{ (float)i, (float)zIndex };
+
+                vertices.push_back(vertex);
+            }
+
+            for (int i = 0; i < divisions; i++)
+            {
+                auto baseIndex = zIndex * (divisions + 1) + i;
+                indices.push_back(baseIndex);
+                indices.push_back(baseIndex - divisions - 1);
+                indices.push_back(baseIndex - divisions);
+                indices.push_back(baseIndex);
+                indices.push_back(baseIndex - divisions);
+                indices.push_back(baseIndex + 1);
+            }
+        }
+    }
+
     void GeometricPrimitive::Draw(ID3D11DeviceContext* context)
     {
         constexpr UINT vertexStride = sizeof(VertexType);
@@ -605,6 +657,22 @@ namespace Gradient::Rendering
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
 
+        primitive->Initialize(device, vertices, indices);
+
+        return primitive;
+    }
+
+    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGrid(ID3D11Device* device,
+        ID3D11DeviceContext* deviceContext,
+        const float& width,
+        const float& height,
+        const float& divisions)
+    {
+        VertexCollection vertices;
+        IndexCollection indices;
+        ComputeGrid(vertices, indices, width, height, divisions);
+
+        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
         primitive->Initialize(device, vertices, indices);
 
         return primitive;

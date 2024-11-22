@@ -6,7 +6,6 @@
 #include "Game.h"
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
-#include "Core/Rendering/Grid.h"
 #include "Core/Rendering/GeometricPrimitive.h"
 #include <directxtk/SimpleMath.h>
 
@@ -511,7 +510,11 @@ void Game::CreateEntities()
 
     Entity water;
     water.id = "water";
-    water.Drawable = std::make_unique<Rendering::Grid>(device, deviceContext);
+    water.Drawable = Rendering::GeometricPrimitive::CreateGrid(device,
+        deviceContext,
+        30,
+        20,
+        5);
     water.RenderPipeline = m_waterPipeline.get();
     water.Texture = textureManager->GetTexture("metal01Albedo");
     water.NormalMap = textureManager->GetTexture("metal01Normal");
@@ -519,7 +522,6 @@ void Game::CreateEntities()
     water.RoughnessMap = textureManager->GetTexture("metal01Roughness");
     water.MetalnessMap = textureManager->GetTexture("metal01Metalness");
     water.Translation = Matrix::CreateTranslation(Vector3{ 30.f, 5.f, 0.f });
-    water.Scale = Matrix::CreateScale(20);
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
 }
