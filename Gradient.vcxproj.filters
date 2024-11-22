@@ -217,6 +217,10 @@
     <None Include=".gitignore" />
     <None Include="README.md" />
     <None Include="ImportTex.ps1" />
+    <None Include="Core\Shaders\NormalMapping.hlsli" />
+    <None Include="Core\Shaders\ShadowMapping.hlsli" />
+    <None Include="Core\Shaders\LightStructs.hlsli" />
+    <None Include="Core\Shaders\PBRLighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\aces_tonemapper.hlsl" />
@@ -232,5 +236,6 @@
     <FxCompile Include="Core\Shaders\constant_hs.hlsl" />
     <FxCompile Include="Core\Shaders\domain_shader_ds.hlsl" />
     <FxCompile Include="Core\Shaders\passthrough_vs.hlsl" />
+    <FxCompile Include="Core\Shaders\Water_PS.hlsl" />
   </ItemGroup>
 </Project>

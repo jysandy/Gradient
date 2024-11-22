@@ -31,7 +31,7 @@ namespace Gradient::Pipelines
                 nullptr,
                 m_ds.ReleaseAndGetAddressOf()));
 
-        auto psData = DX::ReadData(L"pbr_ps.cso");
+        auto psData = DX::ReadData(L"Water_PS.cso");
         DX::ThrowIfFailed(
             device->CreatePixelShader(psData.data(),
                 psData.size(),
@@ -109,28 +109,14 @@ namespace Gradient::Pipelines
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
 
-        context->PSSetShaderResources(0, 1, m_albedo.GetAddressOf());
-
         if (m_shadowMap != nullptr)
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
-        if (m_normalMap != nullptr)
-            context->PSSetShaderResources(2, 1, m_normalMap.GetAddressOf());
-        if (m_aoMap != nullptr)
-            context->PSSetShaderResources(3, 1, m_aoMap.GetAddressOf());
-        if (m_metalnessMap != nullptr)
-            context->PSSetShaderResources(4, 1, m_metalnessMap.GetAddressOf());
-        if (m_roughnessMap != nullptr)
-            context->PSSetShaderResources(5, 1, m_roughnessMap.GetAddressOf());
         if (m_environmentMap != nullptr)
-            context->PSSetShaderResources(6, 1, m_environmentMap.GetAddressOf());
+            context->PSSetShaderResources(2, 1, m_environmentMap.GetAddressOf());
 
-        auto samplerState = m_states->AnisotropicWrap();
+        auto samplerState = m_states->LinearWrap();
         context->PSSetSamplers(0, 1, &samplerState);
         context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
-        samplerState = m_states->PointWrap();
-        context->PSSetSamplers(2, 1, &samplerState);
-        samplerState = m_states->LinearWrap();
-        context->PSSetSamplers(3, 1, &samplerState);
 
         // TODO: Change this once we're done with the water effect
         context->RSSetState(m_states->CullNone());
@@ -138,31 +124,6 @@ namespace Gradient::Pipelines
         context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-    }
-
-    void WaterPipeline::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        m_albedo = srv;
-    }
-
-    void WaterPipeline::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        m_normalMap = srv;
-    }
-
-    void WaterPipeline::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        m_aoMap = srv;
-    }
-
-    void WaterPipeline::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        m_metalnessMap = srv;
-    }
-
-    void WaterPipeline::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
-    {
-        m_roughnessMap = srv;
     }
 
     ID3D11InputLayout* WaterPipeline::GetInputLayout() const

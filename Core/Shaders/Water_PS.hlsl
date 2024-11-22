@@ -1,24 +1,12 @@
-#include "NormalMapping.hlsli"
 #include "ShadowMapping.hlsli"
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
 
-Texture2D albedoMap : register(t0);
-SamplerState anisotropicSampler : register(s0);
-
-Texture2D shadowMap : register(t1);
+SamplerState linearSampler : register(s0);
 SamplerComparisonState shadowMapSampler : register(s1);
 
-Texture2D normalMap : register(t2);
-SamplerState pointSampler : register(s2);
-
-Texture2D aoMap : register(t3);
-SamplerState linearSampler : register(s3);
-
-Texture2D metalnessMap : register(t4);
-Texture2D roughnessMap : register(t5);
-
-TextureCube environmentMap : register(t6);
+Texture2D shadowMap : register(t1);
+TextureCube environmentMap : register(t2);
 
 cbuffer LightBuffer : register(b0)
 {
@@ -42,21 +30,14 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
-    input.normal = normalize(input.normal);
+    float3 N = normalize(input.normal);
     
-    float3 N = perturbNormal(
-        normalMap,
-        linearSampler,
-        input.normal, 
-        input.worldPosition, 
-        input.tex);
     float3 V = normalize(cameraPosition - input.worldPosition);
     
-    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
-    float3 albedo = albedoSample.rgb;
-    float ao = aoMap.Sample(linearSampler, input.tex).r;
-    float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
-    float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
+    float3 albedo = float3(0.6, 0.6, 0.6);
+    float ao = 1;
+    float metalness = 0.5;
+    float roughness = 0.0;
     
     float3 directRadiance = cookTorranceDirectionalLight(
         N, V, albedo, metalness, roughness, directionalLight
@@ -75,5 +56,5 @@ float4 main(InputType input) : SV_TARGET
     
     float3 outputColour = ambient + shadowFactor * directRadiance;
     
-    return float4(outputColour, albedoSample.a);
+    return float4(outputColour, 1.f);
 }

@@ -516,11 +516,6 @@ void Game::CreateEntities()
         20,
         5);
     water.RenderPipeline = m_waterPipeline.get();
-    water.Texture = textureManager->GetTexture("metal01Albedo");
-    water.NormalMap = textureManager->GetTexture("metal01Normal");
-    water.AOMap = textureManager->GetTexture("metal01AO");
-    water.RoughnessMap = textureManager->GetTexture("metal01Roughness");
-    water.MetalnessMap = textureManager->GetTexture("metal01Metalness");
     water.Translation = Matrix::CreateTranslation(Vector3{ 30.f, 5.f, 0.f });
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));

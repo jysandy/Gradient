@@ -51,14 +51,14 @@ DS_OUTPUT main(
     float3 tangent =
     {
         1,
-		cos(d - g_totalTime) * (interpolatedLocalPosition.x - centrePosition.x) / d,
+		0.2 * cos(d - g_totalTime) * (interpolatedLocalPosition.x - centrePosition.x) / d,
 		0
     };
 	
     float3 bitangent =
     {
         0,
-		cos(d - g_totalTime) * (interpolatedLocalPosition.z - centrePosition.z) / d,
+		0.2 * cos(d - g_totalTime) * (interpolatedLocalPosition.z - centrePosition.z) / d,
 		1
     };
 
@@ -71,7 +71,7 @@ DS_OUTPUT main(
     {
         Output.normal = normalize(c);
     }
-    interpolatedLocalPosition.y = sin(d - g_totalTime);
+    interpolatedLocalPosition.y = 0.2 * sin(d - g_totalTime);
 	
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
     Output.worldPosition = Output.vPosition.xyz;
