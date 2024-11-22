@@ -1,17 +1,19 @@
 #include "pch.h"
 
-#include "Core/Effects/ShadowMapEffect.h"
+#include "Core/Pipelines/ShadowMapPipeline.h"
 #include "Core/ReadData.h"
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    ShadowMapEffect::ShadowMapEffect(ID3D11Device* device)
+    ShadowMapPipeline::ShadowMapPipeline(ID3D11Device* device,
+        std::shared_ptr<DirectX::CommonStates> states) 
+        : m_states(states)
     {
-        m_vsData = DX::ReadData(L"wvp_vs.cso");
+        auto vsData = DX::ReadData(L"wvp_vs.cso");
 
         DX::ThrowIfFailed(
-            device->CreateVertexShader(m_vsData.data(),
-                m_vsData.size(),
+            device->CreateVertexShader(vsData.data(),
+                vsData.size(),
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
@@ -20,8 +22,8 @@ namespace Gradient::Effects
         device->CreateInputLayout(
             VertexType::InputElements,
             VertexType::InputElementCount,
-            m_vsData.data(),
-            m_vsData.size(),
+            vsData.data(),
+            vsData.size(),
             m_inputLayout.ReleaseAndGetAddressOf()
         );
 
@@ -41,44 +43,35 @@ namespace Gradient::Effects
             m_shadowMapRSState.ReleaseAndGetAddressOf()
         ));
     }
-
-    void ShadowMapEffect::GetVertexShaderBytecode(
-        void const** pShaderByteCode,
-        size_t* pByteCodeLength)
-    {
-        assert(pShaderByteCode != nullptr && pByteCodeLength != nullptr);
-        *pShaderByteCode = m_vsData.data();
-        *pByteCodeLength = m_vsData.size();
-    }
     
-    ID3D11InputLayout* ShadowMapEffect::GetInputLayout() const
+    ID3D11InputLayout* ShadowMapPipeline::GetInputLayout() const
     {
         return m_inputLayout.Get();
     }
 
-    void ShadowMapEffect::SetWorld(DirectX::FXMMATRIX value)
+    void ShadowMapPipeline::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;
     }
 
-    void ShadowMapEffect::SetView(DirectX::FXMMATRIX value)
+    void ShadowMapPipeline::SetView(DirectX::FXMMATRIX value)
     {
         m_view = value;
     }
 
-    void ShadowMapEffect::SetProjection(DirectX::FXMMATRIX value)
+    void ShadowMapPipeline::SetProjection(DirectX::FXMMATRIX value)
     {
         m_proj = value;
     }
 
-    void ShadowMapEffect::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
+    void ShadowMapPipeline::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
     {
         m_world = world;
         m_view = view;
         m_proj = projection;
     }
 
-    void ShadowMapEffect::Apply(ID3D11DeviceContext* context)
+    void ShadowMapPipeline::Apply(ID3D11DeviceContext* context)
     {
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
@@ -94,11 +87,12 @@ namespace Gradient::Effects
         context->PSSetShader(nullptr, nullptr, 0);
         context->RSSetState(m_shadowMapRSState.Get());
 
+        context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void ShadowMapEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
+    void ShadowMapPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
         SetView(dlight->GetView());
         SetProjection(dlight->GetProjection());

@@ -108,10 +108,15 @@ namespace Gradient
         }
     }
 
+    // TODO: Make the pipeline take an Entity and draw it 
+    // instead. 
+    // Then the pipeline can take whatever data it needs 
+    // from the Entity, rather than having to accept data 
+    // passed in from elsewhere.
     void EntityManager::DrawEntity(
         ID3D11DeviceContext* context,
         const Entity& entity,
-        Effects::IEntityEffect* effect,
+        Pipelines::IRenderPipeline* pipeline,
         bool drawingShadows)
     {
         auto textureManager = TextureManager::Get();
@@ -123,44 +128,44 @@ namespace Gradient
         if (drawingShadows && !entity.CastsShadows) return;
 
         if (entity.Texture != nullptr)
-            effect->SetAlbedo(entity.Texture);
+            pipeline->SetAlbedo(entity.Texture);
         else
-            effect->SetAlbedo(blankTexture);
+            pipeline->SetAlbedo(blankTexture);
 
         if (entity.NormalMap != nullptr)
-            effect->SetNormalMap(entity.NormalMap);
+            pipeline->SetNormalMap(entity.NormalMap);
         else
-            effect->SetNormalMap(outwardNormalMap);
+            pipeline->SetNormalMap(outwardNormalMap);
 
         if (entity.AOMap != nullptr)
-            effect->SetAOMap(entity.AOMap);
+            pipeline->SetAOMap(entity.AOMap);
         else
-            effect->SetAOMap(blankTexture);
+            pipeline->SetAOMap(blankTexture);
 
         if (entity.MetalnessMap != nullptr)
-            effect->SetMetalnessMap(entity.MetalnessMap);
+            pipeline->SetMetalnessMap(entity.MetalnessMap);
         else
-            effect->SetMetalnessMap(dielectricMetalnessMap);
+            pipeline->SetMetalnessMap(dielectricMetalnessMap);
 
         if (entity.RoughnessMap != nullptr)
-            effect->SetRoughnessMap(entity.RoughnessMap);
+            pipeline->SetRoughnessMap(entity.RoughnessMap);
         else
-            effect->SetRoughnessMap(blankTexture);
+            pipeline->SetRoughnessMap(blankTexture);
 
-        effect->SetWorld(entity.GetWorldMatrix());
-        effect->Apply(context);
+        pipeline->SetWorld(entity.GetWorldMatrix());
+        pipeline->Apply(context);
 
         entity.Drawable->Draw(context);
     }
 
     void EntityManager::DrawAll(
         ID3D11DeviceContext* context,
-        Effects::IEntityEffect* effect, 
+        Pipelines::IRenderPipeline* pipeline, 
         bool drawingShadows)
     {
         for (auto const& entity : m_entities)
         {
-            DrawEntity(context, entity, effect, drawingShadows);
+            DrawEntity(context, entity, pipeline, drawingShadows);
         }
     }
 

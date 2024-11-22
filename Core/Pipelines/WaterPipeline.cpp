@@ -1,19 +1,19 @@
 #include "pch.h"
 
 #include <array>
-#include "Core/Effects/WaterEffect.h"
+#include "Core/Pipelines/WaterPipeline.h"
 #include "Core/ReadData.h"
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    WaterEffect::WaterEffect(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states)
+    WaterPipeline::WaterPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states)
     {
         m_states = states;
 
-        m_vsData = DX::ReadData(L"passthrough_vs.cso");
+        auto vsData = DX::ReadData(L"passthrough_vs.cso");
         DX::ThrowIfFailed(
-            device->CreateVertexShader(m_vsData.data(),
-                m_vsData.size(),
+            device->CreateVertexShader(vsData.data(),
+                vsData.size(),
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
@@ -51,8 +51,8 @@ namespace Gradient::Effects
             device->CreateInputLayout(
                 inputElements.data(),
                 inputElements.size(),
-                m_vsData.data(),
-                m_vsData.size(),
+                vsData.data(),
+                vsData.size(),
                 m_inputLayout.ReleaseAndGetAddressOf()
             ));
 
@@ -75,7 +75,7 @@ namespace Gradient::Effects
             ));
     }
 
-    void WaterEffect::Apply(ID3D11DeviceContext* context)
+    void WaterPipeline::Apply(ID3D11DeviceContext* context)
     {
         context->VSSetShader(m_vs.Get(), nullptr, 0);
         context->HSSetShader(m_hs.Get(), nullptr, 0);
@@ -135,65 +135,57 @@ namespace Gradient::Effects
         // TODO: Change this once we're done with the water effect
         context->RSSetState(m_states->CullNone());
 
+        context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
 
-    void WaterEffect::GetVertexShaderBytecode(
-        void const** pShaderByteCode,
-        size_t* pByteCodeLength)
-    {
-        assert(pShaderByteCode != nullptr && pByteCodeLength != nullptr);
-        *pShaderByteCode = m_vsData.data();
-        *pByteCodeLength = m_vsData.size();
-    }
-
-    void WaterEffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_albedo = srv;
     }
 
-    void WaterEffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_normalMap = srv;
     }
 
-    void WaterEffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_aoMap = srv;
     }
 
-    void WaterEffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_metalnessMap = srv;
     }
 
-    void WaterEffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_roughnessMap = srv;
     }
 
-    ID3D11InputLayout* WaterEffect::GetInputLayout() const
+    ID3D11InputLayout* WaterPipeline::GetInputLayout() const
     {
         return m_inputLayout.Get();
     }
 
-    void XM_CALLCONV WaterEffect::SetWorld(DirectX::FXMMATRIX value)
+    void XM_CALLCONV WaterPipeline::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;
     }
 
-    void XM_CALLCONV WaterEffect::SetView(DirectX::FXMMATRIX value)
+    void XM_CALLCONV WaterPipeline::SetView(DirectX::FXMMATRIX value)
     {
         m_view = value;
     }
 
-    void XM_CALLCONV WaterEffect::SetProjection(DirectX::FXMMATRIX value)
+    void XM_CALLCONV WaterPipeline::SetProjection(DirectX::FXMMATRIX value)
     {
         m_proj = value;
     }
 
-    void XM_CALLCONV WaterEffect::SetMatrices(DirectX::FXMMATRIX world,
+    void XM_CALLCONV WaterPipeline::SetMatrices(DirectX::FXMMATRIX world,
         DirectX::CXMMATRIX view,
         DirectX::CXMMATRIX projection)
     {
@@ -202,12 +194,12 @@ namespace Gradient::Effects
         SetProjection(projection);
     }
 
-    void WaterEffect::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
+    void WaterPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
     }
 
-    void WaterEffect::SetDirectionalLight(Rendering::DirectionalLight* dlight) 
+    void WaterPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight) 
     {
         m_directionalLightColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
@@ -216,12 +208,12 @@ namespace Gradient::Effects
         m_shadowTransform = dlight->GetShadowTransform();
     }
 
-    void WaterEffect::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_environmentMap = srv;
     }
 
-    void WaterEffect::SetTotalTime(float totalTimeSeconds)
+    void WaterPipeline::SetTotalTime(float totalTimeSeconds)
     {
         m_totalTimeSeconds = totalTimeSeconds;
     }

@@ -27,11 +27,11 @@ namespace Gradient
         void DrawEntity(
             ID3D11DeviceContext* context,
             const Entity& entity, 
-            Effects::IEntityEffect* effect,
+            Pipelines::IRenderPipeline* effect,
             bool drawingShadows = false);
         void DrawAll(
             ID3D11DeviceContext* context,
-            Effects::IEntityEffect* effect,
+            Pipelines::IRenderPipeline* effect,
             bool drawingShadows = false);
 
         void AddEntity(Entity&&);

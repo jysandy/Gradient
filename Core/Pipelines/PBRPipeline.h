@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "Core/Effects/IEntityEffect.h"
+#include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include <directxtk/Effects.h>
 #include <directxtk/VertexTypes.h>
@@ -9,9 +9,9 @@
 #include <directxtk/BufferHelpers.h>
 #include <directxtk/CommonStates.h>
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    class PBREffect : public IEntityEffect
+    class PBRPipeline : public IRenderPipeline
     {
     public:
         struct __declspec(align(16)) VertexCB
@@ -37,12 +37,9 @@ namespace Gradient::Effects
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit PBREffect(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
+        explicit PBRPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
 
         virtual void Apply(ID3D11DeviceContext* context) override;
-        virtual void GetVertexShaderBytecode(
-            void const** pShaderByteCode,
-            size_t* pByteCodeLength) override;
 
         virtual void SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
@@ -76,9 +73,6 @@ namespace Gradient::Effects
         DirectX::ConstantBuffer<DLightCB> m_dLightCB;
         std::shared_ptr<DirectX::CommonStates> m_states;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
-
-        std::vector<uint8_t> m_vsData;
-        std::vector<uint8_t> m_psData;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

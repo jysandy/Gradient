@@ -5,13 +5,14 @@
 #include <directxtk/VertexTypes.h>
 #include <directxtk/SimpleMath.h>
 #include <directxtk/BufferHelpers.h>
+#include <directxtk/CommonStates.h>
 
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Pipelines/IRenderPipeline.h"
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    class SkyDomeEffect : public DirectX::IEffect, 
-        public DirectX::IEffectMatrices
+    class SkyDomePipeline : public IRenderPipeline, public DirectX::IEffectMatrices
     {
     public:
         struct __declspec(align(16)) VertexCB
@@ -33,12 +34,10 @@ namespace Gradient::Effects
 
         using VertexType = DirectX::VertexPosition;
 
-        explicit SkyDomeEffect(ID3D11Device* device);
+        explicit SkyDomePipeline(ID3D11Device* device,
+            std::shared_ptr<DirectX::CommonStates> states);
 
         virtual void Apply(ID3D11DeviceContext* context) override;
-        virtual void GetVertexShaderBytecode(
-            void const** pShaderByteCode,
-            size_t* pByteCodeLength) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -56,6 +55,7 @@ namespace Gradient::Effects
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
         DirectX::ConstantBuffer<PixelCB> m_pixelCB;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+        std::shared_ptr<DirectX::CommonStates> m_states;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

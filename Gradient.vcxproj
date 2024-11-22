@@ -190,11 +190,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Camera.h" />
-    <ClInclude Include="Core\Effects\IEntityEffect.h" />
-    <ClInclude Include="Core\Effects\PBREffect.h" />
-    <ClInclude Include="Core\Effects\ShadowMapEffect.h" />
-    <ClInclude Include="Core\Effects\SkyDomeEffect.h" />
-    <ClInclude Include="Core\Effects\WaterEffect.h" />
+    <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
+    <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
+    <ClInclude Include="Core\Pipelines\ShadowMapPipeline.h" />
+    <ClInclude Include="Core\Pipelines\SkyDomePipeline.h" />
+    <ClInclude Include="Core\Pipelines\WaterPipeline.h" />
     <ClInclude Include="Core\Entity.h" />
     <ClInclude Include="Core\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
@@ -221,11 +221,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Camera.cpp" />
-    <ClCompile Include="Core\Effects\IEntityEffect.cpp" />
-    <ClCompile Include="Core\Effects\PBREffect.cpp" />
-    <ClCompile Include="Core\Effects\ShadowMapEffect.cpp" />
-    <ClCompile Include="Core\Effects\SkyDomeEffect.cpp" />
-    <ClCompile Include="Core\Effects\WaterEffect.cpp" />
+    <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
+    <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
+    <ClCompile Include="Core\Pipelines\ShadowMapPipeline.cpp" />
+    <ClCompile Include="Core\Pipelines\SkyDomePipeline.cpp" />
+    <ClCompile Include="Core\Pipelines\WaterPipeline.cpp" />
     <ClCompile Include="Core\Entity.cpp" />
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />

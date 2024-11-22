@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "Core/Effects/IEntityEffect.h"
+#include "Core/Pipelines/IRenderPipeline.h"
 
 namespace Gradient::Rendering
 {

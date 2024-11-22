@@ -17,10 +17,10 @@
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
-#include "Core/Effects/PBREffect.h"
-#include "Core/Effects/ShadowMapEffect.h"
-#include "Core/Effects/SkyDomeEffect.h"
-#include "Core/Effects/WaterEffect.h"
+#include "Core/Pipelines/PBRPipeline.h"
+#include "Core/Pipelines/ShadowMapPipeline.h"
+#include "Core/Pipelines/SkyDomePipeline.h"
+#include "Core/Pipelines/WaterPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
@@ -98,17 +98,17 @@ private:
     std::shared_ptr<DirectX::CommonStates> m_states;
 
     Gradient::Camera m_camera;
-    std::unique_ptr<Gradient::Effects::PBREffect> m_pbrEffect;
-    std::unique_ptr<Gradient::Effects::WaterEffect> m_waterEffect;
+    std::unique_ptr<Gradient::Pipelines::PBRPipeline> m_pbrPipeline;
+    std::unique_ptr<Gradient::Pipelines::WaterPipeline> m_waterPipeline;
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
-    std::unique_ptr<Gradient::Effects::ShadowMapEffect> m_shadowMapEffect;
+    std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapEffect;
 
     std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;
-    std::unique_ptr<Gradient::Effects::SkyDomeEffect> m_skyDomeEffect;
+    std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> m_skyDomePipeline;
     std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     
     Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;

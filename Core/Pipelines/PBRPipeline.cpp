@@ -1,30 +1,30 @@
 #include "pch.h"
 
-#include "Core/Effects/PBREffect.h"
+#include "Core/Pipelines/PBRPipeline.h"
 #include <directxtk/VertexTypes.h>
 #include "Core/ReadData.h"
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    PBREffect::PBREffect(ID3D11Device* device,
+    PBRPipeline::PBRPipeline(ID3D11Device* device,
         std::shared_ptr<DirectX::CommonStates> states)
+        : m_states(states)
     {
-        m_states = states;
-        m_vsData = DX::ReadData(L"wvp_vs.cso");
+        auto vsData = DX::ReadData(L"wvp_vs.cso");
 
         // TODO: Figure out how to support shader model 5.1+
         // Probably by setting the feature level
         DX::ThrowIfFailed(
-            device->CreateVertexShader(m_vsData.data(),
-                m_vsData.size(),
+            device->CreateVertexShader(vsData.data(),
+                vsData.size(),
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
-        m_psData = DX::ReadData(L"pbr_ps.cso");
+        auto psData = DX::ReadData(L"pbr_ps.cso");
 
         DX::ThrowIfFailed(
-            device->CreatePixelShader(m_psData.data(),
-                m_psData.size(),
+            device->CreatePixelShader(psData.data(),
+                psData.size(),
                 nullptr,
                 m_ps.ReleaseAndGetAddressOf()));
 
@@ -36,8 +36,8 @@ namespace Gradient::Effects
             device->CreateInputLayout(
                 VertexType::InputElements,
                 VertexType::InputElementCount,
-                m_vsData.data(),
-                m_vsData.size(),
+                vsData.data(),
+                vsData.size(),
                 m_inputLayout.ReleaseAndGetAddressOf()
             ));
 
@@ -60,16 +60,7 @@ namespace Gradient::Effects
             ));
     }
 
-    void PBREffect::GetVertexShaderBytecode(
-        void const** pShaderByteCode,
-        size_t* pByteCodeLength)
-    {
-        assert(pShaderByteCode != nullptr && pByteCodeLength != nullptr);
-        *pShaderByteCode = m_vsData.data();
-        *pByteCodeLength = m_vsData.size();
-    }
-
-    void PBREffect::Apply(ID3D11DeviceContext* context)
+    void PBRPipeline::Apply(ID3D11DeviceContext* context)
     {
         context->HSSetShader(nullptr, nullptr, 0);
         context->DSSetShader(nullptr, nullptr, 0);
@@ -121,41 +112,42 @@ namespace Gradient::Effects
         context->PSSetSamplers(3, 1, &samplerState);
         context->RSSetState(m_states->CullCounterClockwise());
 
+        context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void PBREffect::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_texture = srv;
     }
 
-    void PBREffect::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_normalMap = srv;
     }
 
-    void PBREffect::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_aoMap = srv;
     }
 
-    void PBREffect::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_metalnessMap = srv;
     }
 
-    void PBREffect::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_roughnessMap = srv;
     }
 
-    void PBREffect::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_environmentMap = srv;
     }
 
-    void PBREffect::SetDirectionalLight(Rendering::DirectionalLight* dlight)
+    void PBRPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
         m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
         m_shadowTransform = dlight->GetShadowTransform();
@@ -165,34 +157,34 @@ namespace Gradient::Effects
         m_dLightCBData.direction = dlight->GetDirection();
     }
 
-    void PBREffect::SetWorld(DirectX::FXMMATRIX value)
+    void PBRPipeline::SetWorld(DirectX::FXMMATRIX value)
     {
         m_world = value;
     }
 
-    void PBREffect::SetView(DirectX::FXMMATRIX value)
+    void PBRPipeline::SetView(DirectX::FXMMATRIX value)
     {
         m_view = value;
     }
 
-    void PBREffect::SetProjection(DirectX::FXMMATRIX value)
+    void PBRPipeline::SetProjection(DirectX::FXMMATRIX value)
     {
         m_proj = value;
     }
 
-    void PBREffect::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
+    void PBRPipeline::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
     {
         m_world = world;
         m_view = view;
         m_proj = projection;
     }
 
-    void PBREffect::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
+    void PBRPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
     }
 
-    ID3D11InputLayout* PBREffect::GetInputLayout() const
+    ID3D11InputLayout* PBRPipeline::GetInputLayout() const
     {
         return m_inputLayout.Get();
     }

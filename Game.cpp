@@ -70,7 +70,7 @@ void Game::Tick()
             Update(m_timer);
         });
 
-    m_waterEffect->SetTotalTime(m_timer.GetTotalSeconds());
+    m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
     Render();
 }
 
@@ -98,7 +98,7 @@ void Game::Update(DX::StepTimer const& timer)
     m_dLight->SetLightDirection(m_renderingWindow.LightDirection);
     m_dLight->SetColour(m_renderingWindow.GetLinearLightColour());
     m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
-    m_skyDomeEffect->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
+    m_skyDomePipeline->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
     m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
@@ -119,8 +119,6 @@ void Game::Render()
 
 
     m_dLight->ClearAndSetDSV(context);
-    // TODO: Put this somewhere else
-    context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
 
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
@@ -133,17 +131,17 @@ void Game::Render()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    m_skyDomeEffect->SetDirectionalLight(m_dLight.get());
+    m_skyDomePipeline->SetDirectionalLight(m_dLight.get());
 
     m_deviceResources->PIXBeginEvent(L"Environment Map");
 
     m_environmentMap->Render(context,
         [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
         {
-            m_skyDomeEffect->SetSunCircleEnabled(false);
-            m_skyDomeEffect->SetProjection(proj);
-            m_skyDomeEffect->SetView(view);
-            m_skyDomeEffect->Apply(context);
+            m_skyDomePipeline->SetSunCircleEnabled(false);
+            m_skyDomePipeline->SetProjection(proj);
+            m_skyDomePipeline->SetView(view);
+            m_skyDomePipeline->Apply(context);
             m_sky->Draw(context);
         });
 
@@ -152,27 +150,27 @@ void Game::Render()
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
-    m_skyDomeEffect->SetSunCircleEnabled(true);
-    m_skyDomeEffect->SetProjection(m_camera.GetProjectionMatrix());
-    m_skyDomeEffect->SetView(m_camera.GetViewMatrix());
-    m_skyDomeEffect->Apply(context);
+    m_skyDomePipeline->SetSunCircleEnabled(true);
+    m_skyDomePipeline->SetProjection(m_camera.GetProjectionMatrix());
+    m_skyDomePipeline->SetView(m_camera.GetViewMatrix());
+    m_skyDomePipeline->Apply(context);
     m_sky->Draw(context);
 
-    m_pbrEffect->SetCameraPosition(m_camera.GetPosition());
-    m_pbrEffect->SetDirectionalLight(m_dLight.get());
-    m_pbrEffect->SetView(m_camera.GetViewMatrix());
-    m_pbrEffect->SetProjection(m_camera.GetProjectionMatrix());
-    m_pbrEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
+    m_pbrPipeline->SetCameraPosition(m_camera.GetPosition());
+    m_pbrPipeline->SetDirectionalLight(m_dLight.get());
+    m_pbrPipeline->SetView(m_camera.GetViewMatrix());
+    m_pbrPipeline->SetProjection(m_camera.GetProjectionMatrix());
+    m_pbrPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
 
-    entityManager->DrawAll(context, m_pbrEffect.get());
+    entityManager->DrawAll(context, m_pbrPipeline.get());
 
-    m_waterEffect->SetCameraPosition(m_camera.GetPosition());
-    m_waterEffect->SetDirectionalLight(m_dLight.get());
-    m_waterEffect->SetView(m_camera.GetViewMatrix());
-    m_waterEffect->SetProjection(m_camera.GetProjectionMatrix());
-    m_waterEffect->SetEnvironmentMap(m_environmentMap->GetSRV());
-    m_waterEffect->Apply(context);
-    entityManager->DrawEntity(context, m_plane, m_waterEffect.get());
+    m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
+    m_waterPipeline->SetDirectionalLight(m_dLight.get());
+    m_waterPipeline->SetView(m_camera.GetViewMatrix());
+    m_waterPipeline->SetProjection(m_camera.GetProjectionMatrix());
+    m_waterPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
+    m_waterPipeline->Apply(context);
+    entityManager->DrawEntity(context, m_plane, m_waterPipeline.get());
 
     m_multisampledRenderTexture->CopyToSingleSampled(context);
     m_deviceResources->PIXEndEvent();
@@ -543,8 +541,8 @@ void Game::CreateDeviceDependentResources()
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
-    m_pbrEffect = std::make_unique<Effects::PBREffect>(device, m_states);
-    m_waterEffect = std::make_unique<Effects::WaterEffect>(device, m_states);
+    m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device, m_states);
+    m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device, m_states);
     m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
 
     EntityManager::Initialize();
@@ -562,9 +560,9 @@ void Game::CreateDeviceDependentResources()
     m_dLight->SetColour(lightColor);
     m_dLight->SetIrradiance(7.f);
 
-    m_shadowMapEffect = std::make_unique<Gradient::Effects::ShadowMapEffect>(device);
-    m_skyDomeEffect = std::make_unique<Gradient::Effects::SkyDomeEffect>(device);
-    m_skyDomeEffect->SetAmbientIrradiance(1.f);
+    m_shadowMapEffect = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device, m_states);
+    m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device, m_states);
+    m_skyDomePipeline->SetAmbientIrradiance(1.f);
     m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, context, 2.f, 3,
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,

@@ -1,11 +1,13 @@
 #include "pch.h"
 
-#include "Core/Effects/SkyDomeEffect.h"
+#include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/ReadData.h"
 
-namespace Gradient::Effects
+namespace Gradient::Pipelines
 {
-    SkyDomeEffect::SkyDomeEffect(ID3D11Device* device)
+    SkyDomePipeline::SkyDomePipeline(ID3D11Device* device,
+        std::shared_ptr<DirectX::CommonStates> states)
+        : m_states(states)
     {
         m_vsData = DX::ReadData(L"skydome_vs.cso");
 
@@ -33,26 +35,17 @@ namespace Gradient::Effects
         m_pixelCB.Create(device);
     }
 
-    void SkyDomeEffect::GetVertexShaderBytecode(
-        void const** pShaderByteCode,
-        size_t* pByteCodeLength)
-    {
-        assert(pShaderByteCode != nullptr && pByteCodeLength != nullptr);
-        *pShaderByteCode = m_vsData.data();
-        *pByteCodeLength = m_vsData.size();
-    }
-
-    ID3D11InputLayout* SkyDomeEffect::GetInputLayout() const
+    ID3D11InputLayout* SkyDomePipeline::GetInputLayout() const
     {
         return m_inputLayout.Get();
     }
 
-    void SkyDomeEffect::SetWorld(DirectX::FXMMATRIX _value)
+    void SkyDomePipeline::SetWorld(DirectX::FXMMATRIX _value)
     {
         // Unused
     }
 
-    void SkyDomeEffect::SetView(DirectX::FXMMATRIX value)
+    void SkyDomePipeline::SetView(DirectX::FXMMATRIX value)
     {
         DirectX::XMMATRIX view = value;
         // Ignore translation in the view matrix
@@ -60,19 +53,19 @@ namespace Gradient::Effects
         m_view = view;
     }
 
-    void SkyDomeEffect::SetProjection(DirectX::FXMMATRIX value)
+    void SkyDomePipeline::SetProjection(DirectX::FXMMATRIX value)
     {
         m_proj = value;
     }
 
-    void SkyDomeEffect::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
+    void SkyDomePipeline::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
     {
         SetWorld(world);
         SetView(view);
         SetProjection(projection);
     }
 
-    void SkyDomeEffect::Apply(ID3D11DeviceContext* context)
+    void SkyDomePipeline::Apply(ID3D11DeviceContext* context)
     {
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
@@ -105,7 +98,7 @@ namespace Gradient::Effects
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void SkyDomeEffect::SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight)
+    void SkyDomePipeline::SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight)
     {
         m_sunColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
@@ -113,12 +106,12 @@ namespace Gradient::Effects
         m_irradiance = dlight->GetIrradiance();
     }
 
-    void SkyDomeEffect::SetAmbientIrradiance(float ambientIrradiance)
+    void SkyDomePipeline::SetAmbientIrradiance(float ambientIrradiance)
     {
         m_ambientIrradiance = ambientIrradiance;
     }
 
-    void SkyDomeEffect::SetSunCircleEnabled(bool enabled)
+    void SkyDomePipeline::SetSunCircleEnabled(bool enabled)
     {
         m_sunCircleEnabled = enabled;
     }
