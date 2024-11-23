@@ -52,7 +52,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
-    m_camera.SetPosition(Vector3{ 0, 0, 25 });
+    m_camera.SetPosition(Vector3{ 0, 30, 25 });
 
     // Initialize ImGUI
 
@@ -121,8 +121,8 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
-    m_shadowMapEffect->SetDirectionalLight(m_dLight.get());
-    entityManager->DrawAll(context, m_shadowMapEffect.get());
+    m_shadowMapPipeline->SetDirectionalLight(m_dLight.get());
+    entityManager->DrawAll(context, m_shadowMapPipeline.get());
 
     m_deviceResources->PIXEndEvent();
 
@@ -407,7 +407,7 @@ void Game::CreateEntities()
     sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
     JPH::BodyCreationSettings sphere1Settings(
         new JPH::SphereShape(1.f),
-        JPH::RVec3(-3.f, 3.f, 0.f),
+        JPH::RVec3(-3.f, 3.f + 10.f, 0.f),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Dynamic,
         Physics::ObjectLayers::MOVING
@@ -431,7 +431,7 @@ void Game::CreateEntities()
     sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 5.f, 0.f });
     JPH::BodyCreationSettings sphere2Settings(
         new JPH::SphereShape(1.f),
-        JPH::RVec3(3.f, 5.f, 0.f),
+        JPH::RVec3(3.f, 5.f + 10.f, 0.f),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Dynamic,
         Physics::ObjectLayers::MOVING
@@ -450,12 +450,12 @@ void Game::CreateEntities()
     floor.AOMap = textureManager->GetTexture("tiles06AO");
     floor.MetalnessMap = textureManager->GetTexture("tiles06Metalness");
     floor.RoughnessMap = textureManager->GetTexture("tiles06Roughness");
-    floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f, 0.f });
+    floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f + 10.f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
     JPH::BodyCreationSettings floorSettings(
         floorShape,
-        JPH::RVec3(0.f, -0.25f, 0.f),
+        JPH::RVec3(0.f, -0.25f + 10.f, 0.f),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Static,
         Gradient::Physics::ObjectLayers::NON_MOVING
@@ -478,7 +478,7 @@ void Game::CreateEntities()
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(
         box1Shape,
-        JPH::RVec3(-5.f, 1.5f, -4.f),
+        JPH::RVec3(-5.f, 1.5f + 10.f, -4.f),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Dynamic,
         Gradient::Physics::ObjectLayers::MOVING
@@ -499,7 +499,7 @@ void Game::CreateEntities()
     JPH::BoxShape* box2Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box2Settings(
         box2Shape,
-        JPH::RVec3(-5.f, 1.5f, 1.f),
+        JPH::RVec3(-5.f, 1.5f + 10.f, 1.f),
         JPH::Quat::sIdentity(),
         JPH::EMotionType::Dynamic,
         Gradient::Physics::ObjectLayers::MOVING
@@ -512,11 +512,10 @@ void Game::CreateEntities()
     water.id = "water";
     water.Drawable = Rendering::GeometricPrimitive::CreateGrid(device,
         deviceContext,
-        30,
-        20,
-        5);
+        200,
+        200,
+        200);
     water.RenderPipeline = m_waterPipeline.get();
-    water.Translation = Matrix::CreateTranslation(Vector3{ 30.f, 5.f, 0.f });
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
 }
@@ -563,7 +562,7 @@ void Game::CreateDeviceDependentResources()
     m_dLight->SetColour(lightColor);
     m_dLight->SetIrradiance(7.f);
 
-    m_shadowMapEffect = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device, m_states);
+    m_shadowMapPipeline = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device, m_states);
     m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device, m_states);
     m_skyDomePipeline->SetAmbientIrradiance(1.f);
     m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, context, 2.f, 3,

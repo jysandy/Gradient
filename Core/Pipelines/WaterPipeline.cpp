@@ -58,9 +58,9 @@ namespace Gradient::Pipelines
 
         CD3D11_SAMPLER_DESC cmpDesc(
             D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
-            D3D11_TEXTURE_ADDRESS_MIRROR,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
+            D3D11_TEXTURE_ADDRESS_CLAMP,
             0,
             1,
             D3D11_COMPARISON_LESS,

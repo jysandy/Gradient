@@ -105,7 +105,7 @@ private:
     Gradient::GUI::RenderingWindow m_renderingWindow;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
-    std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapEffect;
+    std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
 
     std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;
     std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> m_skyDomePipeline;
