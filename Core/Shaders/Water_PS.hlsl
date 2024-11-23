@@ -34,9 +34,9 @@ float4 main(InputType input) : SV_TARGET
     
     float3 V = normalize(cameraPosition - input.worldPosition);
     
-    float3 albedo = float3(0.6, 0.6, 0.6);
+    float3 albedo = float3(0.07, 0.15, 0.79);
     float ao = 1;
-    float metalness = 0.5;
+    float metalness = 0.0;
     float roughness = 0.0;
     
     float3 directRadiance = cookTorranceDirectionalLight(

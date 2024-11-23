@@ -4,6 +4,8 @@
 #include "Core/Pipelines/WaterPipeline.h"
 #include "Core/ReadData.h"
 
+#include <random>
+
 namespace Gradient::Pipelines
 {
     WaterPipeline::WaterPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states)
@@ -19,10 +21,10 @@ namespace Gradient::Pipelines
 
         auto hsData = DX::ReadData(L"constant_hs.cso");
         DX::ThrowIfFailed(
-          device->CreateHullShader(hsData.data(),
-              hsData.size(),
-              nullptr,
-              m_hs.ReleaseAndGetAddressOf()));
+            device->CreateHullShader(hsData.data(),
+                hsData.size(),
+                nullptr,
+                m_hs.ReleaseAndGetAddressOf()));
 
         auto dsData = DX::ReadData(L"domain_shader_ds.cso");
         DX::ThrowIfFailed(
@@ -41,6 +43,7 @@ namespace Gradient::Pipelines
         m_domainCB.Create(device);
         m_pixelCameraCB.Create(device);
         m_dLightCB.Create(device);
+        m_waveCB.Create(device);
 
         auto inputElements = std::array<D3D11_INPUT_ELEMENT_DESC, VertexType::InputElementCount>();
         std::copy(VertexType::InputElements, VertexType::InputElements + 3, inputElements.begin());
@@ -73,6 +76,42 @@ namespace Gradient::Pipelines
             device->CreateSamplerState(&cmpDesc,
                 m_comparisonSS.ReleaseAndGetAddressOf()
             ));
+
+        GenerateWaves();
+    }
+
+    void WaterPipeline::GenerateWaves()
+    {
+        float maxAmplitude = 0.3f;
+        float maxWavelength = 10.f;
+        float maxSpeed = 10.f;
+        DirectX::SimpleMath::Vector3 direction{ -1, 0, 0.8 };
+        direction.Normalize();
+
+        std::random_device rd{};
+        std::mt19937 gen{ rd() };
+
+        std::normal_distribution xRng{ direction.x, 0.5f };
+        std::normal_distribution zRng{ direction.z, 0.5f };
+
+        float amplitudeFactor = 0.7f;
+        for (int i = 0; i < m_waves.size(); i++)
+        {
+            auto d = DirectX::SimpleMath::Vector3{
+                xRng(gen),
+                0,
+                zRng(gen)
+            };
+            d.Normalize();
+
+            m_waves[i].direction = d;
+            m_waves[i].amplitude = std::max(0.05f, maxAmplitude * amplitudeFactor);
+            m_waves[i].wavelength = std::max(0.2f, maxWavelength * amplitudeFactor);
+            m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
+            m_waves[i].sharpness = std::min(1.f, 
+                std::round((m_waves.size() - (float)i) * 30.f / m_waves.size()));
+            amplitudeFactor *= 0.9;
+        }
     }
 
     void WaterPipeline::Apply(ID3D11DeviceContext* context)
@@ -87,22 +126,33 @@ namespace Gradient::Pipelines
         domainConstants.proj = DirectX::XMMatrixTranspose(m_proj);
         domainConstants.totalTimeSeconds = m_totalTimeSeconds;
 
+
         m_domainCB.SetData(context, domainConstants);
         auto cb = m_domainCB.GetBuffer();
         context->DSSetConstantBuffers(0, 1, &cb);
+
+        WaveCB waveConstants;
+        for (int i = 0; i < m_waves.size(); i++)
+        {
+            waveConstants.waves[i] = m_waves[i];
+        }
+        waveConstants.numWaves = m_waves.size();
+        m_waveCB.SetData(context, waveConstants);
+        cb = m_waveCB.GetBuffer();
+        context->DSSetConstantBuffers(1, 1, &cb);
 
         context->PSSetShader(m_ps.Get(), nullptr, 0);
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         m_pixelCameraCB.SetData(context, pixelConstants);
-        
+
         DLightCB lightConstants;
         lightConstants.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
         lightConstants.irradiance = m_lightIrradiance;
         lightConstants.direction = m_lightDirection;
         m_dLightCB.SetData(context, lightConstants);
-        
+
         cb = m_dLightCB.GetBuffer();
         context->PSSetConstantBuffers(0, 1, &cb);
 
@@ -160,7 +210,7 @@ namespace Gradient::Pipelines
         m_cameraPosition = cameraPosition;
     }
 
-    void WaterPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight) 
+    void WaterPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
         m_directionalLightColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();

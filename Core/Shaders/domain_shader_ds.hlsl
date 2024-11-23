@@ -1,3 +1,12 @@
+struct Wave
+{
+    float amplitude;
+    float wavelength;
+    float speed;
+    float sharpness;
+    float3 direction;
+};
+
 cbuffer MatrixBuffer : register(b0)
 {
     matrix worldMatrix;
@@ -5,6 +14,15 @@ cbuffer MatrixBuffer : register(b0)
     matrix projectionMatrix;
     float g_totalTime;
 };
+
+#define MAX_WAVES 32
+            
+cbuffer WaveBuffer : register(b1)
+{
+    uint g_numWaves;
+    float3 g_pad;
+    Wave g_waves[MAX_WAVES];
+}
 
 struct DS_OUTPUT
 {
@@ -30,96 +48,62 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 
 float waveHeight(float3 position, 
-    float amplitude, 
-    float wavelength, 
-    float speed,
-    float k,
-    float3 direction,
+    Wave wave,
     float time)
 {
-    float w = 2.f / wavelength;
-    float phi = speed * 2.f / wavelength;
+    float w = 2.f / wave.wavelength;
+    float phi = wave.speed * 2.f / wave.wavelength;
     
-    float sinTerm = pow((sin(dot(direction, position) * w - time * phi) + 1) / 2.f,
-                        k);
-    return 2 * amplitude * sinTerm;
+    float sinTerm = pow((sin(dot(wave.direction, position) * w - time * phi) + 1) / 2.f,
+                        wave.sharpness);
+    return 2 * wave.amplitude * sinTerm;
 }
 
 float ddxWaveHeight(float3 position,
-    float amplitude,
-    float wavelength,
-    float speed,
-    float k,
-    float3 direction,
+    Wave wave,
     float time)
 {
-    float w = 2.f / wavelength;
-    float phi = speed * 2.f / wavelength;
+    float w = 2.f / wave.wavelength;
+    float phi = wave.speed * 2.f / wave.wavelength;
 
-    float DoP = dot(direction, position);
+    float DoP = dot(wave.direction, position);
     
     float sinTerm = pow((sin(DoP * w - time * phi) + 1) / 2.f,
-                        k - 1);
+                        wave.sharpness - 1);
     float cosTerm = cos(DoP * w - time * phi);
-    return k * direction.x * w * amplitude * sinTerm * cosTerm;
+    return wave.sharpness * wave.direction.x * w * wave.amplitude * sinTerm * cosTerm;
 }
 
 float ddzWaveHeight(float3 position,
-    float amplitude,
-    float wavelength,
-    float speed,
-    float k,
-    float3 direction,
+    Wave wave,
     float time)
 {
-    float w = 2.f / wavelength;
-    float phi = speed * 2.f / wavelength;
+    float w = 2.f / wave.wavelength;
+    float phi = wave.speed * 2.f / wave.wavelength;
 
-    float DoP = dot(direction, position);
+    float DoP = dot(wave.direction, position);
     
     float sinTerm = pow((sin(DoP * w - time * phi) + 1) / 2.f,
-                        k - 1);
+                        wave.sharpness - 1);
     float cosTerm = cos(DoP * w - time * phi);
-    return k * direction.z * w * amplitude * sinTerm * cosTerm;
+    return wave.sharpness * wave.direction.z * w * wave.amplitude * sinTerm * cosTerm;
 }
-
-float3 waveNormal(float3 position,
-    float amplitude,
-    float wavelength,
-    float speed,
-    float k,
-    float3 direction,
-    float time)
-{
-    float dx = ddxWaveHeight(
-                    position,
-                    amplitude,
-                    wavelength,
-                    speed,
-                    k,
-                    direction,
-                    time);
-    float dz = ddzWaveHeight(
-                    position,
-                    amplitude,
-                    wavelength,
-                    speed,
-                    k,
-                    direction,
-                    time);
-
-    float3 N = float3(-dx, 1, -dz);
-    float NoN = dot(N, N);
-    
-    
-    if (NoN == 0)
-        return float3(0, 1, 0);
-    
-    return normalize(N);
-}
-
 
 #define NUM_CONTROL_POINTS 3
+
+float totalWaveHeight(float3 position)
+{
+    float h = 0;
+
+    for (int i = 0; i < g_numWaves; i++)
+    {
+        h += waveHeight(position,
+                        g_waves[i],
+                        g_totalTime);
+    }
+    
+    return h;
+}
 
 [domain("tri")]
 DS_OUTPUT main(
@@ -132,29 +116,21 @@ DS_OUTPUT main(
     float3 interpolatedLocalPosition = patch[0].vPosition * domain.x
 		+ patch[1].vPosition * domain.y
 		+ patch[2].vPosition * domain.z;
-
-    float amplitude = 0.2;
-    float wavelength = 2.f;
-    float speed = 0.5;
-    float k = 2;
-    float3 direction = normalize(float3(-1, 0, 0.8));
     
-    Output.normal = waveNormal(interpolatedLocalPosition,
-                                amplitude,
-                                wavelength,
-                                speed,
-                                k,
-                                direction,
-                                g_totalTime);
+    float dx = 0;
+    float dz = 0;
     
-    interpolatedLocalPosition.y = waveHeight(
-                                    interpolatedLocalPosition,
-                                    amplitude,
-                                    wavelength,
-                                    speed,
-                                    k,
-                                    direction,
-                                    g_totalTime);
+    uint numWaves = min(10, g_numWaves);
+    for (int i = 0; i < g_numWaves; i++)
+    {
+        interpolatedLocalPosition.y += waveHeight(interpolatedLocalPosition,
+                                                    g_waves[i],
+                                                    g_totalTime);
+        dx += ddxWaveHeight(interpolatedLocalPosition, g_waves[i], g_totalTime);
+        dz += ddzWaveHeight(interpolatedLocalPosition, g_waves[i], g_totalTime);
+    }
+       
+    Output.normal = normalize(float3(-dx, 1, -dz));
 	
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
     Output.worldPosition = Output.vPosition.xyz;

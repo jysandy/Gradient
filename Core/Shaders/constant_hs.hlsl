@@ -26,10 +26,10 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
 	HS_CONSTANT_DATA_OUTPUT Output;
 
-	Output.EdgeTessFactor[0] = 
-		Output.EdgeTessFactor[1] = 
-		Output.EdgeTessFactor[2] = 
-		Output.InsideTessFactor = 6;
+    Output.EdgeTessFactor[0] =
+		Output.EdgeTessFactor[1] =
+		Output.EdgeTessFactor[2] = 15;
+	Output.InsideTessFactor = 15;
 
 	return Output;
 }

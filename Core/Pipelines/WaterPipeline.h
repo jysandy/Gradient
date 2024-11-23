@@ -8,12 +8,15 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/BufferHelpers.h>
 #include <directxtk/CommonStates.h>
+#include <array>
 
 namespace Gradient::Pipelines
 {
     class WaterPipeline : public IRenderPipeline
     {
     public:
+        static constexpr int MAX_WAVES = 32;
+
         struct __declspec(align(16)) DomainCB
         {
             DirectX::XMMATRIX world;
@@ -21,6 +24,23 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX proj;
             float totalTimeSeconds;
             float pad[3];
+        };
+
+        struct Wave
+        {
+            float amplitude;
+            float wavelength;
+            float speed;
+            float sharpness;
+            DirectX::XMFLOAT3 direction;
+            float pad;
+        };
+
+        struct __declspec(align(16)) WaveCB
+        {
+            uint32_t numWaves;
+            float pad[3];
+            Wave waves[MAX_WAVES];
         };
 
         struct __declspec(align(16)) PixelCB
@@ -56,6 +76,8 @@ namespace Gradient::Pipelines
         void SetTotalTime(float totalTimeSeconds);
 
     private:
+        void GenerateWaves();
+
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
         Microsoft::WRL::ComPtr<ID3D11HullShader> m_hs;
         Microsoft::WRL::ComPtr<ID3D11DomainShader> m_ds;
@@ -70,6 +92,7 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<DomainCB> m_domainCB;
+        DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
         DirectX::ConstantBuffer<DLightCB> m_dLightCB;
 
@@ -88,5 +111,7 @@ namespace Gradient::Pipelines
         float m_lightIrradiance;
 
         float m_totalTimeSeconds;
+
+        std::array<Wave, 15> m_waves;
     };
 }
