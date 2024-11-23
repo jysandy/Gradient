@@ -105,7 +105,7 @@ namespace Gradient::Pipelines
             d.Normalize();
 
             m_waves[i].direction = d;
-            m_waves[i].amplitude = std::max(0.05f, maxAmplitude * amplitudeFactor);
+            m_waves[i].amplitude = maxAmplitude * amplitudeFactor;
             m_waves[i].wavelength = std::max(0.2f, maxWavelength * amplitudeFactor);
             m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
             m_waves[i].sharpness = std::max(1.f, 
@@ -168,8 +168,7 @@ namespace Gradient::Pipelines
         context->PSSetSamplers(0, 1, &samplerState);
         context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
 
-        // TODO: Change this once we're done with the water effect
-        context->RSSetState(m_states->CullNone());
+        context->RSSetState(m_states->CullCounterClockwise());
 
         context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
