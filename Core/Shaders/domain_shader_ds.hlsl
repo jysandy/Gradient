@@ -51,8 +51,8 @@ float waveHeight(float3 position,
     Wave wave,
     float time)
 {
-    float w = 2.f / wave.wavelength;
-    float phi = wave.speed * 2.f / wave.wavelength;
+    float w = 2.f / max(wave.wavelength, 0.0001);
+    float phi = wave.speed * 2.f / max(wave.wavelength, 0.0001);
     
     float sinTerm = pow((sin(dot(wave.direction, position) * w - time * phi) + 1) / 2.f,
                         wave.sharpness);
@@ -63,8 +63,8 @@ float ddxWaveHeight(float3 position,
     Wave wave,
     float time)
 {
-    float w = 2.f / wave.wavelength;
-    float phi = wave.speed * 2.f / wave.wavelength;
+    float w = 2.f / max(wave.wavelength, 0.0001);
+    float phi = wave.speed * 2.f / max(wave.wavelength, 0.0001);
 
     float DoP = dot(wave.direction, position);
     
@@ -78,8 +78,8 @@ float ddzWaveHeight(float3 position,
     Wave wave,
     float time)
 {
-    float w = 2.f / wave.wavelength;
-    float phi = wave.speed * 2.f / wave.wavelength;
+    float w = 2.f / max(wave.wavelength, 0.00001);
+    float phi = wave.speed * 2.f / max(wave.wavelength, 0.00001);
 
     float DoP = dot(wave.direction, position);
     
@@ -90,20 +90,6 @@ float ddzWaveHeight(float3 position,
 }
 
 #define NUM_CONTROL_POINTS 3
-
-float totalWaveHeight(float3 position)
-{
-    float h = 0;
-
-    for (int i = 0; i < g_numWaves; i++)
-    {
-        h += waveHeight(position,
-                        g_waves[i],
-                        g_totalTime);
-    }
-    
-    return h;
-}
 
 [domain("tri")]
 DS_OUTPUT main(
@@ -120,8 +106,8 @@ DS_OUTPUT main(
     float dx = 0;
     float dz = 0;
     
-    uint numWaves = min(10, g_numWaves);
-    for (int i = 0; i < g_numWaves; i++)
+    uint numWaves = min(MAX_WAVES, g_numWaves);
+    for (int i = 0; i < g_numWaves; i++)            
     {
         interpolatedLocalPosition.y += waveHeight(interpolatedLocalPosition,
                                                     g_waves[i],
@@ -131,6 +117,9 @@ DS_OUTPUT main(
     }
        
     Output.normal = normalize(float3(-dx, 1, -dz));
+    
+    if (isnan(Output.normal.y))
+        Output.normal = float3(0, 1, 0);
 	
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
     Output.worldPosition = Output.vPosition.xyz;

@@ -82,9 +82,9 @@ namespace Gradient::Pipelines
 
     void WaterPipeline::GenerateWaves()
     {
-        float maxAmplitude = 0.3f;
-        float maxWavelength = 10.f;
-        float maxSpeed = 10.f;
+        float maxAmplitude = 0.1f;
+        float maxWavelength = 5.f;
+        float maxSpeed = 5.f;
         DirectX::SimpleMath::Vector3 direction{ -1, 0, 0.8 };
         direction.Normalize();
 
@@ -108,8 +108,8 @@ namespace Gradient::Pipelines
             m_waves[i].amplitude = std::max(0.05f, maxAmplitude * amplitudeFactor);
             m_waves[i].wavelength = std::max(0.2f, maxWavelength * amplitudeFactor);
             m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
-            m_waves[i].sharpness = std::min(1.f, 
-                std::round((m_waves.size() - (float)i) * 30.f / m_waves.size()));
+            m_waves[i].sharpness = std::max(1.f, 
+                std::round((m_waves.size() - (float)i) * 10.f / m_waves.size()));
             amplitudeFactor *= 0.9;
         }
     }
