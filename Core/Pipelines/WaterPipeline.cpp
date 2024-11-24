@@ -12,7 +12,7 @@ namespace Gradient::Pipelines
     {
         m_states = states;
 
-        auto vsData = DX::ReadData(L"Passthrough_VS.cso");
+        auto vsData = DX::ReadData(L"Water_VS.cso");
         DX::ThrowIfFailed(
             device->CreateVertexShader(vsData.data(),
                 vsData.size(),
@@ -117,6 +117,16 @@ namespace Gradient::Pipelines
 
     void WaterPipeline::Apply(ID3D11DeviceContext* context)
     {
+        WaveCB waveConstants;
+        for (int i = 0; i < m_waves.size(); i++)
+        {
+            waveConstants.waves[i] = m_waves[i];
+        }
+        waveConstants.numWaves = m_waves.size();
+        waveConstants.totalTimeSeconds = m_totalTimeSeconds;
+        m_waveCB.SetData(context, waveConstants);
+        auto cb = m_waveCB.GetBuffer();
+        context->VSSetConstantBuffers(0, 1, &cb);
         context->VSSetShader(m_vs.Get(), nullptr, 0);
         
         context->HSSetShader(m_hs.Get(), nullptr, 0);
@@ -125,7 +135,7 @@ namespace Gradient::Pipelines
         hullConstants.world = DirectX::XMMatrixTranspose(m_world);
         hullConstants.cameraPosition = m_cameraPosition;
         m_hullCB.SetData(context, hullConstants);
-        auto cb = m_hullCB.GetBuffer();
+        cb = m_hullCB.GetBuffer();
         context->HSSetConstantBuffers(0, 1, &cb);
 
         context->DSSetShader(m_ds.Get(), nullptr, 0);
@@ -134,18 +144,10 @@ namespace Gradient::Pipelines
         domainConstants.world = DirectX::XMMatrixTranspose(m_world);
         domainConstants.view = DirectX::XMMatrixTranspose(m_view);
         domainConstants.proj = DirectX::XMMatrixTranspose(m_proj);
-        domainConstants.totalTimeSeconds = m_totalTimeSeconds;
         m_domainCB.SetData(context, domainConstants);
         cb = m_domainCB.GetBuffer();
         context->DSSetConstantBuffers(0, 1, &cb);
 
-        WaveCB waveConstants;
-        for (int i = 0; i < m_waves.size(); i++)
-        {
-            waveConstants.waves[i] = m_waves[i];
-        }
-        waveConstants.numWaves = m_waves.size();
-        m_waveCB.SetData(context, waveConstants);
         cb = m_waveCB.GetBuffer();
         context->DSSetConstantBuffers(1, 1, &cb);
 

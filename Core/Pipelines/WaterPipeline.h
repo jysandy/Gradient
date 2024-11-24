@@ -29,8 +29,6 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
-            float totalTimeSeconds;
-            float pad[3];
         };
 
         struct Wave
@@ -46,7 +44,8 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) WaveCB
         {
             uint32_t numWaves;
-            float pad[3];
+            float totalTimeSeconds;
+            float pad[2];
             Wave waves[MAX_WAVES];
         };
 

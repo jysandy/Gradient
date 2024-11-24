@@ -556,6 +556,7 @@ namespace Gradient::Rendering
             vertices.push_back(vertex);
         }
 
+        bool topRightToBottomLeft = false;
         for (int zIndex = 1; zIndex < divisions + 1; zIndex++)
         {
             for (int i = 0; i < divisions + 1; i++)
@@ -575,12 +576,27 @@ namespace Gradient::Rendering
             for (int i = 0; i < divisions; i++)
             {
                 auto baseIndex = zIndex * (divisions + 1) + i;
-                indices.push_back(baseIndex);
-                indices.push_back(baseIndex - divisions - 1);
-                indices.push_back(baseIndex - divisions);
-                indices.push_back(baseIndex);
-                indices.push_back(baseIndex - divisions);
-                indices.push_back(baseIndex + 1);
+
+                if (topRightToBottomLeft)
+                {
+                    indices.push_back(baseIndex);
+                    indices.push_back(baseIndex - divisions - 1);
+                    indices.push_back(baseIndex + 1);
+                    indices.push_back(baseIndex + 1);
+                    indices.push_back(baseIndex - divisions - 1);
+                    indices.push_back(baseIndex - divisions);
+                }
+                else
+                {
+                    indices.push_back(baseIndex);
+                    indices.push_back(baseIndex - divisions - 1);
+                    indices.push_back(baseIndex - divisions);
+                    indices.push_back(baseIndex);
+                    indices.push_back(baseIndex - divisions);
+                    indices.push_back(baseIndex + 1);
+                }
+
+                topRightToBottomLeft = !topRightToBottomLeft;
             }
         }
     }

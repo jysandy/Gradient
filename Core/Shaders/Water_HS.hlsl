@@ -24,36 +24,49 @@ cbuffer Constants : register(b0)
     float3 g_cameraPosition;
 }
 
+float3 toWorld(float3 local)
+{
+    return mul(float4(local, 1.f), g_worldMatrix).xyz;
+}
+
+float3 tessFactor(float3 worldP)
+{
+    const float d0 = 50.f; // Highest LOD
+    const float d1 = 200.f; // Lowest LOD
+    const float minTess = 3;
+    const float maxTess = 6;
+		
+    float d = distance(worldP, g_cameraPosition);
+    float s = saturate((d - d0) / (d1 - d0));
+
+    return pow(2, lerp(maxTess, minTess, s));
+}
+
 #define NUM_CONTROL_POINTS 3
 
+// TODO: This is breaking in release mode 
+// when optimizations are enabled.
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
 	uint PatchID : SV_PrimitiveID)
 {
 	HS_CONSTANT_DATA_OUTPUT Output;
 
-    float3 centreL = (ip[0].vPosition + ip[1].vPosition + ip[2].vPosition) / 3.f;
-    float3 centreW = mul(float4(centreL, 1.f), g_worldMatrix).xyz;
-    float d = distance(centreW, g_cameraPosition);
+    float3 e0 = toWorld(0.5 * (ip[0].vPosition + ip[1].vPosition));
+    float3 e1 = toWorld(0.5 * (ip[1].vPosition + ip[2].vPosition));
+    float3 e2 = toWorld(0.5 * (ip[2].vPosition + ip[0].vPosition));
+    float3 c = toWorld((ip[0].vPosition + ip[1].vPosition + ip[2].vPosition) / 3.f);
 	
-    const float d0 = 2.f;   // Highest LOD
-    const float d1 = 50.f;  // Lowest LOD
-    const float minTess = 1;
-    const float maxTess = 3;
-	
-    float s = saturate((d - d0) / (d1 - d0));
-    float tess = pow(2, lerp(maxTess, minTess, s));
-	
-    Output.EdgeTessFactor[0] =
-		Output.EdgeTessFactor[1] =
-		Output.EdgeTessFactor[2] = 
-		Output.InsideTessFactor = tess;
+    Output.EdgeTessFactor[0] = tessFactor(e1);
+    Output.EdgeTessFactor[1] = tessFactor(e2);
+    Output.EdgeTessFactor[2] = tessFactor(e0);
+    Output.InsideTessFactor = tessFactor(c);
 
 	return Output;
 }
 
 [domain("tri")]
-[partitioning("fractional_odd")]
+[partitioning("fractional_even")]
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]

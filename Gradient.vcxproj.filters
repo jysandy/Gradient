@@ -223,6 +223,7 @@
     <None Include="Core\Shaders\ShadowMapping.hlsli" />
     <None Include="Core\Shaders\LightStructs.hlsli" />
     <None Include="Core\Shaders\PBRLighting.hlsli" />
+    <None Include="Core\Shaders\WaterWaves.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
@@ -238,5 +239,6 @@
     <FxCompile Include="Core\Shaders\Water_DS.hlsl" />
     <FxCompile Include="Core\Shaders\Passthrough_VS.hlsl" />
     <FxCompile Include="Core\Shaders\Water_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\Water_VS.hlsl" />
   </ItemGroup>
 </Project>
