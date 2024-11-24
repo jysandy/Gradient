@@ -17,6 +17,13 @@ namespace Gradient::Pipelines
     public:
         static constexpr int MAX_WAVES = 32;
 
+        struct __declspec(align(16)) HullCB
+        {
+            DirectX::XMMATRIX world;
+            DirectX::XMFLOAT3 cameraPosition;
+            float pad;
+        };
+
         struct __declspec(align(16)) DomainCB
         {
             DirectX::XMMATRIX world;
@@ -91,6 +98,7 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roughnessMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+        DirectX::ConstantBuffer<HullCB> m_hullCB;
         DirectX::ConstantBuffer<DomainCB> m_domainCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;

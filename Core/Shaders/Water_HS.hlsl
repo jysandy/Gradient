@@ -18,6 +18,12 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float InsideTessFactor			: SV_InsideTessFactor;
 };
 
+cbuffer Constants : register(b0)
+{
+    matrix g_worldMatrix;
+    float3 g_cameraPosition;
+}
+
 #define NUM_CONTROL_POINTS 3
 
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
@@ -26,10 +32,22 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
 	HS_CONSTANT_DATA_OUTPUT Output;
 
+    float3 centreL = (ip[0].vPosition + ip[1].vPosition + ip[2].vPosition) / 3.f;
+    float3 centreW = mul(float4(centreL, 1.f), g_worldMatrix).xyz;
+    float d = distance(centreW, g_cameraPosition);
+	
+    const float d0 = 2.f;   // Highest LOD
+    const float d1 = 50.f;  // Lowest LOD
+    const float minTess = 1;
+    const float maxTess = 3;
+	
+    float s = saturate((d - d0) / (d1 - d0));
+    float tess = pow(2, lerp(maxTess, minTess, s));
+	
     Output.EdgeTessFactor[0] =
 		Output.EdgeTessFactor[1] =
-		Output.EdgeTessFactor[2] = 9;
-	Output.InsideTessFactor = 9;
+		Output.EdgeTessFactor[2] = 
+		Output.InsideTessFactor = tess;
 
 	return Output;
 }

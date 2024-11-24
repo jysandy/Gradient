@@ -57,4 +57,5 @@ float4 main(InputType input) : SV_TARGET
     float3 outputColour = ambient + shadowFactor * directRadiance;
     
     return float4(outputColour, 1.f);
+    //return float4(1, 1, 1, 1);
 }

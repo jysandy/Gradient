@@ -40,6 +40,7 @@ namespace Gradient::Pipelines
                 nullptr,
                 m_ps.ReleaseAndGetAddressOf()));
 
+        m_hullCB.Create(device);
         m_domainCB.Create(device);
         m_pixelCameraCB.Create(device);
         m_dLightCB.Create(device);
@@ -117,18 +118,25 @@ namespace Gradient::Pipelines
     void WaterPipeline::Apply(ID3D11DeviceContext* context)
     {
         context->VSSetShader(m_vs.Get(), nullptr, 0);
+        
         context->HSSetShader(m_hs.Get(), nullptr, 0);
 
+        HullCB hullConstants;
+        hullConstants.world = DirectX::XMMatrixTranspose(m_world);
+        hullConstants.cameraPosition = m_cameraPosition;
+        m_hullCB.SetData(context, hullConstants);
+        auto cb = m_hullCB.GetBuffer();
+        context->HSSetConstantBuffers(0, 1, &cb);
+
         context->DSSetShader(m_ds.Get(), nullptr, 0);
+
         DomainCB domainConstants;
         domainConstants.world = DirectX::XMMatrixTranspose(m_world);
         domainConstants.view = DirectX::XMMatrixTranspose(m_view);
         domainConstants.proj = DirectX::XMMatrixTranspose(m_proj);
         domainConstants.totalTimeSeconds = m_totalTimeSeconds;
-
-
         m_domainCB.SetData(context, domainConstants);
-        auto cb = m_domainCB.GetBuffer();
+        cb = m_domainCB.GetBuffer();
         context->DSSetConstantBuffers(0, 1, &cb);
 
         WaveCB waveConstants;
@@ -169,6 +177,7 @@ namespace Gradient::Pipelines
         context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
 
         context->RSSetState(m_states->CullCounterClockwise());
+        //context->RSSetState(m_states->Wireframe());
 
         context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
         context->IASetInputLayout(m_inputLayout.Get());
