@@ -53,11 +53,11 @@ namespace Gradient::Rendering
             false
         );
 
-        m_brightnessFilterPS = LoadPixelShader(device, L"brightness_filter.cso");
-        m_additiveBlendPS = LoadPixelShader(device, L"additive_blend.cso");
+        m_brightnessFilterPS = LoadPixelShader(device, L"BrightnessFilter_PS.cso");
+        m_additiveBlendPS = LoadPixelShader(device, L"AdditiveBlend_PS.cso");
         m_blurPS = LoadPixelShader(device, L"blur.cso");
-        m_gaussianHorizontalPS = LoadPixelShader(device, L"gaussian_horizontal.cso");
-        m_gaussianVerticalPS = LoadPixelShader(device, L"gaussian_vertical.cso");
+        m_gaussianHorizontalPS = LoadPixelShader(device, L"GaussianHorizontal_PS.cso");
+        m_gaussianVerticalPS = LoadPixelShader(device, L"GaussianVertical_PS.cso");
 
         m_brightnessFilterCB.Create(device);
     }

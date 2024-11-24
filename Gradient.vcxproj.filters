@@ -225,19 +225,18 @@
     <None Include="Core\Shaders\PBRLighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Core\Shaders\aces_tonemapper.hlsl" />
-    <FxCompile Include="Core\Shaders\additive_blend.hlsl" />
-    <FxCompile Include="Core\Shaders\brightness_filter.hlsl" />
-    <FxCompile Include="Core\Shaders\pbr_ps.hlsl" />
-    <FxCompile Include="Core\Shaders\blur.hlsl" />
-    <FxCompile Include="Core\Shaders\wvp_vs.hlsl" />
-    <FxCompile Include="Core\Shaders\skydome_vs.hlsl" />
-    <FxCompile Include="Core\Shaders\skydome_ps.hlsl" />
-    <FxCompile Include="Core\Shaders\gaussian_horizontal.hlsl" />
-    <FxCompile Include="Core\Shaders\gaussian_vertical.hlsl" />
-    <FxCompile Include="Core\Shaders\constant_hs.hlsl" />
-    <FxCompile Include="Core\Shaders\domain_shader_ds.hlsl" />
-    <FxCompile Include="Core\Shaders\passthrough_vs.hlsl" />
+    <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\AdditiveBlend_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\BrightnessFilter_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\PBR_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\WVP_VS.hlsl" />
+    <FxCompile Include="Core\Shaders\Skydome_VS.hlsl" />
+    <FxCompile Include="Core\Shaders\Skydome_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\GaussianHorizontal_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\GaussianVertical_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\Water_HS.hlsl" />
+    <FxCompile Include="Core\Shaders\Water_DS.hlsl" />
+    <FxCompile Include="Core\Shaders\Passthrough_VS.hlsl" />
     <FxCompile Include="Core\Shaders\Water_PS.hlsl" />
   </ItemGroup>
 </Project>

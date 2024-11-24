@@ -10,7 +10,7 @@ namespace Gradient::Pipelines
         std::shared_ptr<DirectX::CommonStates> states)
         : m_states(states)
     {
-        auto vsData = DX::ReadData(L"wvp_vs.cso");
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
 
         // TODO: Figure out how to support shader model 5.1+
         // Probably by setting the feature level
@@ -20,7 +20,7 @@ namespace Gradient::Pipelines
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
-        auto psData = DX::ReadData(L"pbr_ps.cso");
+        auto psData = DX::ReadData(L"PBR_PS.cso");
 
         DX::ThrowIfFailed(
             device->CreatePixelShader(psData.data(),

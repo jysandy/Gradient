@@ -12,21 +12,21 @@ namespace Gradient::Pipelines
     {
         m_states = states;
 
-        auto vsData = DX::ReadData(L"passthrough_vs.cso");
+        auto vsData = DX::ReadData(L"Passthrough_VS.cso");
         DX::ThrowIfFailed(
             device->CreateVertexShader(vsData.data(),
                 vsData.size(),
                 nullptr,
                 m_vs.ReleaseAndGetAddressOf()));
 
-        auto hsData = DX::ReadData(L"constant_hs.cso");
+        auto hsData = DX::ReadData(L"Water_HS.cso");
         DX::ThrowIfFailed(
             device->CreateHullShader(hsData.data(),
                 hsData.size(),
                 nullptr,
                 m_hs.ReleaseAndGetAddressOf()));
 
-        auto dsData = DX::ReadData(L"domain_shader_ds.cso");
+        auto dsData = DX::ReadData(L"Water_DS.cso");
         DX::ThrowIfFailed(
             device->CreateDomainShader(dsData.data(),
                 dsData.size(),

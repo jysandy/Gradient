@@ -9,7 +9,7 @@ namespace Gradient::Pipelines
         std::shared_ptr<DirectX::CommonStates> states)
         : m_states(states)
     {
-        m_vsData = DX::ReadData(L"skydome_vs.cso");
+        m_vsData = DX::ReadData(L"Skydome_VS.cso");
 
         DX::ThrowIfFailed(
             device->CreateVertexShader(m_vsData.data(),
@@ -26,7 +26,7 @@ namespace Gradient::Pipelines
             m_inputLayout.ReleaseAndGetAddressOf()
         );
 
-        auto psData = DX::ReadData(L"skydome_ps.cso");
+        auto psData = DX::ReadData(L"Skydome_PS.cso");
         DX::ThrowIfFailed(
             device->CreatePixelShader(psData.data(),
                 psData.size(),

@@ -9,7 +9,7 @@ namespace Gradient::Pipelines
         std::shared_ptr<DirectX::CommonStates> states) 
         : m_states(states)
     {
-        auto vsData = DX::ReadData(L"wvp_vs.cso");
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
 
         DX::ThrowIfFailed(
             device->CreateVertexShader(vsData.data(),

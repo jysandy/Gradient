@@ -549,7 +549,7 @@ void Game::CreateDeviceDependentResources()
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device, m_states);
     m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device, m_states);
-    m_tonemapperPS = LoadPixelShader(L"aces_tonemapper.cso");
+    m_tonemapperPS = LoadPixelShader(L"ACESTonemapper_PS.cso");
 
     EntityManager::Initialize();
     TextureManager::Initialize(device, context);
