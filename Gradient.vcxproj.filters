@@ -42,6 +42,7 @@
     <ClInclude Include="Core\Pipelines\WaterPipeline.h" />
     <ClInclude Include="GUI\RenderingWindow.h" />
     <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
+    <ClInclude Include="GUI\PerformanceWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -71,6 +72,7 @@
     <ClCompile Include="Core\Pipelines\WaterPipeline.cpp" />
     <ClCompile Include="GUI\RenderingWindow.cpp" />
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
+    <ClCompile Include="GUI\PerformanceWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

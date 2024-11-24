@@ -213,6 +213,7 @@
     <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
+    <ClInclude Include="GUI\PerformanceWindow.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
     <ClInclude Include="GUI\RenderingWindow.h" />
     <ClInclude Include="pch.h" />
@@ -240,6 +241,7 @@
     <ClCompile Include="GUI\EntityWindow.cpp" />
     <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
+    <ClCompile Include="GUI\PerformanceWindow.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\RenderingWindow.cpp" />
     <ClCompile Include="Main.cpp" />

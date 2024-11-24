@@ -69,7 +69,6 @@ void Game::Tick()
             Update(m_timer);
         });
 
-    m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
     Render();
 }
 
@@ -93,11 +92,13 @@ void Game::Update(DX::StepTimer const& timer)
     }
 
     m_entityWindow.Update();
+    m_perfWindow.FPS = timer.GetFramesPerSecond();
 
     m_dLight->SetLightDirection(m_renderingWindow.LightDirection);
     m_dLight->SetColour(m_renderingWindow.GetLinearLightColour());
     m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
     m_skyDomePipeline->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
+    m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
     m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
@@ -189,6 +190,7 @@ void Game::Render()
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
     m_renderingWindow.Draw();
+    m_perfWindow.Draw();
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

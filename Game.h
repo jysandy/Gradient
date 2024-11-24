@@ -29,6 +29,7 @@
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 #include "GUI/RenderingWindow.h"
+#include "GUI/PerformanceWindow.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -103,6 +104,7 @@ private:
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
+    Gradient::GUI::PerformanceWindow m_perfWindow;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
