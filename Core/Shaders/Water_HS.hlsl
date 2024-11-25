@@ -31,14 +31,13 @@ float3 toWorld(float3 local)
     return mul(float4(local, 1.f), g_worldMatrix).xyz;
 }
 
-float3 tessFactor(float3 worldP)
+float cameraDot(float3 worldP)
 {
-    // Cull patches that are behind the camera. A budget version of 
-    // frustum culling.
-    float cameraDot = dot(normalize(worldP - g_cameraPosition), g_cameraDirection);
-    if (cameraDot <= -0.1)
-        return 0;
-    
+    return dot(normalize(worldP - g_cameraPosition), g_cameraDirection);
+}
+
+float3 tessFactor(float3 worldP)
+{    
     const float d0 = 50.f; // Highest LOD
     const float d1 = 400.f; // Lowest LOD
     const float minTess = 1;
@@ -70,6 +69,20 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     Output.EdgeTessFactor[2] = tessFactor(e0);
     Output.InsideTessFactor = tessFactor(c);
 
+    float maxCameraDot = max(cameraDot(e0),
+                   max(cameraDot(e1),
+                   max(cameraDot(e2),
+                       cameraDot(c))));
+    
+    // Cull patches that are behind the camera.
+    if (maxCameraDot < -0.1)
+    {
+        Output.EdgeTessFactor[0] = 
+        Output.EdgeTessFactor[1] = 
+        Output.EdgeTessFactor[2] = 
+        Output.InsideTessFactor = 0;
+    }
+    
 	return Output;
 }
 
