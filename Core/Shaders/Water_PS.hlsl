@@ -37,9 +37,6 @@ float4 main(InputType input) : SV_TARGET
     float3 albedo = float3(1, 1, 1);
     float ao = 1.f;
     
-    // unused for now...
-    float heightRatio = saturate(input.worldPosition.y / maxAmplitude);
-    
     float metalness = 1.f;
     float roughness = 0.2f;
     
@@ -58,7 +55,23 @@ float4 main(InputType input) : SV_TARGET
         shadowTransform,
         input.worldPosition);
     
-    float3 outputColour = ambient + shadowFactor * directRadiance;
+    float3 directIrradiance = directionalLightIrradiance(directionalLight);
+    float3 L = -normalize(directionalLight.direction);
+    float heightRatio = saturate(input.worldPosition.y / maxAmplitude);
+    
+    // Using the height here as a proxy for thickness.
+    // The peaks of each wave are thinner than 
+    // the troughs.
+    float3 sss = subsurfaceScattering(directIrradiance,
+                                      N, 
+                                      V, 
+                                      L, 
+                                      1 - heightRatio, 
+                                      0.5);
+    
+    float3 outputColour = ambient 
+        + shadowFactor * directRadiance
+        + sss;
 
     //return float4(1, 1, 1, 1);    
     return float4(outputColour, 1.f);

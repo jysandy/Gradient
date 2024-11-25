@@ -178,4 +178,17 @@ float3 cookTorranceEnvironmentMap(
     return ao * ct;
 }
 
+float3 subsurfaceScattering(float3 irradiance, 
+                            float3 N,
+                            float3 V,
+                            float3 L,
+                            float thickness,
+                            float refractiveIndex)
+{
+    float I = (1 - thickness) * (1 - thickness) * (1 - thickness) *
+        pow(saturate(dot(V, normalize(-L + N * refractiveIndex))), 4) * 0.05;
+    
+    return I * irradiance;
+}
+
 #endif

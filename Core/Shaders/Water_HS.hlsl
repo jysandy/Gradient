@@ -58,8 +58,6 @@ float3 tessFactor(float3 worldP)
 
 #define NUM_CONTROL_POINTS 3
 
-// TODO: This is breaking in release mode 
-// when optimizations are enabled.
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
 	uint PatchID : SV_PrimitiveID)
