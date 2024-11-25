@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Parameters.h"
 #include <directxtk/SimpleMath.h>
 
 namespace Gradient::GUI
@@ -8,6 +9,8 @@ namespace Gradient::GUI
     class RenderingWindow
     {
     public:
+
+
         RenderingWindow();
 
         void Draw();
@@ -25,5 +28,7 @@ namespace Gradient::GUI
 
         float BloomExposure = 0.f;
         float BloomIntensity = 0.f;
+
+        Params::Water Water;
     };
 }

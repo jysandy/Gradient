@@ -7,6 +7,7 @@
 #include "directxtk/Keyboard.h"
 #include "Core/TextureManager.h"
 #include "Core/Rendering/GeometricPrimitive.h"
+#include "Core/Parameters.h"
 #include <directxtk/SimpleMath.h>
 
 #include <imgui.h>
@@ -99,6 +100,7 @@ void Game::Update(DX::StepTimer const& timer)
     m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
     m_skyDomePipeline->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
     m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
+    m_waterPipeline->SetWaterParams(m_renderingWindow.Water);
     m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
@@ -573,6 +575,12 @@ void Game::CreateDeviceDependentResources()
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
         256,
         DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+    auto waterParams = Params::Water{ 
+        50.f, 400.f
+    };
+    m_waterPipeline->SetWaterParams(waterParams);
+    m_renderingWindow.Water = waterParams;
 
     CreateEntities();
 }

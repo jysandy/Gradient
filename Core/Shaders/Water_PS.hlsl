@@ -18,6 +18,10 @@ cbuffer Constants : register(b1)
     float3 cameraPosition;
     float maxAmplitude;
     float4x4 shadowTransform; // TODO: put this into the light
+    float thicknessPower;
+    float sharpness;
+    float refractiveIndex;
+    float pad;
 }
 
 struct InputType
@@ -66,8 +70,9 @@ float4 main(InputType input) : SV_TARGET
                                       N, 
                                       V, 
                                       L, 
-                                      1 - heightRatio, 
-                                      0.5);
+                                      1 - pow(heightRatio, thicknessPower),
+                                      sharpness,
+                                      refractiveIndex);
     
     float3 outputColour = ambient 
         + shadowFactor * directRadiance

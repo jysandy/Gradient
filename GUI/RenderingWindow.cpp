@@ -26,6 +26,40 @@ namespace Gradient::GUI
             ImGui::TreePop();
         }
 
+        if (ImGui::TreeNode("Water"))
+        {
+            ImGui::DragFloat("Near LOD distance",
+                &Water.MinLod,
+                0.5f,
+                1.f,
+                1000.f);
+
+            ImGui::DragFloat("Far LOD distance",
+                &Water.MaxLod,
+                0.5f,
+                1.f,
+                1000.f);
+
+            if (ImGui::TreeNode("Scattering"))
+            {
+                ImGui::SliderFloat("Thickness Height Scaling",
+                    &Water.Scattering.ThicknessPower,
+                    1.f,
+                    10.f);
+                ImGui::SliderFloat("Scattering Sharpness",
+                    &Water.Scattering.Sharpness,
+                    1.f,
+                    10.f);
+                ImGui::SliderFloat("Refractive Index",
+                    &Water.Scattering.RefractiveIndex,
+                    1.f,
+                    5.f);
+                ImGui::TreePop();
+            }
+
+            ImGui::TreePop();
+        }
+
         if (ImGui::TreeNode("Bloom"))
         {
             ImGui::SliderFloat("Exposure", &BloomExposure, 0.f, 20.f);

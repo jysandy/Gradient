@@ -41,7 +41,7 @@ namespace Gradient::Pipelines
                 m_ps.ReleaseAndGetAddressOf()));
 
         m_matrixCB.Create(device);
-        m_pixelCameraCB.Create(device);
+        m_pixelParamCB.Create(device);
         m_dLightCB.Create(device);
         m_waveCB.Create(device);
         m_lodCB.Create(device);
@@ -129,8 +129,8 @@ namespace Gradient::Pipelines
         LodCB lodConstants;
         lodConstants.cameraDirection = m_cameraDirection;
         lodConstants.cameraPosition = m_cameraPosition;
-        lodConstants.minLodDistance = 50.f;
-        lodConstants.maxLodDistance = 400.f;
+        lodConstants.minLodDistance = m_waterParams.MinLod;
+        lodConstants.maxLodDistance = m_waterParams.MaxLod;
         m_lodCB.SetData(context, lodConstants);
 
         WaveCB waveConstants;
@@ -162,11 +162,14 @@ namespace Gradient::Pipelines
         context->DSSetConstantBuffers(2, 1, &cb);
 
         context->PSSetShader(m_ps.Get(), nullptr, 0);
-        PixelCB pixelConstants;
+        PixelParamCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.maxAmplitude = m_maxAmplitude;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
-        m_pixelCameraCB.SetData(context, pixelConstants);
+        pixelConstants.thicknessPower = m_waterParams.Scattering.ThicknessPower;
+        pixelConstants.sharpness = m_waterParams.Scattering.Sharpness;
+        pixelConstants.refractiveIndex = m_waterParams.Scattering.RefractiveIndex;
+        m_pixelParamCB.SetData(context, pixelConstants);
 
         DLightCB lightConstants;
         lightConstants.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
@@ -177,7 +180,7 @@ namespace Gradient::Pipelines
         cb = m_dLightCB.GetBuffer();
         context->PSSetConstantBuffers(0, 1, &cb);
 
-        cb = m_pixelCameraCB.GetBuffer();
+        cb = m_pixelParamCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
 
         if (m_shadowMap != nullptr)
@@ -254,5 +257,10 @@ namespace Gradient::Pipelines
     void WaterPipeline::SetTotalTime(float totalTimeSeconds)
     {
         m_totalTimeSeconds = totalTimeSeconds;
+    }
+
+    void WaterPipeline::SetWaterParams(Params::Water waterParams)
+    {
+        m_waterParams = waterParams;
     }
 }

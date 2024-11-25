@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Parameters.h"
 #include <directxtk/Effects.h>
 #include <directxtk/VertexTypes.h>
 #include <directxtk/SimpleMath.h>
@@ -50,11 +51,15 @@ namespace Gradient::Pipelines
             Wave waves[MAX_WAVES];
         };
 
-        struct __declspec(align(16)) PixelCB
+        struct __declspec(align(16)) PixelParamCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float maxAmplitude;
             DirectX::XMMATRIX shadowTransform;
+            float thicknessPower;
+            float sharpness;
+            float refractiveIndex;
+            float pad;
         };
 
         struct __declspec(align(16)) DLightCB
@@ -82,6 +87,7 @@ namespace Gradient::Pipelines
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         void SetTotalTime(float totalTimeSeconds);
+        void SetWaterParams(Params::Water waterParams);
 
     private:
         void GenerateWaves();
@@ -102,7 +108,7 @@ namespace Gradient::Pipelines
         DirectX::ConstantBuffer<MatrixCB> m_matrixCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<LodCB> m_lodCB;
-        DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
+        DirectX::ConstantBuffer<PixelParamCB> m_pixelParamCB;
         DirectX::ConstantBuffer<DLightCB> m_dLightCB;
 
         std::shared_ptr<DirectX::CommonStates> m_states;
@@ -124,5 +130,6 @@ namespace Gradient::Pipelines
         float m_maxAmplitude = 0;
 
         std::array<Wave, 20> m_waves;
+        Params::Water m_waterParams;
     };
 }
