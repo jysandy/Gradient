@@ -32,8 +32,8 @@ float3 toWorld(float3 local)
 float3 tessFactor(float3 worldP)
 {
     const float d0 = 50.f; // Highest LOD
-    const float d1 = 200.f; // Lowest LOD
-    const float minTess = 3;
+    const float d1 = 400.f; // Lowest LOD
+    const float minTess = 1;
     const float maxTess = 6;
 		
     float d = distance(worldP, g_cameraPosition);

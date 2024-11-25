@@ -119,6 +119,6 @@ namespace Gradient::Pipelines
 
         float m_totalTimeSeconds;
 
-        std::array<Wave, 15> m_waves;
+        std::array<Wave, 16> m_waves;
     };
 }

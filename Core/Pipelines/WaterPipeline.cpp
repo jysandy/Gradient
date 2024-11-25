@@ -92,8 +92,8 @@ namespace Gradient::Pipelines
         std::random_device rd{};
         std::mt19937 gen{ rd() };
 
-        std::normal_distribution xRng{ direction.x, 0.5f };
-        std::normal_distribution zRng{ direction.z, 0.5f };
+        std::normal_distribution xRng{ direction.x, 0.2f };
+        std::normal_distribution zRng{ direction.z, 0.2f };
 
         float amplitudeFactor = 0.7f;
         for (int i = 0; i < m_waves.size(); i++)

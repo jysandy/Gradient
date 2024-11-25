@@ -514,8 +514,8 @@ void Game::CreateEntities()
     water.id = "water";
     water.Drawable = Rendering::GeometricPrimitive::CreateGrid(device,
         deviceContext,
-        1000,
-        1000,
+        800,
+        800,
         100);
     water.RenderPipeline = m_waterPipeline.get();
     water.CastsShadows = false;
