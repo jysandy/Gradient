@@ -111,6 +111,9 @@ namespace Gradient::Pipelines
             m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
             m_waves[i].sharpness = std::max(1.f, 
                 std::round((m_waves.size() - (float)i) * 10.f / m_waves.size()));
+           
+            m_maxAmplitude += m_waves[i].amplitude;
+
             amplitudeFactor *= 0.9;
         }
     }
@@ -154,6 +157,7 @@ namespace Gradient::Pipelines
         context->PSSetShader(m_ps.Get(), nullptr, 0);
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
+        pixelConstants.maxAmplitude = m_maxAmplitude;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         m_pixelCameraCB.SetData(context, pixelConstants);
 

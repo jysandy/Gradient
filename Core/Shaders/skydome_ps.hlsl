@@ -30,8 +30,8 @@ float4 main(VSOutput input) : SV_TARGET
     float3 black = float3(0, 0, 0);
     
     float3 skyColour;
-    float3 skyBase = lerp(g_sunColour, blue, cosL);
-    skyBase = lerp(blue, skyBase, cosHorizontalL);
+    float3 skyBase = lerp(g_sunColour, blue, saturate(cosL + 0.3f));
+    skyBase = lerp(blue, skyBase, saturate(cosHorizontalL - 0.3f));
 
     // TODO: Get the sun flare up at the height of the sun
     skyColour = g_ambientIrradiance * lerp(skyBase, blue, pow(abs(cosTheta), lerp(0.8, 1, g_drawSunCircle)));

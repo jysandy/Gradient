@@ -52,7 +52,7 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) PixelCB
         {
             DirectX::XMFLOAT3 cameraPosition;
-            float pad;
+            float maxAmplitude;
             DirectX::XMMATRIX shadowTransform;
         };
 
@@ -118,6 +118,7 @@ namespace Gradient::Pipelines
         float m_lightIrradiance;
 
         float m_totalTimeSeconds;
+        float m_maxAmplitude = 0;
 
         std::array<Wave, 16> m_waves;
     };

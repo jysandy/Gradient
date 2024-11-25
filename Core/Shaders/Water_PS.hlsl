@@ -16,7 +16,7 @@ cbuffer LightBuffer : register(b0)
 cbuffer Constants : register(b1)
 {
     float3 cameraPosition;
-    float pad;
+    float maxAmplitude;
     float4x4 shadowTransform; // TODO: put this into the light
 }
 
@@ -35,8 +35,12 @@ float4 main(InputType input) : SV_TARGET
     float3 V = normalize(cameraPosition - input.worldPosition);
     
     float3 albedo = float3(1, 1, 1);
-    float ao = 1;
-    float metalness = 1.0f;
+    float ao = 1.f;
+    
+    // unused for now...
+    float heightRatio = saturate(input.worldPosition.y / maxAmplitude);
+    
+    float metalness = 1.f;
     float roughness = 0.2f;
     
     float3 directRadiance = cookTorranceDirectionalLight(
