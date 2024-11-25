@@ -137,6 +137,7 @@ namespace Gradient::Pipelines
         HullCB hullConstants;
         hullConstants.world = DirectX::XMMatrixTranspose(m_world);
         hullConstants.cameraPosition = m_cameraPosition;
+        hullConstants.cameraDirection = m_cameraDirection;
         m_hullCB.SetData(context, hullConstants);
         cb = m_hullCB.GetBuffer();
         context->HSSetConstantBuffers(0, 1, &cb);
@@ -222,6 +223,12 @@ namespace Gradient::Pipelines
     void WaterPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
+    }
+
+    void WaterPipeline::SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection)
+    {
+        m_cameraDirection = cameraDirection;
+        m_cameraDirection.Normalize();
     }
 
     void WaterPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)

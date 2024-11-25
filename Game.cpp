@@ -162,6 +162,7 @@ void Game::Render()
     m_pbrPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_pbrPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
     m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
+    m_waterPipeline->SetCameraDirection(m_camera.GetDirection());
     m_waterPipeline->SetDirectionalLight(m_dLight.get());
     m_waterPipeline->SetView(m_camera.GetViewMatrix());
     m_waterPipeline->SetProjection(m_camera.GetProjectionMatrix());

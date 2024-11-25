@@ -22,6 +22,7 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX world;
             DirectX::XMFLOAT3 cameraPosition;
             float pad;
+            DirectX::XMFLOAT3 cameraDirection;
         };
 
         struct __declspec(align(16)) DomainCB
@@ -77,6 +78,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
+        void SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         void SetTotalTime(float totalTimeSeconds);
@@ -112,6 +114,7 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
+        DirectX::SimpleMath::Vector3 m_cameraDirection;
 
         DirectX::SimpleMath::Color   m_directionalLightColour;
         DirectX::SimpleMath::Vector3 m_lightDirection;

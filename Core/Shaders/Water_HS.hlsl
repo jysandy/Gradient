@@ -22,6 +22,8 @@ cbuffer Constants : register(b0)
 {
     matrix g_worldMatrix;
     float3 g_cameraPosition;
+    float pad;
+    float3 g_cameraDirection;
 }
 
 float3 toWorld(float3 local)
@@ -31,6 +33,12 @@ float3 toWorld(float3 local)
 
 float3 tessFactor(float3 worldP)
 {
+    // Cull patches that are behind the camera. A budget version of 
+    // frustum culling.
+    float cameraDot = dot(normalize(worldP - g_cameraPosition), g_cameraDirection);
+    if (cameraDot <= -0.1)
+        return 0;
+    
     const float d0 = 50.f; // Highest LOD
     const float d1 = 400.f; // Lowest LOD
     const float minTess = 1;
