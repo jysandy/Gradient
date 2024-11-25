@@ -40,12 +40,11 @@ namespace Gradient::Pipelines
                 nullptr,
                 m_ps.ReleaseAndGetAddressOf()));
 
-        m_hullCB.Create(device);
-        m_domainCB.Create(device);
-        m_domainCameraCB.Create(device);
+        m_matrixCB.Create(device);
         m_pixelCameraCB.Create(device);
         m_dLightCB.Create(device);
         m_waveCB.Create(device);
+        m_lodCB.Create(device);
 
         auto inputElements = std::array<D3D11_INPUT_ELEMENT_DESC, VertexType::InputElementCount>();
         std::copy(VertexType::InputElements, VertexType::InputElements + 3, inputElements.begin());
@@ -121,6 +120,19 @@ namespace Gradient::Pipelines
 
     void WaterPipeline::Apply(ID3D11DeviceContext* context)
     {
+        MatrixCB matrixConstants;
+        matrixConstants.world = DirectX::XMMatrixTranspose(m_world);
+        matrixConstants.view = DirectX::XMMatrixTranspose(m_view);
+        matrixConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+        m_matrixCB.SetData(context, matrixConstants);
+
+        LodCB lodConstants;
+        lodConstants.cameraDirection = m_cameraDirection;
+        lodConstants.cameraPosition = m_cameraPosition;
+        lodConstants.minLodDistance = 50.f;
+        lodConstants.maxLodDistance = 400.f;
+        m_lodCB.SetData(context, lodConstants);
+
         WaveCB waveConstants;
         for (int i = 0; i < m_waves.size(); i++)
         {
@@ -129,38 +141,24 @@ namespace Gradient::Pipelines
         waveConstants.numWaves = m_waves.size();
         waveConstants.totalTimeSeconds = m_totalTimeSeconds;
         m_waveCB.SetData(context, waveConstants);
+
+        context->VSSetShader(m_vs.Get(), nullptr, 0);
         auto cb = m_waveCB.GetBuffer();
         context->VSSetConstantBuffers(0, 1, &cb);
-        context->VSSetShader(m_vs.Get(), nullptr, 0);
         
         context->HSSetShader(m_hs.Get(), nullptr, 0);
-
-        HullCB hullConstants;
-        hullConstants.world = DirectX::XMMatrixTranspose(m_world);
-        hullConstants.cameraPosition = m_cameraPosition;
-        hullConstants.cameraDirection = m_cameraDirection;
-        m_hullCB.SetData(context, hullConstants);
-        cb = m_hullCB.GetBuffer();
+        cb = m_matrixCB.GetBuffer();
         context->HSSetConstantBuffers(0, 1, &cb);
+        cb = m_lodCB.GetBuffer();
+        context->HSSetConstantBuffers(1, 1, &cb);
+
 
         context->DSSetShader(m_ds.Get(), nullptr, 0);
-
-        DomainCB domainConstants;
-        domainConstants.world = DirectX::XMMatrixTranspose(m_world);
-        domainConstants.view = DirectX::XMMatrixTranspose(m_view);
-        domainConstants.proj = DirectX::XMMatrixTranspose(m_proj);
-        m_domainCB.SetData(context, domainConstants);
-        cb = m_domainCB.GetBuffer();
+        cb = m_matrixCB.GetBuffer();
         context->DSSetConstantBuffers(0, 1, &cb);
-
         cb = m_waveCB.GetBuffer();
         context->DSSetConstantBuffers(1, 1, &cb);
-
-        DomainCameraCB domainCameraConstants;
-        domainCameraConstants.cameraDirection = m_cameraDirection;
-        domainCameraConstants.cameraPosition = m_cameraPosition;
-        m_domainCameraCB.SetData(context, domainCameraConstants);
-        cb = m_domainCameraCB.GetBuffer();
+        cb = m_lodCB.GetBuffer();
         context->DSSetConstantBuffers(2, 1, &cb);
 
         context->PSSetShader(m_ps.Get(), nullptr, 0);

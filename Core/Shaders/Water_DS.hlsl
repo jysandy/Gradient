@@ -17,17 +17,18 @@ cbuffer WaveBuffer : register(b1)
     Wave g_waves[MAX_WAVES];
 }
 
-cbuffer CameraBuffer : register(b2)
+cbuffer LodBuffer : register(b2)
 {
     float3 g_cameraPosition;
-    float pad;
+    float g_minLodDistance;
     float3 g_cameraDirection;
+    float g_maxLodDistance;
 }
 
 float3 lodNormal(float3 N, float3 worldP)
 {
-    const float d0 = 50.f; // Highest LOD
-    const float d1 = 400.f; // Lowest LOD  
+    const float d0 = g_minLodDistance; 
+    const float d1 = g_maxLodDistance;
     
     float d = distance(worldP, g_cameraPosition);
     float s = 1 - saturate((d - d0) / (d1 - d0));

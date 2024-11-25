@@ -17,26 +17,19 @@ namespace Gradient::Pipelines
     public:
         static constexpr int MAX_WAVES = 32;
 
-        struct __declspec(align(16)) HullCB
-        {
-            DirectX::XMMATRIX world;
-            DirectX::XMFLOAT3 cameraPosition;
-            float pad;
-            DirectX::XMFLOAT3 cameraDirection;
-        };
-
-        struct __declspec(align(16)) DomainCB
+        struct __declspec(align(16)) MatrixCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
         };
 
-        struct __declspec(align(16)) DomainCameraCB
+        struct __declspec(align(16)) LodCB
         {
             DirectX::XMFLOAT3 cameraPosition;
-            float pad;
+            float minLodDistance;
             DirectX::XMFLOAT3 cameraDirection;
+            float maxLodDistance;
         };
 
         struct Wave
@@ -106,10 +99,9 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roughnessMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-        DirectX::ConstantBuffer<HullCB> m_hullCB;
-        DirectX::ConstantBuffer<DomainCB> m_domainCB;
-        DirectX::ConstantBuffer<DomainCameraCB> m_domainCameraCB;
+        DirectX::ConstantBuffer<MatrixCB> m_matrixCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
+        DirectX::ConstantBuffer<LodCB> m_lodCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
         DirectX::ConstantBuffer<DLightCB> m_dLightCB;
 

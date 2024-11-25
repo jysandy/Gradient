@@ -18,12 +18,19 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float InsideTessFactor			: SV_InsideTessFactor;
 };
 
-cbuffer Constants : register(b0)
+cbuffer MatrixBuffer : register(b0)
 {
     matrix g_worldMatrix;
+    matrix g_viewMatrix;
+    matrix g_projectionMatrix;
+};
+
+cbuffer LodBuffer : register(b1)
+{
     float3 g_cameraPosition;
-    float pad;
+    float  g_minLodDistance;
     float3 g_cameraDirection;
+    float  g_maxLodDistance;
 }
 
 float3 toWorld(float3 local)
@@ -38,8 +45,8 @@ float cameraDot(float3 worldP)
 
 float3 tessFactor(float3 worldP)
 {    
-    const float d0 = 50.f; // Highest LOD
-    const float d1 = 400.f; // Lowest LOD
+    const float d0 = g_minLodDistance; // Highest LOD
+    const float d1 = g_maxLodDistance; // Lowest LOD
     const float minTess = 1;
     const float maxTess = 6;
 		
