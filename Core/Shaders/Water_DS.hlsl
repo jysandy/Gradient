@@ -17,6 +17,24 @@ cbuffer WaveBuffer : register(b1)
     Wave g_waves[MAX_WAVES];
 }
 
+cbuffer CameraBuffer : register(b2)
+{
+    float3 g_cameraPosition;
+    float pad;
+    float3 g_cameraDirection;
+}
+
+float3 lodNormal(float3 N, float3 worldP)
+{
+    const float d0 = 50.f; // Highest LOD
+    const float d1 = 400.f; // Lowest LOD  
+    
+    float d = distance(worldP, g_cameraPosition);
+    float s = 1 - saturate((d - d0) / (d1 - d0));
+    
+    return lerp(float3(0, 1, 0), N, pow(s, 2.5));
+}
+
 struct DS_OUTPUT
 {
 	float4 vPosition  : SV_POSITION;
@@ -55,9 +73,10 @@ DS_OUTPUT main(
     
     float dx = 0;
     float dz = 0;
+
+    interpolatedLocalPosition.y = 0;    
+    float3 originalWorldP = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix).xyz;
     
-    uint numWaves = min(MAX_WAVES, g_numWaves);
-    interpolatedLocalPosition.y = 0;
     for (int i = 0; i < g_numWaves; i++)            
     {
         interpolatedLocalPosition.y += waveHeight(interpolatedLocalPosition,
@@ -69,9 +88,11 @@ DS_OUTPUT main(
        
     Output.normal = normalize(float3(-dx, 1, -dz));
     
+    Output.normal = lodNormal(Output.normal, originalWorldP);
+	
     if (isnan(Output.normal.y))
         Output.normal = float3(0, 1, 0);
-	
+    
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
     Output.worldPosition = Output.vPosition.xyz;
     Output.vPosition = mul(Output.vPosition, viewMatrix);

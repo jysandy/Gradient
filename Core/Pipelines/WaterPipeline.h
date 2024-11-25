@@ -32,6 +32,13 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX proj;
         };
 
+        struct __declspec(align(16)) DomainCameraCB
+        {
+            DirectX::XMFLOAT3 cameraPosition;
+            float pad;
+            DirectX::XMFLOAT3 cameraDirection;
+        };
+
         struct Wave
         {
             float amplitude;
@@ -101,6 +108,7 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<HullCB> m_hullCB;
         DirectX::ConstantBuffer<DomainCB> m_domainCB;
+        DirectX::ConstantBuffer<DomainCameraCB> m_domainCameraCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
         DirectX::ConstantBuffer<DLightCB> m_dLightCB;
@@ -123,6 +131,6 @@ namespace Gradient::Pipelines
         float m_totalTimeSeconds;
         float m_maxAmplitude = 0;
 
-        std::array<Wave, 16> m_waves;
+        std::array<Wave, 20> m_waves;
     };
 }

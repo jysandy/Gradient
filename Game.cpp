@@ -557,7 +557,7 @@ void Game::CreateDeviceDependentResources()
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
-        { -0.7f, -0.1f, 0.7f },
+        { -0.7f, -0.3f, 0.7f },
         30.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);

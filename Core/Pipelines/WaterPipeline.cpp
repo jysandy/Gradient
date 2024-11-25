@@ -42,6 +42,7 @@ namespace Gradient::Pipelines
 
         m_hullCB.Create(device);
         m_domainCB.Create(device);
+        m_domainCameraCB.Create(device);
         m_pixelCameraCB.Create(device);
         m_dLightCB.Create(device);
         m_waveCB.Create(device);
@@ -110,7 +111,7 @@ namespace Gradient::Pipelines
             m_waves[i].wavelength = std::max(0.2f, maxWavelength * amplitudeFactor);
             m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
             m_waves[i].sharpness = std::max(1.f, 
-                std::round((m_waves.size() - (float)i) * 10.f / m_waves.size()));
+                std::round((m_waves.size() - (float)i) * 16.f / m_waves.size()));
            
             m_maxAmplitude += m_waves[i].amplitude;
 
@@ -154,6 +155,13 @@ namespace Gradient::Pipelines
 
         cb = m_waveCB.GetBuffer();
         context->DSSetConstantBuffers(1, 1, &cb);
+
+        DomainCameraCB domainCameraConstants;
+        domainCameraConstants.cameraDirection = m_cameraDirection;
+        domainCameraConstants.cameraPosition = m_cameraPosition;
+        m_domainCameraCB.SetData(context, domainCameraConstants);
+        cb = m_domainCameraCB.GetBuffer();
+        context->DSSetConstantBuffers(2, 1, &cb);
 
         context->PSSetShader(m_ps.Get(), nullptr, 0);
         PixelCB pixelConstants;
