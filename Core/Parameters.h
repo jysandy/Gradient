@@ -23,6 +23,7 @@ namespace Gradient::Params
         DirectX::SimpleMath::Color Colour = { 1.f, 1.f, 1.f, 1.f };
         float Irradiance = 3.f;
         DirectX::SimpleMath::Vector3 Position = { 0.f, 0.f, 0.f };
+        float MaxRange = 30.f;
     };
 }
 

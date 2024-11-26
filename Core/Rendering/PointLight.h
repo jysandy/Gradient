@@ -19,6 +19,7 @@ namespace Gradient::Rendering
         std::string EntityId;
         DirectX::SimpleMath::Color Colour = { 1.f, 1.f, 1.f, 1.f };
         float Irradiance = 3.f;
+        float MaxRange = 30.f;
 
         Params::PointLight AsParams() const;
 

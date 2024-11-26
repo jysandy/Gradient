@@ -17,6 +17,6 @@ namespace Gradient::Pipelines
         DirectX::XMFLOAT3 colour;
         float irradiance;
         DirectX::XMFLOAT3 position;
-        float pad;
+        float maxRange;
     };
 }

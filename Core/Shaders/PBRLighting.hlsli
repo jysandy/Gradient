@@ -10,10 +10,13 @@ float3 directionalLightIrradiance(DirectionalLight dlight)
     return dlight.irradiance * dlight.colour.rgb;
 }
 
-float3 pointLightIrradiance(PointLight plight)
+float3 pointLightIrradiance(PointLight plight, float3 worldPosition)
 {
-    // TODO: Implement attenuation here
-    return plight.irradiance * plight.colour.rgb;
+    float d = distance(plight.position, worldPosition);
+    float attenuation = max(0, plight.maxRange - d) / plight.maxRange;
+    attenuation *= attenuation;
+    
+    return plight.irradiance * attenuation * plight.colour.rgb;
 }
 
 float3 fresnelSchlick(
@@ -162,7 +165,7 @@ float3 cookTorrancePointLight(float3 N,
     float3 L = normalize(light.position - worldPosition);
     float3 H = normalize(V + L);
     
-    float3 irradiance = pointLightIrradiance(light);
+    float3 irradiance = pointLightIrradiance(light, worldPosition);
     
     return cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, irradiance, true
@@ -243,7 +246,7 @@ float3 pointLightSSS(PointLight light,
                      float sharpness,
                      float refractiveIndex)
 {
-    float3 irradiance = pointLightIrradiance(light);
+    float3 irradiance = pointLightIrradiance(light, worldPosition);
     float3 L = normalize(light.position - worldPosition);
     
     return subsurfaceScattering(irradiance,

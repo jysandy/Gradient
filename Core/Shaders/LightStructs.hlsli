@@ -14,7 +14,7 @@ struct PointLight
     float3 colour;
     float irradiance;
     float3 position;
-    float pad;
+    float maxRange;
 };
 
 #endif

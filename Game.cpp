@@ -540,12 +540,13 @@ void Game::CreateEntities()
 
     Entity ePointLight1;
     ePointLight1.id = "pointLight1";
-    ePointLight1.SetTranslation(Vector3{ -10.f, 20, 0.f });
+    ePointLight1.SetTranslation(Vector3{ -10.f, 7.f, 0.f });
     ePointLight1.CastsShadows = false;
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
     pointLight1.Colour = ColorsLinear::Red;
-    pointLight1.Irradiance = 3.f;
+    pointLight1.Irradiance = 3.f; 
+    pointLight1.MaxRange = 10.f;
     m_pointLights.push_back(pointLight1);
     entityManager->AddEntity(std::move(ePointLight1));
 
@@ -557,6 +558,7 @@ void Game::CreateEntities()
     pointLight2.EntityId = ePointLight2.id;
     pointLight2.Colour = ColorsLinear::Green;
     pointLight2.Irradiance = 3.f;
+    pointLight2.MaxRange = 20.f;
     m_pointLights.push_back(pointLight2);
     entityManager->AddEntity(std::move(ePointLight2));
 }

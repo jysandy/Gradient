@@ -15,14 +15,16 @@ namespace Gradient::Rendering
             return Params::PointLight{
                 Colour,
                 Irradiance,
-                {0.f, 0.f, 0.f}
+                {0.f, 0.f, 0.f},
+                MaxRange
             };
         }
 
         return Params::PointLight{
             Colour,
             Irradiance,
-            entity->GetTranslation()
+            entity->GetTranslation(),
+            MaxRange
         };
     }
 }

@@ -85,6 +85,7 @@ namespace Gradient::Pipelines
             lightBufferData.pointLights[i].colour = m_pointLights[i].Colour.ToVector3();
             lightBufferData.pointLights[i].irradiance = m_pointLights[i].Irradiance;
             lightBufferData.pointLights[i].position = m_pointLights[i].Position;
+            lightBufferData.pointLights[i].maxRange = m_pointLights[i].MaxRange;
         }
 
         m_lightCB.SetData(context, lightBufferData);
