@@ -20,9 +20,13 @@ Texture2D roughnessMap : register(t5);
 
 TextureCube environmentMap : register(t6);
 
+#define MAX_POINT_LIGHTS 8
+
 cbuffer LightBuffer : register(b0)
 {
-    DirectionalLight directionalLight;
+    DirectionalLight g_directionalLight;
+    PointLight g_pointLights[MAX_POINT_LIGHTS];
+    uint g_numPointLights;
 };
 
 cbuffer Constants : register(b1)
@@ -47,8 +51,8 @@ float4 main(InputType input) : SV_TARGET
     float3 N = perturbNormal(
         normalMap,
         linearSampler,
-        input.normal, 
-        input.worldPosition, 
+        input.normal,
+        input.worldPosition,
         input.tex);
     float3 V = normalize(cameraPosition - input.worldPosition);
     
@@ -59,8 +63,16 @@ float4 main(InputType input) : SV_TARGET
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     
     float3 directRadiance = cookTorranceDirectionalLight(
-        N, V, albedo, metalness, roughness, directionalLight
+        N, V, albedo, metalness, roughness, g_directionalLight
     );
+    
+    float3 pointRadiance = float3(0, 0, 0);
+    for (int i = 0; i < g_numPointLights; i++)
+    {
+        pointRadiance += cookTorrancePointLight(
+            N, V, albedo, metalness, roughness, g_pointLights[i], input.worldPosition
+        );
+    }
     
     float3 ambient = cookTorranceEnvironmentMap(
         environmentMap, linearSampler,
@@ -73,7 +85,9 @@ float4 main(InputType input) : SV_TARGET
         shadowTransform,
         input.worldPosition);
     
-    float3 outputColour = ambient + shadowFactor * directRadiance;
+    float3 outputColour = ambient 
+        + shadowFactor * directRadiance
+        + pointRadiance;
     
     return float4(outputColour, albedoSample.a);
 }

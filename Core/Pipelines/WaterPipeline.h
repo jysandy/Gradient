@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "Core/Pipelines/IRenderPipeline.h"
+#include "Core/Pipelines/BufferStructs.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Parameters.h"
 #include <directxtk/Effects.h>
@@ -16,6 +17,7 @@ namespace Gradient::Pipelines
     class WaterPipeline : public IRenderPipeline
     {
     public:
+        static const size_t MAX_POINT_LIGHTS = 8;
         static constexpr int MAX_WAVES = 32;
 
         struct __declspec(align(16)) MatrixCB
@@ -62,11 +64,11 @@ namespace Gradient::Pipelines
             float pad;
         };
 
-        struct __declspec(align(16)) DLightCB
+        struct __declspec(align(16)) LightCB
         {
-            DirectX::XMFLOAT3 colour;
-            float irradiance;
-            DirectX::XMFLOAT3 direction;
+            AlignedDirectionalLight directionalLight;
+            AlignedPointLight pointLights[MAX_POINT_LIGHTS];
+            uint32_t numPointLights;
         };
 
         using VertexType = DirectX::VertexPositionNormalTexture;
@@ -85,6 +87,7 @@ namespace Gradient::Pipelines
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
+        void SetPointLights(std::vector<Params::PointLight> pointLights);
         void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         void SetTotalTime(float totalTimeSeconds);
         void SetWaterParams(Params::Water waterParams);
@@ -109,7 +112,7 @@ namespace Gradient::Pipelines
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<LodCB> m_lodCB;
         DirectX::ConstantBuffer<PixelParamCB> m_pixelParamCB;
-        DirectX::ConstantBuffer<DLightCB> m_dLightCB;
+        DirectX::ConstantBuffer<LightCB> m_lightCB;
 
         std::shared_ptr<DirectX::CommonStates> m_states;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
@@ -122,9 +125,12 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Vector3 m_cameraPosition;
         DirectX::SimpleMath::Vector3 m_cameraDirection;
 
+        // TODO: Store a Params::DirectionalLight instead.
         DirectX::SimpleMath::Color   m_directionalLightColour;
         DirectX::SimpleMath::Vector3 m_lightDirection;
         float m_lightIrradiance;
+
+        std::vector<Params::PointLight> m_pointLights;
 
         float m_totalTimeSeconds;
         float m_maxAmplitude = 0;

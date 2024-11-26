@@ -43,6 +43,8 @@
     <ClInclude Include="GUI\RenderingWindow.h" />
     <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
     <ClInclude Include="GUI\PerformanceWindow.h" />
+    <ClInclude Include="Core\Parameters.h" />
+    <ClInclude Include="Core\Rendering\PointLight.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

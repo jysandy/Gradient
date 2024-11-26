@@ -10,6 +10,12 @@ float3 directionalLightIrradiance(DirectionalLight dlight)
     return dlight.irradiance * dlight.colour.rgb;
 }
 
+float3 pointLightIrradiance(PointLight plight)
+{
+    // TODO: Implement attenuation here
+    return plight.irradiance * plight.colour.rgb;
+}
+
 float3 fresnelSchlick(
     float3 H,
     float3 V,
@@ -145,6 +151,24 @@ float3 cookTorranceDirectionalLight(float3 N,
     );
 }
 
+float3 cookTorrancePointLight(float3 N,
+    float3 V,
+    float3 albedo,
+    float metalness,
+    float roughness,
+    PointLight light,
+    float3 worldPosition)
+{
+    float3 L = normalize(light.position - worldPosition);
+    float3 H = normalize(V + L);
+    
+    float3 irradiance = pointLightIrradiance(light);
+    
+    return cookTorranceRadiance(
+        N, V, L, H, albedo, metalness, roughness, irradiance, true
+    );
+}
+
 float3 sampleEnvironmentMap(TextureCube environmentMap,
     SamplerState linearSampler,
     float3 sampleVec)
@@ -190,6 +214,45 @@ float3 subsurfaceScattering(float3 irradiance,
         pow(saturate(dot(V, normalize(-L + N * (refractiveIndex - 1)))), sharpness) * 0.05;
     
     return I * irradiance;
+}
+
+float3 directionalLightSSS(DirectionalLight light,
+                           float3 N,
+                           float3 V,
+                           float thickness,
+                           float sharpness,
+                           float refractiveIndex)
+{
+    float3 irradiance = directionalLightIrradiance(light);
+    float3 L = -normalize(light.direction);
+    
+    return subsurfaceScattering(irradiance,
+                                N,
+                                V,
+                                L,
+                                thickness,
+                                sharpness,
+                                refractiveIndex);
+}
+
+float3 pointLightSSS(PointLight light,
+                     float3 worldPosition,
+                     float3 N,
+                     float3 V,
+                     float thickness,
+                     float sharpness,
+                     float refractiveIndex)
+{
+    float3 irradiance = pointLightIrradiance(light);
+    float3 L = normalize(light.position - worldPosition);
+    
+    return subsurfaceScattering(irradiance,
+                                N,
+                                V,
+                                L,
+                                thickness,
+                                sharpness,
+                                refractiveIndex);
 }
 
 #endif

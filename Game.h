@@ -22,10 +22,12 @@
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
 #include "Core/Rendering/CubeMap.h"
 #include "Core/Rendering/GeometricPrimitive.h"
+#include "Core/Parameters.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/EntityWindow.h"
 #include "GUI/RenderingWindow.h"
@@ -81,6 +83,7 @@ private:
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
     void CreateEntities();
+    std::vector<Gradient::Params::PointLight> PointLightParams();
 
     Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring& path);
 
@@ -107,6 +110,7 @@ private:
     Gradient::GUI::PerformanceWindow m_perfWindow;
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
+    std::vector<Gradient::Rendering::PointLight> m_pointLights;
     std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
 
     std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;

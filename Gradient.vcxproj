@@ -191,6 +191,7 @@
   <ItemGroup>
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\Parameters.h" />
+    <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
     <ClInclude Include="Core\Pipelines\ShadowMapPipeline.h" />
@@ -207,6 +208,7 @@
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
+    <ClInclude Include="Core\Rendering\PointLight.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="DeviceResources.h" />
@@ -235,6 +237,7 @@
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
+    <ClCompile Include="Core\Rendering\PointLight.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="DeviceResources.cpp" />

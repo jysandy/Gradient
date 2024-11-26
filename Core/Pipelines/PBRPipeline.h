@@ -2,7 +2,9 @@
 
 #include "pch.h"
 #include "Core/Pipelines/IRenderPipeline.h"
+#include "Core/Pipelines/BufferStructs.h"
 #include "Core/Rendering/DirectionalLight.h"
+#include "Core/Rendering/PointLight.h"
 #include <directxtk/Effects.h>
 #include <directxtk/VertexTypes.h>
 #include <directxtk/SimpleMath.h>
@@ -14,6 +16,8 @@ namespace Gradient::Pipelines
     class PBRPipeline : public IRenderPipeline
     {
     public:
+        static const size_t MAX_POINT_LIGHTS = 8;
+
         struct __declspec(align(16)) VertexCB
         {
             DirectX::XMMATRIX world;
@@ -28,11 +32,11 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX shadowTransform;
         };
 
-        struct __declspec(align(16)) DLightCB
+        struct __declspec(align(16)) LightCB
         {
-            DirectX::XMFLOAT3 colour;
-            float irradiance;
-            DirectX::XMFLOAT3 direction;
+            AlignedDirectionalLight directionalLight;
+            AlignedPointLight pointLights[MAX_POINT_LIGHTS];
+            uint32_t numPointLights;
         };
 
         using VertexType = DirectX::VertexPositionNormalTexture;
@@ -55,6 +59,7 @@ namespace Gradient::Pipelines
 
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
+        void SetPointLights(std::vector<Params::PointLight> pointLights);
         void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
 
     private:
@@ -70,7 +75,7 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<VertexCB> m_vertexCB;
         DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
-        DirectX::ConstantBuffer<DLightCB> m_dLightCB;
+        DirectX::ConstantBuffer<LightCB> m_lightCB;
         std::shared_ptr<DirectX::CommonStates> m_states;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
 
@@ -80,6 +85,11 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
-        DLightCB m_dLightCBData;
+        
+        // TODO: Get rid of this and store Params::DirectionalLight
+        // instead
+        LightCB m_dLightCBData;
+
+        std::vector<Params::PointLight> m_pointLights;
     };
 }

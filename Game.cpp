@@ -106,6 +106,17 @@ void Game::Update(DX::StepTimer const& timer)
 }
 #pragma endregion
 
+std::vector<Gradient::Params::PointLight> Game::PointLightParams()
+{
+    std::vector<Gradient::Params::PointLight> out;
+    for (const auto& light : m_pointLights)
+    {
+        out.push_back(light.AsParams());
+    }
+
+    return out;
+}
+
 #pragma region Frame Render
 // Draws the scene.
 void Game::Render()
@@ -163,12 +174,15 @@ void Game::Render()
     m_pbrPipeline->SetView(m_camera.GetViewMatrix());
     m_pbrPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_pbrPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
+    m_pbrPipeline->SetPointLights(PointLightParams());
+
     m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
     m_waterPipeline->SetCameraDirection(m_camera.GetDirection());
     m_waterPipeline->SetDirectionalLight(m_dLight.get());
     m_waterPipeline->SetView(m_camera.GetViewMatrix());
     m_waterPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_waterPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
+    m_waterPipeline->SetPointLights(PointLightParams());
 
     entityManager->DrawAll(context);
 
@@ -523,6 +537,28 @@ void Game::CreateEntities()
     water.RenderPipeline = m_waterPipeline.get();
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
+
+    Entity ePointLight1;
+    ePointLight1.id = "pointLight1";
+    ePointLight1.SetTranslation(Vector3{ -10.f, 20, 0.f });
+    ePointLight1.CastsShadows = false;
+    Rendering::PointLight pointLight1;
+    pointLight1.EntityId = ePointLight1.id;
+    pointLight1.Colour = ColorsLinear::Red;
+    pointLight1.Irradiance = 3.f;
+    m_pointLights.push_back(pointLight1);
+    entityManager->AddEntity(std::move(ePointLight1));
+
+    Entity ePointLight2;
+    ePointLight2.id = "pointLight2";
+    ePointLight2.SetTranslation(Vector3{ 10.f, 20, 0.f });
+    ePointLight2.CastsShadows = false;
+    Rendering::PointLight pointLight2;
+    pointLight2.EntityId = ePointLight2.id;
+    pointLight2.Colour = ColorsLinear::Green;
+    pointLight2.Irradiance = 3.f;
+    m_pointLights.push_back(pointLight2);
+    entityManager->AddEntity(std::move(ePointLight2));
 }
 
 Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const std::wstring& path)

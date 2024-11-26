@@ -6,6 +6,15 @@ struct DirectionalLight
     float3 colour;
     float irradiance;
     float3 direction;
+    float pad;
+};
+
+struct PointLight
+{
+    float3 colour;
+    float irradiance;
+    float3 position;
+    float pad;
 };
 
 #endif

@@ -30,7 +30,7 @@ namespace Gradient::Pipelines
 
         m_vertexCB.Create(device);
         m_pixelCameraCB.Create(device);
-        m_dLightCB.Create(device);
+        m_lightCB.Create(device);
 
         DX::ThrowIfFailed(
             device->CreateInputLayout(
@@ -70,26 +70,35 @@ namespace Gradient::Pipelines
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
+        context->VSSetShader(m_vs.Get(), nullptr, 0);
         m_vertexCB.SetData(context, vertexConstants);
+        auto cb = m_vertexCB.GetBuffer();
+        context->VSSetConstantBuffers(0, 1, &cb);
 
-        m_dLightCB.SetData(context, m_dLightCBData);
+        context->PSSetShader(m_ps.Get(), nullptr, 0);
+
+        auto lightBufferData = m_dLightCBData;
+        
+        lightBufferData.numPointLights = std::min(MAX_POINT_LIGHTS, m_pointLights.size());
+        for (int i = 0; i < lightBufferData.numPointLights; i++)
+        {
+            lightBufferData.pointLights[i].colour = m_pointLights[i].Colour.ToVector3();
+            lightBufferData.pointLights[i].irradiance = m_pointLights[i].Irradiance;
+            lightBufferData.pointLights[i].position = m_pointLights[i].Position;
+        }
+
+        m_lightCB.SetData(context, lightBufferData);
+        cb = m_lightCB.GetBuffer();
+        context->PSSetConstantBuffers(0, 1, &cb);
 
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         m_pixelCameraCB.SetData(context, pixelConstants);
-
-        context->VSSetShader(m_vs.Get(), nullptr, 0);
-        auto cb = m_vertexCB.GetBuffer();
-        context->VSSetConstantBuffers(0, 1, &cb);
-        context->PSSetShader(m_ps.Get(), nullptr, 0);
-        cb = m_dLightCB.GetBuffer();
-        context->PSSetConstantBuffers(0, 1, &cb);
-
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
-        context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
 
+        context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
         if (m_shadowMap != nullptr)
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
         if (m_normalMap != nullptr)
@@ -152,9 +161,14 @@ namespace Gradient::Pipelines
         m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
         m_shadowTransform = dlight->GetShadowTransform();
 
-        m_dLightCBData.colour = static_cast<DirectX::XMFLOAT3>(dlight->GetColour());
-        m_dLightCBData.irradiance = dlight->GetIrradiance();
-        m_dLightCBData.direction = dlight->GetDirection();
+        m_dLightCBData.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(dlight->GetColour());
+        m_dLightCBData.directionalLight.irradiance = dlight->GetIrradiance();
+        m_dLightCBData.directionalLight.direction = dlight->GetDirection();
+    }
+
+    void PBRPipeline::SetPointLights(std::vector<Params::PointLight> pointLights)
+    {
+        m_pointLights = pointLights;
     }
 
     void PBRPipeline::SetWorld(DirectX::FXMMATRIX value)

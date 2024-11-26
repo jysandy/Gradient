@@ -118,6 +118,9 @@ namespace Gradient
         const Entity& entity,
         Pipelines::IRenderPipeline* shadowPipeline)
     {
+        if (entity.Drawable.get() == nullptr)
+            return;
+
         auto textureManager = TextureManager::Get();
         auto blankTexture = textureManager->GetTexture("default");
         auto outwardNormalMap = textureManager->GetTexture("defaultNormal");

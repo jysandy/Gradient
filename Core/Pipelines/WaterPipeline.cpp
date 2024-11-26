@@ -42,7 +42,7 @@ namespace Gradient::Pipelines
 
         m_matrixCB.Create(device);
         m_pixelParamCB.Create(device);
-        m_dLightCB.Create(device);
+        m_lightCB.Create(device);
         m_waveCB.Create(device);
         m_lodCB.Create(device);
 
@@ -171,13 +171,19 @@ namespace Gradient::Pipelines
         pixelConstants.refractiveIndex = m_waterParams.Scattering.RefractiveIndex;
         m_pixelParamCB.SetData(context, pixelConstants);
 
-        DLightCB lightConstants;
-        lightConstants.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
-        lightConstants.irradiance = m_lightIrradiance;
-        lightConstants.direction = m_lightDirection;
-        m_dLightCB.SetData(context, lightConstants);
-
-        cb = m_dLightCB.GetBuffer();
+        LightCB lightConstants;
+        lightConstants.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
+        lightConstants.directionalLight.irradiance = m_lightIrradiance;
+        lightConstants.directionalLight.direction = m_lightDirection;
+        lightConstants.numPointLights = std::min(MAX_POINT_LIGHTS, m_pointLights.size());
+        for (int i = 0; i < lightConstants.numPointLights; i++)
+        {
+            lightConstants.pointLights[i].colour = m_pointLights[i].Colour.ToVector3();
+            lightConstants.pointLights[i].irradiance = m_pointLights[i].Irradiance;
+            lightConstants.pointLights[i].position = m_pointLights[i].Position;
+        }
+        m_lightCB.SetData(context, lightConstants);
+        cb = m_lightCB.GetBuffer();
         context->PSSetConstantBuffers(0, 1, &cb);
 
         cb = m_pixelParamCB.GetBuffer();
@@ -247,6 +253,11 @@ namespace Gradient::Pipelines
         m_lightIrradiance = dlight->GetIrradiance();
         m_shadowMap = dlight->GetShadowMapSRV();
         m_shadowTransform = dlight->GetShadowTransform();
+    }
+
+    void WaterPipeline::SetPointLights(std::vector<Params::PointLight> pointLights)
+    {
+        m_pointLights = pointLights;
     }
 
     void WaterPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)

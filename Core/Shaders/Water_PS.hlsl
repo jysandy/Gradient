@@ -8,9 +8,13 @@ SamplerComparisonState shadowMapSampler : register(s1);
 Texture2D shadowMap : register(t1);
 TextureCube environmentMap : register(t2);
 
+#define MAX_POINT_LIGHTS 8
+
 cbuffer LightBuffer : register(b0)
 {
     DirectionalLight directionalLight;
+    PointLight g_pointLights[MAX_POINT_LIGHTS];
+    uint g_numPointLights;
 };
 
 cbuffer Constants : register(b1)
@@ -43,10 +47,40 @@ float4 main(InputType input) : SV_TARGET
     
     float metalness = 1.f;
     float roughness = 0.2f;
+
+    // Using the height here as a proxy for thickness.
+    // The peaks of each wave are thinner than 
+    // the troughs.    
+    float heightRatio = saturate(input.worldPosition.y / maxAmplitude);
+    float thickness = 1 - pow(heightRatio, thicknessPower);
     
     float3 directRadiance = cookTorranceDirectionalLight(
         N, V, albedo, metalness, roughness, directionalLight
     );
+
+    float3 directSSS = directionalLightSSS(directionalLight,
+                                           N,
+                                           V,
+                                           thickness,
+                                           sharpness,
+                                           refractiveIndex);
+    
+    float3 pointRadiance = float3(0, 0, 0);
+    float3 pointSSS = float3(0, 0, 0);
+    for (int i = 0; i < g_numPointLights; i++)
+    {
+        pointRadiance += cookTorrancePointLight(
+            N, V, albedo, metalness, roughness, g_pointLights[i], input.worldPosition
+        );
+        
+        pointSSS += pointLightSSS(g_pointLights[i],
+                                  input.worldPosition,
+                                  N,
+                                  V,
+                                  thickness,
+                                  sharpness,
+                                  refractiveIndex);
+    }
     
     float3 ambient = cookTorranceEnvironmentMap(
         environmentMap, linearSampler,
@@ -59,24 +93,11 @@ float4 main(InputType input) : SV_TARGET
         shadowTransform,
         input.worldPosition);
     
-    float3 directIrradiance = directionalLightIrradiance(directionalLight);
-    float3 L = -normalize(directionalLight.direction);
-    float heightRatio = saturate(input.worldPosition.y / maxAmplitude);
-    
-    // Using the height here as a proxy for thickness.
-    // The peaks of each wave are thinner than 
-    // the troughs.
-    float3 sss = subsurfaceScattering(directIrradiance,
-                                      N, 
-                                      V, 
-                                      L, 
-                                      1 - pow(heightRatio, thicknessPower),
-                                      sharpness,
-                                      refractiveIndex);
-    
     float3 outputColour = ambient 
         + shadowFactor * directRadiance
-        + sss;
+        + pointRadiance
+        + directSSS
+        + pointSSS;
 
     //return float4(1, 1, 1, 1);    
     return float4(outputColour, 1.f);
