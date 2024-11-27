@@ -15,6 +15,9 @@ struct PointLight
     float irradiance;
     float3 position;
     float maxRange;
+    uint shadowCubeIndex;
+    float3 pad;
+    float4x4 shadowTransforms[6];
 };
 
 #endif

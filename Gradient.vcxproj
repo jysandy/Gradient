@@ -205,6 +205,7 @@
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
+    <ClInclude Include="Core\Rendering\DepthCubeArray.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
@@ -235,6 +236,7 @@
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
+    <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
@@ -309,6 +311,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="Core\Shaders\CubeMap.hlsli" />
     <None Include="Core\Shaders\LightStructs.hlsli" />
     <None Include="Core\Shaders\NormalMapping.hlsli" />
     <None Include="Core\Shaders\PBRLighting.hlsli" />

@@ -89,6 +89,7 @@ namespace Gradient::Pipelines
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
         void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+        void SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         void SetTotalTime(float totalTimeSeconds);
         void SetWaterParams(Params::Water waterParams);
 
@@ -100,13 +101,9 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D11DomainShader> m_ds;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
 
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_albedo;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_aoMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_metalnessMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roughnessMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowCubeArray;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
         DirectX::ConstantBuffer<MatrixCB> m_matrixCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;

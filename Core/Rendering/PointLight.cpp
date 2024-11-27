@@ -16,7 +16,9 @@ namespace Gradient::Rendering
                 Colour,
                 Irradiance,
                 {0.f, 0.f, 0.f},
-                MaxRange
+                MinRange,
+                MaxRange,
+                ShadowCubeIndex
             };
         }
 
@@ -24,7 +26,9 @@ namespace Gradient::Rendering
             Colour,
             Irradiance,
             entity->GetTranslation(),
-            MaxRange
+            MinRange,
+            MaxRange,
+            ShadowCubeIndex
         };
     }
 }

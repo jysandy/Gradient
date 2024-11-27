@@ -4,6 +4,7 @@
 #include <directxtk/SimpleMath.h>
 
 #include "Core/Parameters.h"
+#include "Core/Rendering/DepthCubeArray.h"
 
 namespace Gradient::Rendering
 {
@@ -19,11 +20,10 @@ namespace Gradient::Rendering
         std::string EntityId;
         DirectX::SimpleMath::Color Colour = { 1.f, 1.f, 1.f, 1.f };
         float Irradiance = 3.f;
+        float MinRange = 0.1f;
         float MaxRange = 30.f;
+        uint32_t ShadowCubeIndex = 0.f;
 
         Params::PointLight AsParams() const;
-
-    private:                   
-
     };
 }

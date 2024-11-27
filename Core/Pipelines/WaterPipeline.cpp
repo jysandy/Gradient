@@ -182,6 +182,16 @@ namespace Gradient::Pipelines
             lightConstants.pointLights[i].irradiance = m_pointLights[i].Irradiance;
             lightConstants.pointLights[i].position = m_pointLights[i].Position;
             lightConstants.pointLights[i].maxRange = m_pointLights[i].MaxRange;
+            lightConstants.pointLights[i].shadowCubeIndex = m_pointLights[i].ShadowCubeIndex;
+
+            auto viewMatrices = m_pointLights[i].GetViewMatrices();
+            auto proj = m_pointLights[i].GetProjectionMatrix();
+            for (int j = 0; j < 6; j++)
+            {
+                lightConstants.pointLights[i].shadowTransforms[j]
+                    = DirectX::XMMatrixTranspose(viewMatrices[j]
+                        * proj);
+            }
         }
         m_lightCB.SetData(context, lightConstants);
         cb = m_lightCB.GetBuffer();
@@ -194,6 +204,8 @@ namespace Gradient::Pipelines
             context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
         if (m_environmentMap != nullptr)
             context->PSSetShaderResources(2, 1, m_environmentMap.GetAddressOf());
+        if (m_shadowCubeArray != nullptr)
+            context->PSSetShaderResources(3, 1, m_shadowCubeArray.GetAddressOf());
 
         auto samplerState = m_states->LinearWrap();
         context->PSSetSamplers(0, 1, &samplerState);
@@ -264,6 +276,11 @@ namespace Gradient::Pipelines
     void WaterPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_environmentMap = srv;
+    }
+
+    void WaterPipeline::SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_shadowCubeArray = srv;
     }
 
     void WaterPipeline::SetTotalTime(float totalTimeSeconds)

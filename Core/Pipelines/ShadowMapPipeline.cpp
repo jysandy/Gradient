@@ -91,10 +91,4 @@ namespace Gradient::Pipelines
         context->IASetInputLayout(m_inputLayout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
-
-    void ShadowMapPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
-    {
-        SetView(dlight->GetView());
-        SetProjection(dlight->GetProjection());
-    }
 }

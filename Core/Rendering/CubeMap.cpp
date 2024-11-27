@@ -108,7 +108,7 @@ namespace Gradient::Rendering
         // TODO: Accept the near and far planes as parameters
         auto projectionMatrix = Matrix::CreatePerspectiveFieldOfView(
             DirectX::XM_PIDIV2,
-            1.f, 0.1f, 500.f);
+            1.f, 0.1f, 300.f);
 
         for (int i = 0; i < 6; i++)
         {

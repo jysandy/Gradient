@@ -111,6 +111,7 @@ private:
 
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::vector<Gradient::Rendering::PointLight> m_pointLights;
+    std::unique_ptr<Gradient::Rendering::DepthCubeArray> m_shadowCubeArray;
     std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
 
     std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;

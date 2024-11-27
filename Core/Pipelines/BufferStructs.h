@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include <cstdint>
 
 namespace Gradient::Pipelines
 {
@@ -18,5 +19,8 @@ namespace Gradient::Pipelines
         float irradiance;
         DirectX::XMFLOAT3 position;
         float maxRange;
+        uint32_t shadowCubeIndex;
+        float pad[3];
+        DirectX::XMMATRIX shadowTransforms[6];
     };
 }

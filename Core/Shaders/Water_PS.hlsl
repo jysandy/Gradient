@@ -7,6 +7,7 @@ SamplerComparisonState shadowMapSampler : register(s1);
 
 Texture2D shadowMap : register(t1);
 TextureCube environmentMap : register(t2);
+TextureCubeArray pointShadowMaps : register(t3);
 
 #define MAX_POINT_LIGHTS 8
 
@@ -71,7 +72,13 @@ float4 main(InputType input) : SV_TARGET
     {
         pointRadiance += cookTorrancePointLight(
             N, V, albedo, metalness, roughness, g_pointLights[i], input.worldPosition
-        );
+        )
+        * cubeShadowFactor(pointShadowMaps,
+            shadowMapSampler,
+            g_pointLights[i].position,
+            input.worldPosition,
+            g_pointLights[i].shadowTransforms,
+            g_pointLights[i].shadowCubeIndex);
         
         pointSSS += pointLightSSS(g_pointLights[i],
                                   input.worldPosition,

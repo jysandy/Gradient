@@ -35,8 +35,6 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
-        void SetDirectionalLight(Rendering::DirectionalLight* dLight);
-
     private:
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;

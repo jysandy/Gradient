@@ -78,7 +78,7 @@ namespace Gradient::Pipelines
         context->PSSetShader(m_ps.Get(), nullptr, 0);
 
         auto lightBufferData = m_dLightCBData;
-        
+
         lightBufferData.numPointLights = std::min(MAX_POINT_LIGHTS, m_pointLights.size());
         for (int i = 0; i < lightBufferData.numPointLights; i++)
         {
@@ -86,6 +86,16 @@ namespace Gradient::Pipelines
             lightBufferData.pointLights[i].irradiance = m_pointLights[i].Irradiance;
             lightBufferData.pointLights[i].position = m_pointLights[i].Position;
             lightBufferData.pointLights[i].maxRange = m_pointLights[i].MaxRange;
+            lightBufferData.pointLights[i].shadowCubeIndex = m_pointLights[i].ShadowCubeIndex;
+
+            auto viewMatrices = m_pointLights[i].GetViewMatrices();
+            auto proj = m_pointLights[i].GetProjectionMatrix();
+            for (int j = 0; j < 6; j++)
+            {
+                lightBufferData.pointLights[i].shadowTransforms[j]
+                    = DirectX::XMMatrixTranspose(viewMatrices[j]
+                        * proj);
+            }
         }
 
         m_lightCB.SetData(context, lightBufferData);
@@ -112,6 +122,8 @@ namespace Gradient::Pipelines
             context->PSSetShaderResources(5, 1, m_roughnessMap.GetAddressOf());
         if (m_environmentMap != nullptr)
             context->PSSetShaderResources(6, 1, m_environmentMap.GetAddressOf());
+        if (m_shadowCubeArray != nullptr)
+            context->PSSetShaderResources(7, 1, m_shadowCubeArray.GetAddressOf());
 
         auto samplerState = m_states->AnisotropicWrap();
         context->PSSetSamplers(0, 1, &samplerState);
@@ -155,6 +167,11 @@ namespace Gradient::Pipelines
     void PBRPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
     {
         m_environmentMap = srv;
+    }
+
+    void PBRPipeline::SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    {
+        m_shadowCubeArray = srv;
     }
 
     void PBRPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)

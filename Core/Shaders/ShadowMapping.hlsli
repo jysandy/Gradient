@@ -1,3 +1,5 @@
+#include "CubeMap.hlsli"
+
 float calculateShadowFactor(
     Texture2D shadowMap,
     SamplerComparisonState shadowMapSampler,
@@ -41,4 +43,50 @@ float calculateShadowFactor(
     }
     
     return shadowFactor / 9.f;
+}
+
+float cubeShadowFactor(TextureCubeArray shadowMaps,
+    SamplerComparisonState shadowMapSampler,
+    float3 lightPosition,
+    float3 worldPosition,
+    float4x4 shadowTransforms[6],
+    uint cubeIndex
+    )
+{
+    float3 uvw = worldPosition - lightPosition;
+    
+    float3 unitVectors[6] =
+    {
+        {1, 0, 0 },
+        {-1, 0, 0 },
+        {0, 1, 0 },
+        {0, -1, 0 },
+        {0, 0, 1 },
+        {0, 0, -1 }
+    };
+    
+    float maxCosTheta = 0.f;
+    uint shadowTransformIndex = 0;
+    float3 uvwUnit = normalize(uvw);
+    
+    for (int i = 0; i < 6; i++)
+    {
+        float cosTheta = dot(uvwUnit, unitVectors[i]);
+        if (cosTheta > maxCosTheta)
+        {
+            maxCosTheta = cosTheta;
+            shadowTransformIndex = i;
+        }
+    }
+
+    float4 transformed 
+        = mul(float4(worldPosition, 1.f), shadowTransforms[shadowTransformIndex]);
+    float depth = transformed.z / transformed.w;
+        
+    if (depth > 1.f || depth < 0.f)
+        return 1.f;
+    
+    return shadowMaps.SampleCmpLevelZero(shadowMapSampler,
+        float4(cubeMapSampleVector(uvw),
+                cubeIndex), depth);
 }

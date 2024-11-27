@@ -135,8 +135,24 @@ void Game::Render()
 
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
-    m_shadowMapPipeline->SetDirectionalLight(m_dLight.get());
+    m_shadowMapPipeline->SetView(m_dLight->GetView());
+    m_shadowMapPipeline->SetProjection(m_dLight->GetProjection());
     entityManager->DrawAll(context, m_shadowMapPipeline.get());
+
+    for (auto& pointLight : m_pointLights)
+    {
+        m_shadowCubeArray->Render(context,
+            pointLight.ShadowCubeIndex,
+            pointLight.AsParams().Position,
+            pointLight.MinRange,
+            pointLight.MaxRange,
+            [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
+            {
+                m_shadowMapPipeline->SetView(view);
+                m_shadowMapPipeline->SetProjection(proj);
+                entityManager->DrawAll(context, m_shadowMapPipeline.get());
+            });
+    }
 
     m_deviceResources->PIXEndEvent();
 
@@ -175,6 +191,7 @@ void Game::Render()
     m_pbrPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_pbrPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
     m_pbrPipeline->SetPointLights(PointLightParams());
+    m_pbrPipeline->SetShadowCubeArray(m_shadowCubeArray->GetSRV());
 
     m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
     m_waterPipeline->SetCameraDirection(m_camera.GetDirection());
@@ -183,6 +200,7 @@ void Game::Render()
     m_waterPipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_waterPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
     m_waterPipeline->SetPointLights(PointLightParams());
+    m_waterPipeline->SetShadowCubeArray(m_shadowCubeArray->GetSRV());
 
     entityManager->DrawAll(context);
 
@@ -540,25 +558,35 @@ void Game::CreateEntities()
 
     Entity ePointLight1;
     ePointLight1.id = "pointLight1";
+    ePointLight1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
+        deviceContext,
+        0.5f);
+    ePointLight1.RenderPipeline = m_pbrPipeline.get();
     ePointLight1.SetTranslation(Vector3{ -10.f, 7.f, 0.f });
     ePointLight1.CastsShadows = false;
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
     pointLight1.Colour = ColorsLinear::Red;
-    pointLight1.Irradiance = 3.f; 
+    pointLight1.Irradiance = 7.f; 
     pointLight1.MaxRange = 10.f;
+    pointLight1.ShadowCubeIndex = 0;
     m_pointLights.push_back(pointLight1);
     entityManager->AddEntity(std::move(ePointLight1));
 
     Entity ePointLight2;
     ePointLight2.id = "pointLight2";
+    ePointLight2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
+        deviceContext,
+        0.5f);
+    ePointLight2.RenderPipeline = m_pbrPipeline.get();
     ePointLight2.SetTranslation(Vector3{ 10.f, 20, 0.f });
     ePointLight2.CastsShadows = false;
     Rendering::PointLight pointLight2;
     pointLight2.EntityId = ePointLight2.id;
     pointLight2.Colour = ColorsLinear::Green;
-    pointLight2.Irradiance = 3.f;
+    pointLight2.Irradiance = 7.f;
     pointLight2.MaxRange = 20.f;
+    pointLight2.ShadowCubeIndex = 1;
     m_pointLights.push_back(pointLight2);
     entityManager->AddEntity(std::move(ePointLight2));
 }
@@ -621,6 +649,9 @@ void Game::CreateDeviceDependentResources()
     m_renderingWindow.Water = waterParams;
 
     CreateEntities();
+
+    m_shadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device, 
+        256, m_pointLights.size());
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
