@@ -26,6 +26,8 @@ namespace Gradient::GUI
         int m_oldEntityIdx = 0;
         int m_currentEntityIdx = 0;
 
+        DirectX::XMFLOAT3 m_emissiveRadiance = { 0, 0, 0 };
+
         std::function<void(Entity&)> m_mutator;
     };
 }

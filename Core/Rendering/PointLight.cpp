@@ -31,4 +31,13 @@ namespace Gradient::Rendering
             ShadowCubeIndex
         };
     }
+
+    void PointLight::SetParams(Params::PointLight params)
+    {
+        Colour = params.Colour;
+        Irradiance = params.Irradiance;
+        MinRange = params.MinRange;
+        MaxRange = params.MaxRange;
+        ShadowCubeIndex = params.ShadowCubeIndex;
+    }
 }

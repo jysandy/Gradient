@@ -31,8 +31,14 @@ namespace Gradient::GUI
             m_oldEntityIdx = m_currentEntityIdx;
         }
 
-        ImGui::DragFloat3(("Translation##" + GetCurrentEntityID()).c_str(), m_translation, 0.1f);
-        ImGui::DragFloat3(("Rotation yaw/pitch/roll##" + GetCurrentEntityID()).c_str(), m_rotationYawPitchRoll, 0.1f, -DirectX::XM_2PI, DirectX::XM_2PI);
+        ImGui::DragFloat3(("Translation##" + GetCurrentEntityID()).c_str(), 
+            m_translation, 
+            0.1f);
+        ImGui::DragFloat3(("Rotation yaw/pitch/roll##" + GetCurrentEntityID()).c_str(),
+            m_rotationYawPitchRoll, 0.1f, -DirectX::XM_2PI, DirectX::XM_2PI);
+        ImGui::DragFloat3(("Emissive Radiance##" + GetCurrentEntityID()).c_str(),
+            &m_emissiveRadiance.x,
+            0.1f, 0.f, 50.f);
         ImGui::End();
     }
 
@@ -48,6 +54,7 @@ namespace Gradient::GUI
             ));
 
             e.SetRotation(m_rotationYawPitchRoll[0], m_rotationYawPitchRoll[1], m_rotationYawPitchRoll[2]);
+            e.EmissiveRadiance = m_emissiveRadiance;
             };
     }
 
@@ -78,6 +85,8 @@ namespace Gradient::GUI
         m_rotationYawPitchRoll[0] = r.y;
         m_rotationYawPitchRoll[1] = r.x;
         m_rotationYawPitchRoll[2] = r.z;
+
+        m_emissiveRadiance = e->EmissiveRadiance;
     }
 
     std::string EntityWindow::GetCurrentEntityID()

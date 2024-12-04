@@ -98,6 +98,12 @@ void Game::Update(DX::StepTimer const& timer)
     m_dLight->SetLightDirection(m_renderingWindow.LightDirection);
     m_dLight->SetColour(m_renderingWindow.GetLinearLightColour());
     m_dLight->SetIrradiance(m_renderingWindow.Irradiance);
+
+    for (int i = 0; i < m_pointLights.size(); i++)
+    {
+        m_pointLights[i].SetParams(m_renderingWindow.PointLights[i]);
+    }
+
     m_skyDomePipeline->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
     m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
     m_waterPipeline->SetWaterParams(m_renderingWindow.Water);
@@ -678,6 +684,11 @@ void Game::CreateDeviceDependentResources()
 
     m_shadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device, 
         256, m_pointLights.size());
+
+    for (int i = 0; i < m_pointLights.size(); i++)
+    {
+        m_renderingWindow.PointLights[i] = m_pointLights[i].AsParams();
+    }
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

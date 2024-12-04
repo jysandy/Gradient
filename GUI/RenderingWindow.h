@@ -30,5 +30,6 @@ namespace Gradient::GUI
         float BloomIntensity = 0.f;
 
         Params::Water Water;
+        Params::PointLight PointLights[2];
     };
 }

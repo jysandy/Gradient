@@ -25,5 +25,6 @@ namespace Gradient::Rendering
         uint32_t ShadowCubeIndex = 0.f;
 
         Params::PointLight AsParams() const;
+        void SetParams(Params::PointLight params);
     };
 }

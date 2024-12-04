@@ -5,7 +5,7 @@
 
 namespace Gradient::GUI
 {
-    RenderingWindow::RenderingWindow(){}
+    RenderingWindow::RenderingWindow() {}
 
     void RenderingWindow::Draw()
     {
@@ -13,16 +13,43 @@ namespace Gradient::GUI
 
         if (ImGui::TreeNode("Lighting"))
         {
-            ImGui::DragFloat3("Light direction",
-                &LightDirection.x,
-                0.001f,
-                -1.f,
-                1.f);
-            ImGui::ColorEdit3("Light colour",
-                &LightColour.x,
-                ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
-            ImGui::SliderFloat("Light irradiance", &Irradiance, 0.f, 50.f);
-            ImGui::SliderFloat("Ambient irradiance", &AmbientIrradiance, 0.f, 10.f);
+            if (ImGui::TreeNode("Sun"))
+            {
+                ImGui::DragFloat3("Light direction",
+                    &LightDirection.x,
+                    0.001f,
+                    -1.f,
+                    1.f);
+                ImGui::ColorEdit3("Light colour",
+                    &LightColour.x,
+                    ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
+                ImGui::SliderFloat("Light irradiance", &Irradiance, 0.f, 50.f);
+                ImGui::SliderFloat("Ambient irradiance", &AmbientIrradiance, 0.f, 10.f);
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Point lights"))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    if (ImGui::TreeNode(("Point Light " + std::to_string(i + 1)).c_str()))
+                    {
+                        ImGui::ColorEdit3("Colour",
+                            &PointLights[i].Colour.x,
+                            ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
+                        ImGui::SliderFloat("Irradiance", 
+                            &PointLights[i].Irradiance,
+                            0.f, 30.f);
+                        ImGui::SliderFloat("Range",
+                            &PointLights[i].MaxRange,
+                            0.2f, 100.f);
+                        ImGui::TreePop();
+                    }
+                }
+
+                ImGui::TreePop();
+            }
+
             ImGui::TreePop();
         }
 
@@ -68,7 +95,7 @@ namespace Gradient::GUI
         }
 
         ImGui::End();
-    }    
+    }
 
     void RenderingWindow::SetLinearLightColour(DirectX::SimpleMath::Color c)
     {
