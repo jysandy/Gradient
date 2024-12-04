@@ -28,4 +28,9 @@ namespace Gradient::Pipelines
     {
         // Ignored
     }
+
+    void IRenderPipeline::SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance)
+    {
+        // Ignored
+    }
 }

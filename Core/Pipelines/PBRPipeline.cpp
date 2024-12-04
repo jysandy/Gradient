@@ -105,6 +105,7 @@ namespace Gradient::Pipelines
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
+        pixelConstants.emissiveRadiance = m_emissiveRadiance;
         m_pixelCameraCB.SetData(context, pixelConstants);
         cb = m_pixelCameraCB.GetBuffer();
         context->PSSetConstantBuffers(1, 1, &cb);
@@ -214,6 +215,11 @@ namespace Gradient::Pipelines
     void PBRPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
+    }
+
+    void PBRPipeline::SetEmissiveRadiance(DirectX::SimpleMath::Vector3 emissiveRadiance)
+    {
+        m_emissiveRadiance = emissiveRadiance;
     }
 
     ID3D11InputLayout* PBRPipeline::GetInputLayout() const

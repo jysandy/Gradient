@@ -4,6 +4,7 @@
 
 #include "Core/Rendering/IDrawable.h"
 #include <directxtk/Effects.h>
+#include <directxtk/SimpleMath.h>
 
 namespace Gradient::Pipelines
 {
@@ -26,6 +27,7 @@ namespace Gradient::Pipelines
         virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         virtual void SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         virtual void SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+        virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance);
         virtual ID3D11InputLayout* GetInputLayout() const = 0;
 
     protected:

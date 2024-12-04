@@ -162,6 +162,8 @@ namespace Gradient
                 pipeline->SetRoughnessMap(entity.RoughnessMap);
             else
                 pipeline->SetRoughnessMap(blankTexture);
+
+            pipeline->SetEmissiveRadiance(entity.EmissiveRadiance);
         }
 
         pipeline->SetWorld(entity.GetWorldMatrix());

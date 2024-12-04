@@ -29,6 +29,7 @@ namespace Gradient
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> AOMap = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MetalnessMap = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> RoughnessMap = nullptr;
+        DirectX::SimpleMath::Vector3 EmissiveRadiance = { 0, 0, 0 };
 
         Entity();
         DirectX::SimpleMath::Matrix GetWorldMatrix() const;

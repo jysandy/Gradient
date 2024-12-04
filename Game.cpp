@@ -563,7 +563,10 @@ void Game::CreateEntities()
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
     ePointLight1.SetTranslation(Vector3{ -10.f, 7.f, 0.f });
+    // Black
+    ePointLight1.Texture = textureManager->GetTexture("defaultMetalness");
     ePointLight1.CastsShadows = false;
+    ePointLight1.EmissiveRadiance = { 15, 0, 0 };
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
     pointLight1.Colour = ColorsLinear::Red;
@@ -581,6 +584,9 @@ void Game::CreateEntities()
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
     ePointLight2.SetTranslation(Vector3{ 10.f, 20, 0.f });
     ePointLight2.CastsShadows = false;
+    ePointLight2.EmissiveRadiance = { 0, 7, 0 };
+    // Black
+    ePointLight2.Texture = textureManager->GetTexture("defaultMetalness");
     Rendering::PointLight pointLight2;
     pointLight2.EntityId = ePointLight2.id;
     pointLight2.Colour = ColorsLinear::Green;

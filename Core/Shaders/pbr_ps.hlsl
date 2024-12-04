@@ -35,6 +35,8 @@ cbuffer Constants : register(b1)
 {
     float3 cameraPosition;
     float pad;
+    float3 emissiveRadiance;
+    float pad2;
     float4x4 shadowTransform; // TODO: put this into the light
 }
 
@@ -95,7 +97,8 @@ float4 main(InputType input) : SV_TARGET
     
     float3 outputColour = ambient 
         + shadowFactor * directRadiance
-        + pointRadiance;
+        + pointRadiance
+        + emissiveRadiance;
     
     return float4(outputColour, albedoSample.a);
 }

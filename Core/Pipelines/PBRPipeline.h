@@ -29,6 +29,8 @@ namespace Gradient::Pipelines
         {
             DirectX::XMFLOAT3 cameraPosition;
             float pad;
+            DirectX::XMFLOAT3 emissiveRadiance;
+            float pad2;
             DirectX::XMMATRIX shadowTransform;
         };
 
@@ -50,6 +52,8 @@ namespace Gradient::Pipelines
         virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
         virtual void SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance) override;
+
         virtual ID3D11InputLayout* GetInputLayout() const override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
@@ -87,6 +91,7 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
+        DirectX::SimpleMath::Vector3 m_emissiveRadiance = { 0, 0, 0 };
         
         // TODO: Get rid of this and store Params::DirectionalLight
         // instead
