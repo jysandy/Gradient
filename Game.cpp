@@ -562,18 +562,28 @@ void Game::CreateEntities()
         deviceContext,
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
-    ePointLight1.SetTranslation(Vector3{ -10.f, 7.f, 0.f });
     // Black
     ePointLight1.Texture = textureManager->GetTexture("defaultMetalness");
-    ePointLight1.CastsShadows = false;
-    ePointLight1.EmissiveRadiance = { 15, 0, 0 };
+    ePointLight1.CastsShadows = true;
+    ePointLight1.EmissiveRadiance = 7 * Vector3{ 0.9, 0.8, 0.5 };
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
-    pointLight1.Colour = ColorsLinear::Red;
+    pointLight1.Colour = Color(Vector3{ 0.9, 0.8, 0.5 });
     pointLight1.Irradiance = 7.f; 
     pointLight1.MaxRange = 10.f;
     pointLight1.ShadowCubeIndex = 0;
     m_pointLights.push_back(pointLight1);
+    JPH::BodyCreationSettings ePointLight1Settings(
+        new JPH::SphereShape(0.25f),
+        JPH::RVec3(-5.f, 20.f, 5.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Physics::ObjectLayers::MOVING
+    );
+    ePointLight1Settings.mRestitution = 0.9f;
+    ePointLight1.BodyID 
+        = bodyInterface.CreateAndAddBody(ePointLight1Settings, 
+            JPH::EActivation::Activate);
     entityManager->AddEntity(std::move(ePointLight1));
 
     Entity ePointLight2;
@@ -582,18 +592,28 @@ void Game::CreateEntities()
         deviceContext,
         0.5f);
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
-    ePointLight2.SetTranslation(Vector3{ 10.f, 20, 0.f });
-    ePointLight2.CastsShadows = false;
-    ePointLight2.EmissiveRadiance = { 0, 7, 0 };
+    ePointLight2.CastsShadows = true;
+    ePointLight2.EmissiveRadiance = 7 * Vector3{ 1, 0.3, 0 };
     // Black
     ePointLight2.Texture = textureManager->GetTexture("defaultMetalness");
     Rendering::PointLight pointLight2;
     pointLight2.EntityId = ePointLight2.id;
-    pointLight2.Colour = ColorsLinear::Green;
+    pointLight2.Colour = Color(Vector3{ 1, 0.3, 0 });
     pointLight2.Irradiance = 7.f;
-    pointLight2.MaxRange = 20.f;
+    pointLight2.MaxRange = 10.f;
     pointLight2.ShadowCubeIndex = 1;
     m_pointLights.push_back(pointLight2);
+    JPH::BodyCreationSettings ePointLight2Settings(
+        new JPH::SphereShape(0.25f),
+        JPH::RVec3(8.f, 20, 0.f),
+        JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic,
+        Physics::ObjectLayers::MOVING
+    );
+    ePointLight2Settings.mRestitution = 0.9f;
+    ePointLight2.BodyID
+        = bodyInterface.CreateAndAddBody(ePointLight2Settings,
+            JPH::EActivation::Activate);
     entityManager->AddEntity(std::move(ePointLight2));
 }
 
