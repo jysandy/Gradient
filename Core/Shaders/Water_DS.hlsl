@@ -23,6 +23,8 @@ cbuffer LodBuffer : register(b2)
     float g_minLodDistance;
     float3 g_cameraDirection;
     float g_maxLodDistance;
+    uint  g_cullingEnabled;
+    float g_pad1[3];
 }
 
 float3 lodNormal(float3 N, float3 worldP)

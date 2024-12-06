@@ -131,6 +131,7 @@ namespace Gradient::Pipelines
         lodConstants.cameraPosition = m_cameraPosition;
         lodConstants.minLodDistance = m_waterParams.MinLod;
         lodConstants.maxLodDistance = m_waterParams.MaxLod;
+        lodConstants.cullingEnabled = 1;
         m_lodCB.SetData(context, lodConstants);
 
         WaveCB waveConstants;
@@ -291,5 +292,10 @@ namespace Gradient::Pipelines
     void WaterPipeline::SetWaterParams(Params::Water waterParams)
     {
         m_waterParams = waterParams;
+    }
+
+    const std::array<Wave, 20>& WaterPipeline::GetWaves() const
+    {
+        return m_waves;
     }
 }

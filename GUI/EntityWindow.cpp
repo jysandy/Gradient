@@ -39,6 +39,8 @@ namespace Gradient::GUI
         ImGui::DragFloat3(("Emissive Radiance##" + GetCurrentEntityID()).c_str(),
             &m_emissiveRadiance.x,
             0.1f, 0.f, 50.f);
+        ImGui::Checkbox(("Casts Shadows##" + GetCurrentEntityID()).c_str(),
+            &m_castsShadows);
         ImGui::End();
     }
 
@@ -55,6 +57,7 @@ namespace Gradient::GUI
 
             e.SetRotation(m_rotationYawPitchRoll[0], m_rotationYawPitchRoll[1], m_rotationYawPitchRoll[2]);
             e.EmissiveRadiance = m_emissiveRadiance;
+            e.CastsShadows = m_castsShadows;
             };
     }
 
@@ -87,6 +90,7 @@ namespace Gradient::GUI
         m_rotationYawPitchRoll[2] = r.z;
 
         m_emissiveRadiance = e->EmissiveRadiance;
+        m_castsShadows = e->CastsShadows;
     }
 
     std::string EntityWindow::GetCurrentEntityID()

@@ -67,6 +67,9 @@ namespace Gradient::Pipelines
 
     void SkyDomePipeline::Apply(ID3D11DeviceContext* context)
     {
+        context->HSSetShader(nullptr, nullptr, 0);
+        context->DSSetShader(nullptr, nullptr, 0);
+
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);

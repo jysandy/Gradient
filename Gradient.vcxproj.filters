@@ -45,6 +45,9 @@
     <ClInclude Include="GUI\PerformanceWindow.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Rendering\PointLight.h" />
+    <ClInclude Include="Core\Pipelines\BufferStructs.h" />
+    <ClInclude Include="Core\Rendering\DepthCubeArray.h" />
+    <ClInclude Include="Core\Pipelines\WaterShadowPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -75,6 +78,9 @@
     <ClCompile Include="GUI\RenderingWindow.cpp" />
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
     <ClCompile Include="GUI\PerformanceWindow.cpp" />
+    <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
+    <ClCompile Include="Core\Rendering\PointLight.cpp" />
+    <ClCompile Include="Core\Pipelines\WaterShadowPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -226,6 +232,7 @@
     <None Include="Core\Shaders\LightStructs.hlsli" />
     <None Include="Core\Shaders\PBRLighting.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
+    <None Include="Core\Shaders\CubeMap.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />

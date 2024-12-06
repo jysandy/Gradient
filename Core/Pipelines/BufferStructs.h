@@ -23,4 +23,14 @@ namespace Gradient::Pipelines
         float pad[3];
         DirectX::XMMATRIX shadowTransforms[6];
     };
+
+    struct Wave
+    {
+        float amplitude;
+        float wavelength;
+        float speed;
+        float sharpness;
+        DirectX::XMFLOAT3 direction;
+        float pad;
+    };
 }

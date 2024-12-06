@@ -202,6 +202,7 @@
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
+    <ClInclude Include="Core\Pipelines\WaterShadowPipeline.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
+    <ClCompile Include="Core\Pipelines\WaterShadowPipeline.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />

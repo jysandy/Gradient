@@ -21,6 +21,7 @@
 #include "Core/Pipelines/ShadowMapPipeline.h"
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
+#include "Core/Pipelines/WaterShadowPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/RenderTexture.h"
@@ -102,8 +103,12 @@ private:
     std::shared_ptr<DirectX::CommonStates> m_states;
 
     Gradient::Camera m_camera;
+    
     std::unique_ptr<Gradient::Pipelines::PBRPipeline> m_pbrPipeline;
     std::unique_ptr<Gradient::Pipelines::WaterPipeline> m_waterPipeline;
+    std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
+    std::unique_ptr<Gradient::Pipelines::WaterShadowPipeline> m_waterShadowPipeline;
+
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
@@ -112,7 +117,6 @@ private:
     std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
     std::vector<Gradient::Rendering::PointLight> m_pointLights;
     std::unique_ptr<Gradient::Rendering::DepthCubeArray> m_shadowCubeArray;
-    std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
 
     std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;
     std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> m_skyDomePipeline;

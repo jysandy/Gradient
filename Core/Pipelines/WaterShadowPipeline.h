@@ -14,7 +14,7 @@
 
 namespace Gradient::Pipelines
 {
-    class WaterPipeline : public IRenderPipeline
+    class WaterShadowPipeline : public IRenderPipeline
     {
     public:
         static const size_t MAX_POINT_LIGHTS = 8;
@@ -45,27 +45,9 @@ namespace Gradient::Pipelines
             Wave waves[MAX_WAVES];
         };
 
-        struct __declspec(align(16)) PixelParamCB
-        {
-            DirectX::XMFLOAT3 cameraPosition;
-            float maxAmplitude;
-            DirectX::XMMATRIX shadowTransform;
-            float thicknessPower;
-            float sharpness;
-            float refractiveIndex;
-            float pad;
-        };
-
-        struct __declspec(align(16)) LightCB
-        {
-            AlignedDirectionalLight directionalLight;
-            AlignedPointLight pointLights[MAX_POINT_LIGHTS];
-            uint32_t numPointLights;
-        };
-
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit WaterPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
+        explicit WaterShadowPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
 
         virtual void Apply(ID3D11DeviceContext* context) override;
 
@@ -77,51 +59,28 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
-        void SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection);
-        void SetDirectionalLight(Rendering::DirectionalLight* dlight);
-        void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        void SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
         void SetTotalTime(float totalTimeSeconds);
         void SetWaterParams(Params::Water waterParams);
-
-        const std::array<Wave, 20>& GetWaves() const;
+        void SetWaves(const std::array<Wave, 20>& waves);
 
     private:
-        void GenerateWaves();
-
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
         Microsoft::WRL::ComPtr<ID3D11HullShader> m_hs;
         Microsoft::WRL::ComPtr<ID3D11DomainShader> m_ds;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
 
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowCubeArray;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowMapRSState;
         DirectX::ConstantBuffer<MatrixCB> m_matrixCB;
         DirectX::ConstantBuffer<WaveCB> m_waveCB;
         DirectX::ConstantBuffer<LodCB> m_lodCB;
-        DirectX::ConstantBuffer<PixelParamCB> m_pixelParamCB;
-        DirectX::ConstantBuffer<LightCB> m_lightCB;
 
         std::shared_ptr<DirectX::CommonStates> m_states;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;
-        DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
-        DirectX::SimpleMath::Vector3 m_cameraDirection;
-
-        // TODO: Store a Params::DirectionalLight instead.
-        DirectX::SimpleMath::Color   m_directionalLightColour;
-        DirectX::SimpleMath::Vector3 m_lightDirection;
-        float m_lightIrradiance;
-
-        std::vector<Params::PointLight> m_pointLights;
 
         float m_totalTimeSeconds;
         float m_maxAmplitude = 0;

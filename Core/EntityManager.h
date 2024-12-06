@@ -26,11 +26,11 @@ namespace Gradient
         void UpdateAll(DX::StepTimer const&);
         void DrawEntity(
             ID3D11DeviceContext* context,
-            const Entity& entity, 
-            Pipelines::IRenderPipeline* shadowPipeline = nullptr);
+            const Entity& entity,
+            bool drawingShadows = false);
         void DrawAll(
             ID3D11DeviceContext* context,
-            Pipelines::IRenderPipeline* shadowPipeline = nullptr);
+            bool drawingShadows = false);
 
         void AddEntity(Entity&&);
         void AddEntity(Entity&&, UpdateFunctionType);

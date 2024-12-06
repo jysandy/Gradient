@@ -22,11 +22,11 @@ namespace Gradient::GUI
         bool m_enabled = false;
         float m_translation[3];
         float m_rotationYawPitchRoll[3];
+        DirectX::XMFLOAT3 m_emissiveRadiance = { 0, 0, 0 };
+        bool m_castsShadows;
 
         int m_oldEntityIdx = 0;
         int m_currentEntityIdx = 0;
-
-        DirectX::XMFLOAT3 m_emissiveRadiance = { 0, 0, 0 };
 
         std::function<void(Entity&)> m_mutator;
     };

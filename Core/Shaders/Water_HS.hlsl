@@ -31,6 +31,8 @@ cbuffer LodBuffer : register(b1)
     float  g_minLodDistance;
     float3 g_cameraDirection;
     float  g_maxLodDistance;
+    uint   g_cullingEnabled;
+    float  g_pad[3];
 }
 
 float3 toWorld(float3 local)
@@ -80,7 +82,8 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
                        cameraDot(c))));
     
     // Cull patches that are behind the camera.
-    if (maxCameraDot < -0.1)
+    // Culling is disabled when drawing shadows.
+    if (g_cullingEnabled && maxCameraDot < -0.1)
     {
         Output.EdgeTessFactor[0] = 
         Output.EdgeTessFactor[1] = 

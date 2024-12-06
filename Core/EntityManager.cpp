@@ -116,7 +116,7 @@ namespace Gradient
     void EntityManager::DrawEntity(
         ID3D11DeviceContext* context,
         const Entity& entity,
-        Pipelines::IRenderPipeline* shadowPipeline)
+        bool drawingShadows)
     {
         if (entity.Drawable.get() == nullptr)
             return;
@@ -126,17 +126,18 @@ namespace Gradient
         auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
         auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
         auto smoothMap = dielectricMetalnessMap;
+        auto shadowPipeline = entity.ShadowPipeline;
 
-        if (shadowPipeline != nullptr && !entity.CastsShadows) return;
+        if (drawingShadows && !entity.CastsShadows) return;
 
         Pipelines::IRenderPipeline* pipeline;
 
-        if (shadowPipeline != nullptr)
+        if (drawingShadows)
             pipeline = shadowPipeline;
         else
             pipeline = entity.RenderPipeline;
 
-        if (shadowPipeline == nullptr)
+        if (!drawingShadows)
         {
             if (entity.Texture != nullptr)
                 pipeline->SetAlbedo(entity.Texture);
@@ -174,11 +175,11 @@ namespace Gradient
 
     void EntityManager::DrawAll(
         ID3D11DeviceContext* context,
-        Pipelines::IRenderPipeline* shadowPipeline)
+        bool drawingShadows)
     {
         for (auto const& entity : m_entities)
         {
-            DrawEntity(context, entity, shadowPipeline);
+            DrawEntity(context, entity, drawingShadows);
         }
     }
 

@@ -105,8 +105,12 @@ void Game::Update(DX::StepTimer const& timer)
     }
 
     m_skyDomePipeline->SetAmbientIrradiance(m_renderingWindow.AmbientIrradiance);
-    m_waterPipeline->SetTotalTime(m_timer.GetTotalSeconds());
+    auto totalSeconds = m_timer.GetTotalSeconds();
+
+    m_waterPipeline->SetTotalTime(totalSeconds);
     m_waterPipeline->SetWaterParams(m_renderingWindow.Water);
+    m_waterShadowPipeline->SetTotalTime(totalSeconds);
+    m_waterShadowPipeline->SetWaterParams(m_renderingWindow.Water);
     m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
@@ -136,14 +140,21 @@ void Game::Render()
     auto entityManager = Gradient::EntityManager::Get();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
-
     m_dLight->ClearAndSetDSV(context);
 
     m_deviceResources->PIXBeginEvent(L"Shadow Pass");
 
+    // Camera position is needed for tessellation. 
+    // But direction is not needed because culling is 
+    // disabled when drawing water shadows.
+    m_waterShadowPipeline->SetCameraPosition(m_camera.GetPosition());
+
     m_shadowMapPipeline->SetView(m_dLight->GetView());
+    m_waterShadowPipeline->SetView(m_dLight->GetView());
     m_shadowMapPipeline->SetProjection(m_dLight->GetProjection());
-    entityManager->DrawAll(context, m_shadowMapPipeline.get());
+    m_waterShadowPipeline->SetProjection(m_dLight->GetProjection());
+
+    entityManager->DrawAll(context, true);
 
     for (auto& pointLight : m_pointLights)
     {
@@ -155,8 +166,10 @@ void Game::Render()
             [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
             {
                 m_shadowMapPipeline->SetView(view);
+                m_waterShadowPipeline->SetView(view);
                 m_shadowMapPipeline->SetProjection(proj);
-                entityManager->DrawAll(context, m_shadowMapPipeline.get());
+                m_waterShadowPipeline->SetProjection(proj);
+                entityManager->DrawAll(context, true);
             });
     }
 
@@ -442,6 +455,7 @@ void Game::CreateEntities()
     sphere1.id = "sphere1";
     sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
     sphere1.RenderPipeline = m_pbrPipeline.get();
+    sphere1.ShadowPipeline = m_shadowMapPipeline.get();
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
@@ -459,13 +473,13 @@ void Game::CreateEntities()
     sphere1Settings.mRestitution = 0.9f;
     sphere1Settings.mLinearVelocity = JPH::Vec3{ 0, 1.5f, 0 };
     sphere1.BodyID = bodyInterface.CreateAndAddBody(sphere1Settings, JPH::EActivation::Activate);
-
     entityManager->AddEntity(std::move(sphere1));
 
     Entity sphere2;
     sphere2.id = "sphere2";
     sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
     sphere2.RenderPipeline = m_pbrPipeline.get();
+    sphere2.ShadowPipeline = m_shadowMapPipeline.get();
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
     sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
     sphere2.AOMap = textureManager->GetTexture("ornamentAO");
@@ -481,13 +495,13 @@ void Game::CreateEntities()
     );
     sphere2Settings.mRestitution = 0.9f;
     sphere2.BodyID = bodyInterface.CreateAndAddBody(sphere2Settings, JPH::EActivation::Activate);
-
     entityManager->AddEntity(std::move(sphere2));
 
     Entity floor;
     floor.id = "floor";
     floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 20.f, 0.5f, 20.f });
     floor.RenderPipeline = m_pbrPipeline.get();
+    floor.ShadowPipeline = m_shadowMapPipeline.get();
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
     floor.NormalMap = textureManager->GetTexture("tiles06Normal");
     floor.AOMap = textureManager->GetTexture("tiles06AO");
@@ -512,6 +526,7 @@ void Game::CreateEntities()
     box1.id = "box1";
     box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
     box1.RenderPipeline = m_pbrPipeline.get();
+    box1.ShadowPipeline = m_shadowMapPipeline.get();
     box1.Texture = textureManager->GetTexture("metal01Albedo");
     box1.NormalMap = textureManager->GetTexture("metal01Normal");
     box1.AOMap = textureManager->GetTexture("metal01AO");
@@ -534,6 +549,7 @@ void Game::CreateEntities()
     box2.id = "box2";
     box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
     box2.RenderPipeline = m_pbrPipeline.get();
+    box2.ShadowPipeline = m_shadowMapPipeline.get();
     box2.Texture = textureManager->GetTexture("crate");
     box2.NormalMap = textureManager->GetTexture("crateNormal");
     box2.AOMap = textureManager->GetTexture("crateAO");
@@ -559,6 +575,7 @@ void Game::CreateEntities()
         800,
         100);
     water.RenderPipeline = m_waterPipeline.get();
+    water.ShadowPipeline = m_waterShadowPipeline.get();
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
 
@@ -568,6 +585,7 @@ void Game::CreateEntities()
         deviceContext,
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
+    ePointLight1.ShadowPipeline = m_shadowMapPipeline.get();
     // Black
     ePointLight1.Texture = textureManager->GetTexture("defaultMetalness");
     ePointLight1.CastsShadows = true;
@@ -598,6 +616,7 @@ void Game::CreateEntities()
         deviceContext,
         0.5f);
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
+    ePointLight2.ShadowPipeline = m_shadowMapPipeline.get();
     ePointLight2.CastsShadows = true;
     ePointLight2.EmissiveRadiance = 7 * Vector3{ 1, 0.3, 0 };
     // Black
@@ -650,6 +669,7 @@ void Game::CreateDeviceDependentResources()
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device, m_states);
     m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device, m_states);
+    m_waterShadowPipeline = std::make_unique<Pipelines::WaterShadowPipeline>(device, m_states);
     m_tonemapperPS = LoadPixelShader(L"ACESTonemapper_PS.cso");
 
     EntityManager::Initialize();
@@ -658,7 +678,7 @@ void Game::CreateDeviceDependentResources()
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
         { -0.7f, -0.3f, 0.7f },
-        30.f
+        50.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
@@ -678,6 +698,8 @@ void Game::CreateDeviceDependentResources()
         50.f, 400.f
     };
     m_waterPipeline->SetWaterParams(waterParams);
+    m_waterShadowPipeline->SetWaterParams(waterParams);
+    m_waterShadowPipeline->SetWaves(m_waterPipeline->GetWaves());
     m_renderingWindow.Water = waterParams;
 
     CreateEntities();
