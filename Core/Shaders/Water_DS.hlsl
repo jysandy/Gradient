@@ -27,6 +27,8 @@ cbuffer LodBuffer : register(b2)
     float g_pad1[3];
 }
 
+// Interpolate normals with the up vector 
+// as distance increases to reduce noise.
 float3 lodNormal(float3 N, float3 worldP)
 {
     const float d0 = g_minLodDistance; 

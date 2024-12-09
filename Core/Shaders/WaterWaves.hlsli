@@ -1,6 +1,10 @@
 #ifndef __WATER_WAVES_HLSLI__
 #define __WATER_WAVES_HLSLI__
 
+// Waves are modelled as sums of sine waves.
+// Adapted from 
+// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
+
 struct Wave
 {
     float amplitude;
@@ -10,6 +14,8 @@ struct Wave
     float3 direction;
 };
 
+// Equation 8a, from
+// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
 float waveHeight(float3 position,
     Wave wave,
     float time)
@@ -21,6 +27,9 @@ float waveHeight(float3 position,
                         wave.sharpness);
     return 2 * wave.amplitude * sinTerm;
 }
+
+// Equation 8b, from
+// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
 
 float ddxWaveHeight(float3 position,
     Wave wave,

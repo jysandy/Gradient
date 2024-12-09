@@ -10,6 +10,8 @@
 // Licensed under the MIT License.
 //-------------------------------------------------------------------------------------
 
+// Taken from https://github.com/microsoft/DirectXTK/wiki/Utilities
+
 #pragma once
 
 #include <cstddef>

@@ -1,6 +1,10 @@
 #ifndef __PBR_LIGHTING_HLSLI__
 #define __PBR_LIGHTING_HLSLI__
 
+// Roughness-metallic PBR direct lighting, 
+// as described in https://learnopengl.com/PBR/Theory
+// Adapted from https://learnopengl.com/PBR/Lighting
+
 #include "LightStructs.hlsli"
 
 static const float PI = 3.14159265359;
@@ -205,6 +209,8 @@ float3 cookTorranceEnvironmentMap(
     return ao * ct;
 }
 
+// Simple thickness-based subsurface scattering,
+// inspired by https://www.alanzucconi.com/2017/08/30/fast-subsurface-scattering-1/
 float3 subsurfaceScattering(float3 irradiance, 
                             float3 N,
                             float3 V,

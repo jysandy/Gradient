@@ -1,7 +1,8 @@
 Texture2D<float4> Texture : register(t0);
 sampler TextureSampler : register(s0);
 
-// Taken from https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+// The ACES tonemapper.
+// Adapted from https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 float3 ACESFilm(float3 x)
 {
     float a = 2.51f;

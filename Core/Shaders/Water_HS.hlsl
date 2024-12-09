@@ -76,13 +76,13 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     Output.EdgeTessFactor[2] = tessFactor(e0);
     Output.InsideTessFactor = tessFactor(c);
 
+    // Cull patches that are behind the camera.
+    // Culling is disabled when drawing shadows.
     float maxCameraDot = max(cameraDot(e0),
                    max(cameraDot(e1),
                    max(cameraDot(e2),
                        cameraDot(c))));
     
-    // Cull patches that are behind the camera.
-    // Culling is disabled when drawing shadows.
     if (g_cullingEnabled && maxCameraDot < -0.1)
     {
         Output.EdgeTessFactor[0] = 

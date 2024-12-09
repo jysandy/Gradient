@@ -3,6 +3,8 @@
 //                       (requires DirectX 11.1 Runtime)
 //
 
+// Generated from https://github.com/walbourn/directx-vs-templates
+
 #include "pch.h"
 #include "DeviceResources.h"
 

@@ -2,6 +2,8 @@
 // StepTimer.h - A simple timer that provides elapsed time information
 //
 
+// Generated from https://github.com/walbourn/directx-vs-templates
+
 #pragma once
 
 #include <cmath>

@@ -2,6 +2,8 @@
 // DeviceResources.h - A wrapper for the Direct3D 11 device and swapchain
 //
 
+// Generated from https://github.com/walbourn/directx-vs-templates
+
 #pragma once
 
 namespace DX

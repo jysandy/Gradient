@@ -531,7 +531,7 @@ namespace Gradient::Rendering
             ReverseWinding(indices, vertices);
     }
 
-    //  End geometry building code -----------------------------------------------------------------------
+    //  End copied geometry building code -----------------------------------------------------------------------
 
     void ComputeGrid(GeometricPrimitive::VertexCollection& vertices,
         GeometricPrimitive::IndexCollection& indices,
