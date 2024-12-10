@@ -1,8 +1,15 @@
 # Gradient
 
 ![Screenshot](screenshot.png)
+ 
+## Controls
+- Hold the left mouse button and move the mouse to move the camera.
+- WASD to adjust the camera position. 
+- C to descend, and Space to ascend. 
 
-- Ball textures taken with gratitude from https://www.robinwood.com/Catalog/FreeStuff/Textures/TexturePages/BallMaps.html  
-- Crate texture is from https://3dtextures.me/2021/02/12/wood-crate-001/ 
-- Cobblestone texture is from https://lynocs.itch.io/texture-pack
-- Tiles texture from https://juliovii.itch.io/tilespk02
+## Assets used
+- Wooden crate materials: https://3dtextures.me/2021/02/12/wood-crate-001/  
+- Floor tiles materials: https://juliovii.itch.io/tilespk02  
+- Metal box, ball and ornament materials: https://juliovii.itch.io/metalpk01  
+
+Note that no assets are checked in.

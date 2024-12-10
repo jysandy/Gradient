@@ -11,6 +11,9 @@ float calculateShadowFactor(
     
     shadowUV.xyz /= shadowUV.w;
     
+    // Large kernel PCF. Partial derivatives are needed to 
+    // estimate the depths of the adjacent samples.
+    
     float3 dpdx = ddx(shadowUV).xyz;
     float3 dpdy = ddy(shadowUV).xyz;
     
@@ -69,6 +72,9 @@ float cubeShadowFactor(TextureCubeArray shadowMaps,
     uint shadowTransformIndex = 0;
     float3 uvwUnit = normalize(uvw);
     
+    // Figure out which face of the cubemap needs to be used.
+    // Take the dot product with each cardinal direction, 
+    // and choose the direction with the highest dot product.
     for (int i = 0; i < 6; i++)
     {
         float cosTheta = dot(uvwUnit, unitVectors[i]);
