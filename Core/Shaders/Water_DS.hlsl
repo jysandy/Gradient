@@ -23,7 +23,7 @@ cbuffer LodBuffer : register(b2)
     float g_minLodDistance;
     float3 g_cameraDirection;
     float g_maxLodDistance;
-    uint  g_cullingEnabled;
+    uint g_cullingEnabled;
     float g_pad1[3];
 }
 
@@ -31,7 +31,7 @@ cbuffer LodBuffer : register(b2)
 // as distance increases to reduce noise.
 float3 lodNormal(float3 N, float3 worldP)
 {
-    const float d0 = g_minLodDistance; 
+    const float d0 = g_minLodDistance;
     const float d1 = g_maxLodDistance;
     
     float d = distance(worldP, g_cameraPosition);
@@ -42,7 +42,7 @@ float3 lodNormal(float3 N, float3 worldP)
 
 struct DS_OUTPUT
 {
-	float4 vPosition  : SV_POSITION;
+    float4 vPosition : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
     float3 worldPosition : POSITION1;
@@ -58,8 +58,8 @@ struct HS_CONTROL_POINT_OUTPUT
 
 struct HS_CONSTANT_DATA_OUTPUT
 {
-	float EdgeTessFactor[3]			: SV_TessFactor;
-	float InsideTessFactor			: SV_InsideTessFactor;
+    float EdgeTessFactor[3] : SV_TessFactor;
+    float InsideTessFactor : SV_InsideTessFactor;
 };
 
 #define NUM_CONTROL_POINTS 3
@@ -79,10 +79,10 @@ DS_OUTPUT main(
     float dx = 0;
     float dz = 0;
 
-    interpolatedLocalPosition.y = 0;    
+    interpolatedLocalPosition.y = 0;
     float3 originalWorldP = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix).xyz;
     
-    for (int i = 0; i < g_numWaves; i++)            
+    for (int i = 0; i < g_numWaves; i++)
     {
         interpolatedLocalPosition.y += waveHeight(interpolatedLocalPosition,
                                                     g_waves[i],
@@ -107,5 +107,5 @@ DS_OUTPUT main(
 		+ patch[1].tex * domain.y
 		+ patch[2].tex * domain.z;
 	
-	return Output;
+    return Output;
 }

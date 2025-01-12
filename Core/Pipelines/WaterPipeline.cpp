@@ -109,9 +109,9 @@ namespace Gradient::Pipelines
             m_waves[i].amplitude = maxAmplitude * amplitudeFactor;
             m_waves[i].wavelength = std::max(0.2f, maxWavelength * amplitudeFactor);
             m_waves[i].speed = (1 - amplitudeFactor) * maxSpeed;
-            m_waves[i].sharpness = std::max(1.f, 
+            m_waves[i].sharpness = std::max(1.f,
                 std::round((m_waves.size() - (float)i) * 16.f / m_waves.size()));
-           
+
             m_maxAmplitude += m_waves[i].amplitude;
 
             amplitudeFactor *= 0.9;
@@ -146,7 +146,7 @@ namespace Gradient::Pipelines
         context->VSSetShader(m_vs.Get(), nullptr, 0);
         auto cb = m_waveCB.GetBuffer();
         context->VSSetConstantBuffers(0, 1, &cb);
-        
+
         context->HSSetShader(m_hs.Get(), nullptr, 0);
         cb = m_matrixCB.GetBuffer();
         context->HSSetConstantBuffers(0, 1, &cb);
