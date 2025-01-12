@@ -2,6 +2,10 @@
 
 ![Screenshot](screenshot.png)
  
+## Building
+- Ensure that `vcpkg` is integrated with Visual Studio by running `vcpkg integrate install` from a Developer Command Prompt. 
+- After that, simply build and run the solution.
+
 ## Controls
 - Hold the left mouse button and move the mouse to move the camera.
 - WASD to adjust the camera position. 
