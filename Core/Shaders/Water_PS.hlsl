@@ -43,21 +43,20 @@ float4 main(InputType input) : SV_TARGET
     
     float3 V = normalize(cameraPosition - input.worldPosition);
     
-    float3 albedo = float3(1, 1, 1);
     float ao = 1.f;
     float metalness = 1.f;
     float roughness = 0.2f;
 
-    // The colour emitted/transmitted by deep water
-    float3 deepWaterColour = float3(0.06, 0.11, 0.19) * 0.2;
-    // The colour emitted/transmitted by shallow water
+
+    // The colour transmitted by shallow water
     float3 shallowWaterColour = float3(0.14, 0.94, 0.94) * 0.5;
-    
-    // Controls the water's emission of its own colour vs lighting from the environment.
+    // The colour transmitted by deep water
+    float3 deepWaterColour = float3(0.06, 0.11, 0.19) * 0.5;
     // Water is more reflective at grazing view angles and more transmissive at 
     // oblique angles.
-    float reflectanceFactor = pow(1.f - pow(max(dot(N, V), 0), 2), 5);
+    float reflectanceFactor = pow(1.f - pow(max(dot(N, V), 0), 2.5), 5);
     
+    float3 albedo = lerp(deepWaterColour, float3(1, 1, 1), reflectanceFactor);
     
     // Using the height here as a proxy for thickness.
     // The peaks of each wave are thinner than 
@@ -68,8 +67,6 @@ float4 main(InputType input) : SV_TARGET
     float3 directRadiance = cookTorranceDirectionalLight(
         N, V, albedo, metalness, roughness, directionalLight
     );
-    
-    directRadiance = lerp(deepWaterColour, directRadiance, reflectanceFactor);
 
     float3 directSSS = directionalLightSSS(directionalLight,
                                            N,
@@ -92,8 +89,6 @@ float4 main(InputType input) : SV_TARGET
             g_pointLights[i].shadowTransforms,
             g_pointLights[i].shadowCubeIndex);
         
-        pointRadiance = lerp(deepWaterColour, pointRadiance, reflectanceFactor);
-        
         pointSSS += pointLightSSS(g_pointLights[i],
                                   input.worldPosition,
                                   N,
@@ -107,8 +102,6 @@ float4 main(InputType input) : SV_TARGET
         environmentMap, linearSampler,
         N, V, albedo, ao, metalness, roughness
     );
-    
-    ambient = lerp(deepWaterColour, ambient, reflectanceFactor);
     
     float shadowFactor = calculateShadowFactor(
         shadowMap,
