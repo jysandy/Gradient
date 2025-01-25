@@ -8,76 +8,69 @@
 
 namespace Gradient::Pipelines
 {
-    WaterPipeline::WaterPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states)
+    WaterPipeline::WaterPipeline(ID3D12Device* device)
     {
-        m_states = states;
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
         auto vsData = DX::ReadData(L"Water_VS.cso");
-        DX::ThrowIfFailed(
-            device->CreateVertexShader(vsData.data(),
-                vsData.size(),
-                nullptr,
-                m_vs.ReleaseAndGetAddressOf()));
-
         auto hsData = DX::ReadData(L"Water_HS.cso");
-        DX::ThrowIfFailed(
-            device->CreateHullShader(hsData.data(),
-                hsData.size(),
-                nullptr,
-                m_hs.ReleaseAndGetAddressOf()));
-
         auto dsData = DX::ReadData(L"Water_DS.cso");
-        DX::ThrowIfFailed(
-            device->CreateDomainShader(dsData.data(),
-                dsData.size(),
-                nullptr,
-                m_ds.ReleaseAndGetAddressOf()));
-
         auto psData = DX::ReadData(L"Water_PS.cso");
-        DX::ThrowIfFailed(
-            device->CreatePixelShader(psData.data(),
-                psData.size(),
-                nullptr,
-                m_ps.ReleaseAndGetAddressOf()));
 
-        m_matrixCB.Create(device);
-        m_pixelParamCB.Create(device);
-        m_lightCB.Create(device);
-        m_waveCB.Create(device);
-        m_lodCB.Create(device);
-
-        auto inputElements = std::array<D3D11_INPUT_ELEMENT_DESC, VertexType::InputElementCount>();
-        std::copy(VertexType::InputElements, VertexType::InputElements + 3, inputElements.begin());
+        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
+        std::copy(VertexType::InputLayout.pInputElementDescs,
+            VertexType::InputLayout.pInputElementDescs + 3,
+            inputElements.begin());
         inputElements[0].SemanticName = "LOCALPOS";
         inputElements[0].SemanticIndex = 0;
 
-        DX::ThrowIfFailed(
-            device->CreateInputLayout(
-                inputElements.data(),
-                inputElements.size(),
-                vsData.data(),
-                vsData.size(),
-                m_inputLayout.ReleaseAndGetAddressOf()
-            ));
+        psoDesc.InputLayout = { inputElements.data(), 3 };
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.HS = { hsData.data(), hsData.size() };
+        psoDesc.DS = { dsData.data(), dsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState.DepthEnable = TRUE;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.SampleDesc.Count = 1;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-        CD3D11_SAMPLER_DESC cmpDesc(
-            D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
+        DX::ThrowIfFailed(
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_pso)));
+
+        m_rootSignature.AddCBV(0, 0);
+        m_rootSignature.AddCBV(0, 1);
+        m_rootSignature.AddCBV(1, 1);
+        m_rootSignature.AddCBV(0, 2);
+        m_rootSignature.AddCBV(1, 2);
+        m_rootSignature.AddCBV(2, 2);
+        m_rootSignature.AddCBV(0, 3);
+        m_rootSignature.AddCBV(1, 3);
+
+        m_rootSignature.AddSRV(1, 3);
+        m_rootSignature.AddSRV(2, 3);
+        m_rootSignature.AddSRV(3, 3);
+
+        m_rootSignature.AddStaticSampler(
+            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR),
+            0, 3);
+
+        m_rootSignature.AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC(1,
+            D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
             0,
             1,
-            D3D11_COMPARISON_LESS,
-            nullptr,
-            0,
-            0
-        );
+            D3D12_COMPARISON_FUNC_LESS),
+            1, 3);
 
-        DX::ThrowIfFailed(
-            device->CreateSamplerState(&cmpDesc,
-                m_comparisonSS.ReleaseAndGetAddressOf()
-            ));
-
+        m_rootSignature.Build();
         GenerateWaves();
     }
 
@@ -118,13 +111,19 @@ namespace Gradient::Pipelines
         }
     }
 
-    void WaterPipeline::Apply(ID3D11DeviceContext* context)
+    void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl)
     {
+        cl->SetPipelineState(m_pso.Get());
+        m_rootSignature.SetOnCommandList(cl);
+
         MatrixCB matrixConstants;
         matrixConstants.world = DirectX::XMMatrixTranspose(m_world);
         matrixConstants.view = DirectX::XMMatrixTranspose(m_view);
         matrixConstants.proj = DirectX::XMMatrixTranspose(m_proj);
-        m_matrixCB.SetData(context, matrixConstants);
+
+        m_rootSignature.SetCBV(cl, 0, 0, matrixConstants);
+        m_rootSignature.SetCBV(cl, 0, 1, matrixConstants);
+        m_rootSignature.SetCBV(cl, 0, 2, matrixConstants);
 
         LodCB lodConstants;
         lodConstants.cameraDirection = m_cameraDirection;
@@ -132,7 +131,9 @@ namespace Gradient::Pipelines
         lodConstants.minLodDistance = m_waterParams.MinLod;
         lodConstants.maxLodDistance = m_waterParams.MaxLod;
         lodConstants.cullingEnabled = 1;
-        m_lodCB.SetData(context, lodConstants);
+        
+        m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
+        m_rootSignature.SetCBV(cl, 2, 2, lodConstants);
 
         WaveCB waveConstants;
         for (int i = 0; i < m_waves.size(); i++)
@@ -141,37 +142,9 @@ namespace Gradient::Pipelines
         }
         waveConstants.numWaves = m_waves.size();
         waveConstants.totalTimeSeconds = m_totalTimeSeconds;
-        m_waveCB.SetData(context, waveConstants);
 
-        context->VSSetShader(m_vs.Get(), nullptr, 0);
-        auto cb = m_waveCB.GetBuffer();
-        context->VSSetConstantBuffers(0, 1, &cb);
-
-        context->HSSetShader(m_hs.Get(), nullptr, 0);
-        cb = m_matrixCB.GetBuffer();
-        context->HSSetConstantBuffers(0, 1, &cb);
-        cb = m_lodCB.GetBuffer();
-        context->HSSetConstantBuffers(1, 1, &cb);
-
-
-        context->DSSetShader(m_ds.Get(), nullptr, 0);
-        cb = m_matrixCB.GetBuffer();
-        context->DSSetConstantBuffers(0, 1, &cb);
-        cb = m_waveCB.GetBuffer();
-        context->DSSetConstantBuffers(1, 1, &cb);
-        cb = m_lodCB.GetBuffer();
-        context->DSSetConstantBuffers(2, 1, &cb);
-
-        context->PSSetShader(m_ps.Get(), nullptr, 0);
-        PixelParamCB pixelConstants;
-        pixelConstants.cameraPosition = m_cameraPosition;
-        pixelConstants.maxAmplitude = m_maxAmplitude;
-        pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
-        pixelConstants.thicknessPower = m_waterParams.Scattering.ThicknessPower;
-        pixelConstants.sharpness = m_waterParams.Scattering.Sharpness;
-        pixelConstants.refractiveIndex = m_waterParams.Scattering.RefractiveIndex;
-        m_pixelParamCB.SetData(context, pixelConstants);
-
+        m_rootSignature.SetCBV(cl, 1, 2, waveConstants);
+        
         LightCB lightConstants;
         lightConstants.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
         lightConstants.directionalLight.irradiance = m_lightIrradiance;
@@ -194,35 +167,28 @@ namespace Gradient::Pipelines
                         * proj);
             }
         }
-        m_lightCB.SetData(context, lightConstants);
-        cb = m_lightCB.GetBuffer();
-        context->PSSetConstantBuffers(0, 1, &cb);
 
-        cb = m_pixelParamCB.GetBuffer();
-        context->PSSetConstantBuffers(1, 1, &cb);
+        m_rootSignature.SetCBV(cl, 0, 3, lightConstants);
 
-        if (m_shadowMap != nullptr)
-            context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
-        if (m_environmentMap != nullptr)
-            context->PSSetShaderResources(2, 1, m_environmentMap.GetAddressOf());
-        if (m_shadowCubeArray != nullptr)
-            context->PSSetShaderResources(3, 1, m_shadowCubeArray.GetAddressOf());
+        PixelParamCB pixelConstants;
+        pixelConstants.cameraPosition = m_cameraPosition;
+        pixelConstants.maxAmplitude = m_maxAmplitude;
+        pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
+        pixelConstants.thicknessPower = m_waterParams.Scattering.ThicknessPower;
+        pixelConstants.sharpness = m_waterParams.Scattering.Sharpness;
+        pixelConstants.refractiveIndex = m_waterParams.Scattering.RefractiveIndex;
 
-        auto samplerState = m_states->LinearWrap();
-        context->PSSetSamplers(0, 1, &samplerState);
-        context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
+        m_rootSignature.SetCBV(cl, 1, 3, pixelConstants);
 
-        context->RSSetState(m_states->CullCounterClockwise());
-        //context->RSSetState(m_states->Wireframe());
 
-        context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
-        context->IASetInputLayout(m_inputLayout.Get());
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-    }
+        if (m_shadowMap)
+            m_rootSignature.SetSRV(cl, 1, 3, m_shadowMap.value());
+        if (m_environmentMap)
+            m_rootSignature.SetSRV(cl, 2, 3, m_environmentMap.value());
+        if (m_shadowCubeArray)
+            m_rootSignature.SetSRV(cl, 3, 3, m_shadowCubeArray.value());
 
-    ID3D11InputLayout* WaterPipeline::GetInputLayout() const
-    {
-        return m_inputLayout.Get();
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
 
     void XM_CALLCONV WaterPipeline::SetWorld(DirectX::FXMMATRIX value)
@@ -265,7 +231,7 @@ namespace Gradient::Pipelines
         m_directionalLightColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
         m_lightIrradiance = dlight->GetIrradiance();
-        m_shadowMap = dlight->GetShadowMapSRV();
+        m_shadowMap = dlight->GetShadowMapDescriptorIndex();
         m_shadowTransform = dlight->GetShadowTransform();
     }
 
@@ -274,14 +240,14 @@ namespace Gradient::Pipelines
         m_pointLights = pointLights;
     }
 
-    void WaterPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_environmentMap = srv;
+        m_environmentMap = index;
     }
 
-    void WaterPipeline::SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void WaterPipeline::SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_shadowCubeArray = srv;
+        m_shadowCubeArray = index;
     }
 
     void WaterPipeline::SetTotalTime(float totalTimeSeconds)

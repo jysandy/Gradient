@@ -3,11 +3,12 @@
 #include "pch.h"
 #include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
-#include <directxtk/Effects.h>
-#include <directxtk/VertexTypes.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/BufferHelpers.h>
-#include <directxtk/CommonStates.h>
+#include "Core/RootSignature.h"
+#include <directxtk12/Effects.h>
+#include <directxtk12/VertexTypes.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/CommonStates.h>
 
 namespace Gradient::Pipelines
 {
@@ -23,12 +24,10 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit ShadowMapPipeline(ID3D11Device* device,
-            std::shared_ptr<DirectX::CommonStates> states);
+        explicit ShadowMapPipeline(ID3D12Device* device);
+        virtual ~ShadowMapPipeline() noexcept = default;
 
-        virtual void Apply(ID3D11DeviceContext* context) override;
-
-        virtual ID3D11InputLayout* GetInputLayout() const override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -36,11 +35,8 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
     private:
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowMapRSState;
-        DirectX::ConstantBuffer<VertexCB> m_vertexCB;
-        std::shared_ptr<DirectX::CommonStates> m_states;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        RootSignature m_rootSignature;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

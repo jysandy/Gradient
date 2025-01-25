@@ -2,7 +2,7 @@
 
 #define MAX_WAVES 32
 
-cbuffer WaveBuffer : register(b0)
+cbuffer WaveBuffer : register(b0, space0)
 {
     uint g_numWaves;
     float g_totalTime;

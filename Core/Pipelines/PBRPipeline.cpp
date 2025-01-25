@@ -1,84 +1,85 @@
 #include "pch.h"
 
 #include "Core/Pipelines/PBRPipeline.h"
-#include <directxtk/VertexTypes.h>
+#include "Core/GraphicsMemoryManager.h"
+#include "Core/RootSignature.h"
+#include <directxtk12/VertexTypes.h>
 #include "Core/ReadData.h"
 
 namespace Gradient::Pipelines
 {
-    PBRPipeline::PBRPipeline(ID3D11Device* device,
-        std::shared_ptr<DirectX::CommonStates> states)
-        : m_states(states)
+    PBRPipeline::PBRPipeline(ID3D12Device* device)
     {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+
         auto vsData = DX::ReadData(L"WVP_VS.cso");
-
-        // TODO: Figure out how to support shader model 5.1+
-        // Probably by setting the feature level
-        DX::ThrowIfFailed(
-            device->CreateVertexShader(vsData.data(),
-                vsData.size(),
-                nullptr,
-                m_vs.ReleaseAndGetAddressOf()));
-
         auto psData = DX::ReadData(L"PBR_PS.cso");
 
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState.DepthEnable = TRUE;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.SampleDesc.Count = 1;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_B8G8R8A8_UNORM;
+
         DX::ThrowIfFailed(
-            device->CreatePixelShader(psData.data(),
-                psData.size(),
-                nullptr,
-                m_ps.ReleaseAndGetAddressOf()));
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_pso)));
 
-        m_vertexCB.Create(device);
-        m_pixelCameraCB.Create(device);
-        m_lightCB.Create(device);
+        m_rootSignature.AddCBV(0, 0);
+        m_rootSignature.AddCBV(0, 1);
+        m_rootSignature.AddCBV(1, 1);
 
-        DX::ThrowIfFailed(
-            device->CreateInputLayout(
-                VertexType::InputElements,
-                VertexType::InputElementCount,
-                vsData.data(),
-                vsData.size(),
-                m_inputLayout.ReleaseAndGetAddressOf()
-            ));
+        m_rootSignature.AddSRV(0, 1);
+        m_rootSignature.AddSRV(1, 1);
+        m_rootSignature.AddSRV(2, 1);
+        m_rootSignature.AddSRV(3, 1);
+        m_rootSignature.AddSRV(4, 1);
+        m_rootSignature.AddSRV(5, 1);
+        m_rootSignature.AddSRV(6, 1);
+        m_rootSignature.AddSRV(7, 1);
 
-        CD3D11_SAMPLER_DESC cmpDesc(
-            D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
-            D3D11_TEXTURE_ADDRESS_CLAMP,
+        m_rootSignature.AddStaticSampler(
+            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_ANISOTROPIC),
+            0, 1);
+
+        m_rootSignature.AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC(1,
+            D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
             0,
             1,
-            D3D11_COMPARISON_LESS,
-            nullptr,
-            0,
-            0
-        );
+            D3D12_COMPARISON_FUNC_LESS),
+            1,
+            1);
 
-        DX::ThrowIfFailed(
-            device->CreateSamplerState(&cmpDesc,
-                m_comparisonSS.ReleaseAndGetAddressOf()
-            ));
+        m_rootSignature.AddStaticSampler(
+            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR),
+            3, 1);
+
+        m_rootSignature.Build(device);
     }
 
-    void PBRPipeline::Apply(ID3D11DeviceContext* context)
+    void PBRPipeline::Apply(ID3D12GraphicsCommandList* cl)
     {
-        context->HSSetShader(nullptr, nullptr, 0);
-        context->DSSetShader(nullptr, nullptr, 0);
+        cl->SetPipelineState(m_pso.Get());
+        m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
-        context->VSSetShader(m_vs.Get(), nullptr, 0);
-        m_vertexCB.SetData(context, vertexConstants);
-        auto cb = m_vertexCB.GetBuffer();
-        context->VSSetConstantBuffers(0, 1, &cb);
-
-        context->PSSetShader(m_ps.Get(), nullptr, 0);
+        m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
         auto lightBufferData = m_dLightCBData;
-
         lightBufferData.numPointLights = std::min(MAX_POINT_LIGHTS, m_pointLights.size());
         for (int i = 0; i < lightBufferData.numPointLights; i++)
         {
@@ -98,86 +99,73 @@ namespace Gradient::Pipelines
             }
         }
 
-        m_lightCB.SetData(context, lightBufferData);
-        cb = m_lightCB.GetBuffer();
-        context->PSSetConstantBuffers(0, 1, &cb);
+        m_rootSignature.SetCBV(cl, 0, 1, lightBufferData);
 
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         pixelConstants.emissiveRadiance = m_emissiveRadiance;
-        m_pixelCameraCB.SetData(context, pixelConstants);
-        cb = m_pixelCameraCB.GetBuffer();
-        context->PSSetConstantBuffers(1, 1, &cb);
 
-        context->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
-        if (m_shadowMap != nullptr)
-            context->PSSetShaderResources(1, 1, m_shadowMap.GetAddressOf());
-        if (m_normalMap != nullptr)
-            context->PSSetShaderResources(2, 1, m_normalMap.GetAddressOf());
-        if (m_aoMap != nullptr)
-            context->PSSetShaderResources(3, 1, m_aoMap.GetAddressOf());
-        if (m_metalnessMap != nullptr)
-            context->PSSetShaderResources(4, 1, m_metalnessMap.GetAddressOf());
-        if (m_roughnessMap != nullptr)
-            context->PSSetShaderResources(5, 1, m_roughnessMap.GetAddressOf());
-        if (m_environmentMap != nullptr)
-            context->PSSetShaderResources(6, 1, m_environmentMap.GetAddressOf());
-        if (m_shadowCubeArray != nullptr)
-            context->PSSetShaderResources(7, 1, m_shadowCubeArray.GetAddressOf());
+        m_rootSignature.SetCBV(cl, 1, 1, pixelConstants);
 
-        auto samplerState = m_states->AnisotropicWrap();
-        context->PSSetSamplers(0, 1, &samplerState);
-        context->PSSetSamplers(1, 1, m_comparisonSS.GetAddressOf());
-        samplerState = m_states->PointWrap();
-        context->PSSetSamplers(2, 1, &samplerState);
-        samplerState = m_states->LinearWrap();
-        context->PSSetSamplers(3, 1, &samplerState);
-        context->RSSetState(m_states->CullCounterClockwise());
+        if (m_texture)
+            m_rootSignature.SetSRV(cl, 0, 1, m_texture.value());
+        if (m_shadowMap)
+            m_rootSignature.SetSRV(cl, 1, 1, m_shadowMap.value());
+        if (m_normalMap)
+            m_rootSignature.SetSRV(cl, 2, 1, m_normalMap.value());
+        if (m_aoMap)
+            m_rootSignature.SetSRV(cl, 3, 1, m_aoMap.value());
+        if (m_metalnessMap)
+            m_rootSignature.SetSRV(cl, 4, 1, m_metalnessMap.value());
+        if (m_roughnessMap)
+            m_rootSignature.SetSRV(cl, 5, 1, m_roughnessMap.value());
+        if (m_environmentMap)
+            m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap.value());
+        if (m_shadowCubeArray)
+            m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray.value());
 
-        context->OMSetDepthStencilState(m_states->DepthDefault(), 0);
-        context->IASetInputLayout(m_inputLayout.Get());
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void PBRPipeline::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_texture = srv;
+        m_texture = index;
     }
 
-    void PBRPipeline::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_normalMap = srv;
+        m_normalMap = index;
     }
 
-    void PBRPipeline::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetAOMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_aoMap = srv;
+        m_aoMap = index;
     }
 
-    void PBRPipeline::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetMetalnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_metalnessMap = srv;
+        m_metalnessMap = index;
     }
 
-    void PBRPipeline::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetRoughnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_roughnessMap = srv;
+        m_roughnessMap = index;
     }
 
-    void PBRPipeline::SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_environmentMap = srv;
+        m_environmentMap = index;
     }
 
-    void PBRPipeline::SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void PBRPipeline::SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
     {
-        m_shadowCubeArray = srv;
+        m_shadowCubeArray = index;
     }
 
     void PBRPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
-        m_shadowMap = Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>(dlight->GetShadowMapSRV());
+        m_shadowMap = dlight->GetShadowMapDescriptorIndex();
         m_shadowTransform = dlight->GetShadowTransform();
 
         m_dLightCBData.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(dlight->GetColour());
@@ -220,10 +208,5 @@ namespace Gradient::Pipelines
     void PBRPipeline::SetEmissiveRadiance(DirectX::SimpleMath::Vector3 emissiveRadiance)
     {
         m_emissiveRadiance = emissiveRadiance;
-    }
-
-    ID3D11InputLayout* PBRPipeline::GetInputLayout() const
-    {
-        return m_inputLayout.Get();
     }
 }

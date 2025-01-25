@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include <directxtk/GeometricPrimitive.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/Keyboard.h>
-#include <directxtk/Mouse.h>
-#include <directxtk/CommonStates.h>
-#include <directxtk/SpriteBatch.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/Keyboard.h>
+#include <directxtk12/Mouse.h>
+#include <directxtk12/CommonStates.h>
+#include <directxtk12/SpriteBatch.h>
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
@@ -21,7 +20,6 @@
 #include "Core/Pipelines/ShadowMapPipeline.h"
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
-#include "Core/Pipelines/WaterShadowPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/RenderTexture.h"
@@ -36,14 +34,14 @@
 
 using namespace DirectX::SimpleMath;
 
-// A basic game implementation that creates a D3D11 device and
+// A basic game implementation that creates a D3D12 device and
 // provides a game loop.
 class Game final : public DX::IDeviceNotify
 {
 public:
 
     Game() noexcept(false);
-    ~Game() = default;
+    ~Game();
 
     Game(Game&&) = default;
     Game& operator= (Game&&) = default;
@@ -69,7 +67,6 @@ public:
     void OnWindowMoved();
     void OnDisplayChange();
     void OnWindowSizeChanged(int width, int height);
-    void OnQuit();
 
     // Properties
     void GetDefaultSize(int& width, int& height) const noexcept;
@@ -86,13 +83,14 @@ private:
     void CreateEntities();
     std::vector<Gradient::Params::PointLight> PointLightParams();
 
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring& path);
+    Microsoft::WRL::ComPtr<ID3D12PixelShader> LoadPixelShader(const std::wstring& path);
 
     // Device resources.
-    std::unique_ptr<DX::DeviceResources> m_deviceResources;                    
-
+    std::unique_ptr<DX::DeviceResources>        m_deviceResources;
     // Rendering loop timer.
-    DX::StepTimer m_timer;
+    DX::StepTimer                               m_timer;
+
+    std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
@@ -107,7 +105,6 @@ private:
     std::unique_ptr<Gradient::Pipelines::PBRPipeline> m_pbrPipeline;
     std::unique_ptr<Gradient::Pipelines::WaterPipeline> m_waterPipeline;
     std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
-    std::unique_ptr<Gradient::Pipelines::WaterShadowPipeline> m_waterShadowPipeline;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;

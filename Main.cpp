@@ -4,8 +4,8 @@
 
 #include "pch.h"
 #include "Game.h"
-#include "directxtk/Keyboard.h"
-#include "directxtk/Mouse.h"
+#include "directxtk12/Keyboard.h"
+#include "directxtk12/Mouse.h"
 #include "Core/Logger.h"
 
 #include "GUI/imgui_impl_win32.h"
@@ -120,7 +120,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         }
     }
 
-    g_game->OnQuit();
     g_game.reset();
 
     CoUninitialize();

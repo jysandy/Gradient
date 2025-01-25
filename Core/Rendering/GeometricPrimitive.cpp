@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Core/Rendering/GeometricPrimitive.h"
-#include <directxtk/BufferHelpers.h>
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/ResourceUploadBatch.h>
 #include <map>
 
 namespace Gradient::Rendering
@@ -601,32 +602,62 @@ namespace Gradient::Rendering
         }
     }
 
-    void GeometricPrimitive::Draw(ID3D11DeviceContext* context)
+    void GeometricPrimitive::Draw(ID3D12GraphicsCommandList* cl)
     {
         constexpr UINT vertexStride = sizeof(VertexType);
         constexpr UINT vertexOffset = 0;
 
-        context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &vertexStride, &vertexOffset);
-        context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+        cl->IASetVertexBuffers(0,
+            1,
+            &m_vbv);
+        cl->IASetIndexBuffer(&m_ibv);
 
-        context->DrawIndexed(m_indexCount, 0, 0);
+        cl->DrawInstanced(m_vertexCount, 1, 0, 0);
     }
 
-    void GeometricPrimitive::Initialize(ID3D11Device* device,
+    void GeometricPrimitive::Initialize(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         VertexCollection vertices,
         IndexCollection indices)
     {
+        DirectX::ResourceUploadBatch uploadBatch(device);
+
+        uploadBatch.Begin();
+
         DX::ThrowIfFailed(
-            DirectX::CreateStaticBuffer(device, vertices,
-                D3D11_BIND_VERTEX_BUFFER, m_vertexBuffer.ReleaseAndGetAddressOf()));
+            DirectX::CreateStaticBuffer(device, uploadBatch,
+                vertices,
+                D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+                m_vertexBuffer.ReleaseAndGetAddressOf()));
+        
         DX::ThrowIfFailed(
-            DirectX::CreateStaticBuffer(device, indices,
-                D3D11_BIND_INDEX_BUFFER, m_indexBuffer.ReleaseAndGetAddressOf()));
+            DirectX::CreateStaticBuffer(device,
+                uploadBatch,
+                indices,
+                D3D12_RESOURCE_STATE_INDEX_BUFFER, 
+                m_indexBuffer.ReleaseAndGetAddressOf()));
+
+        auto uploadFinished = uploadBatch.End(cq);
+        
+        uploadFinished.wait();
+
+        D3D12_VERTEX_BUFFER_VIEW vbv;
+        vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+        vbv.StrideInBytes = sizeof(VertexType);
+        vbv.SizeInBytes = vbv.StrideInBytes * vertices.size();
+
+        D3D12_INDEX_BUFFER_VIEW ibv;
+        ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+        ibv.Format = DXGI_FORMAT_R16_UINT;
+        ibv.SizeInBytes = sizeof(uint16_t) * indices.size();
+
+        m_vertexCount = vertices.size();
         m_indexCount = indices.size();
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateBox(ID3D11Device* device,
-        ID3D11DeviceContext* deviceContext,
+    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateBox(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         const DirectX::XMFLOAT3& size,
         bool rhcoords,
         bool invertn)
@@ -636,14 +667,14 @@ namespace Gradient::Rendering
         ComputeBox(vertices, indices, size, rhcoords, invertn);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, vertices, indices);
+        primitive->Initialize(device, cq, vertices, indices);
 
         return primitive;
     }
 
     std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateSphere(
-        ID3D11Device* device,
-        ID3D11DeviceContext* deviceContext,
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         float diameter,
         size_t tessellation,
         bool rhcoords,
@@ -655,14 +686,14 @@ namespace Gradient::Rendering
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
 
-        primitive->Initialize(device, vertices, indices);
+        primitive->Initialize(device, cq, vertices, indices);
 
         return primitive;
     }
 
     std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGeoSphere(
-        ID3D11Device* device,
-        ID3D11DeviceContext* deviceContext,
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         float diameter,
         size_t tessellation,
         bool rhcoords)
@@ -673,13 +704,13 @@ namespace Gradient::Rendering
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
 
-        primitive->Initialize(device, vertices, indices);
+        primitive->Initialize(device, cq, vertices, indices);
 
         return primitive;
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGrid(ID3D11Device* device,
-        ID3D11DeviceContext* deviceContext,
+    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGrid(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         const float& width,
         const float& height,
         const float& divisions)
@@ -689,7 +720,7 @@ namespace Gradient::Rendering
         ComputeGrid(vertices, indices, width, height, divisions);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, vertices, indices);
+        primitive->Initialize(device, cq, vertices, indices);
 
         return primitive;
     }

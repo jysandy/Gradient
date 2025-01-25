@@ -108,7 +108,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -130,11 +130,14 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -156,7 +159,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -182,14 +185,18 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
+    <FxCompile>
+      <ShaderModel>6.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Camera.h" />
+    <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
@@ -202,7 +209,6 @@
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
-    <ClInclude Include="Core\Pipelines\WaterShadowPipeline.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
@@ -212,11 +218,13 @@
     <ClInclude Include="Core\Rendering\IDrawable.h" />
     <ClInclude Include="Core\Rendering\PointLight.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
+    <ClInclude Include="Core\RootSignature.h" />
     <ClInclude Include="Core\TextureManager.h" />
+    <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
-    <ClInclude Include="GUI\imgui_impl_dx11.h" />
+    <ClInclude Include="GUI\imgui_impl_dx12.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PerformanceWindow.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
@@ -226,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Camera.cpp" />
+    <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\ShadowMapPipeline.cpp" />
@@ -235,7 +244,6 @@
     <ClCompile Include="Core\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
-    <ClCompile Include="Core\Pipelines\WaterShadowPipeline.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
@@ -243,11 +251,12 @@
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
+    <ClCompile Include="Core\RootSignature.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
-    <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
+    <ClCompile Include="GUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PerformanceWindow.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
@@ -389,8 +398,8 @@
     <FxCompile Include="Core\Shaders\PBR_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Skydome_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

@@ -5,11 +5,12 @@
 #include "Core/Pipelines/BufferStructs.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Parameters.h"
-#include <directxtk/Effects.h>
-#include <directxtk/VertexTypes.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/BufferHelpers.h>
-#include <directxtk/CommonStates.h>
+#include "Core/RootSignature.h"
+#include <directxtk12/Effects.h>
+#include <directxtk12/VertexTypes.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/CommonStates.h>
 #include <array>
 
 namespace Gradient::Pipelines
@@ -65,11 +66,10 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit WaterPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
+        explicit WaterPipeline(ID3D12Device* device);
+        virtual ~WaterPipeline() noexcept = default;
 
-        virtual void Apply(ID3D11DeviceContext* context) override;
-
-        virtual ID3D11InputLayout* GetInputLayout() const override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -80,8 +80,8 @@ namespace Gradient::Pipelines
         void SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        void SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+        void SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
+        void SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
         void SetTotalTime(float totalTimeSeconds);
         void SetWaterParams(Params::Water waterParams);
 
@@ -90,23 +90,12 @@ namespace Gradient::Pipelines
     private:
         void GenerateWaves();
 
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
-        Microsoft::WRL::ComPtr<ID3D11HullShader> m_hs;
-        Microsoft::WRL::ComPtr<ID3D11DomainShader> m_ds;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        RootSignature m_rootSignature;
 
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowCubeArray;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-        DirectX::ConstantBuffer<MatrixCB> m_matrixCB;
-        DirectX::ConstantBuffer<WaveCB> m_waveCB;
-        DirectX::ConstantBuffer<LodCB> m_lodCB;
-        DirectX::ConstantBuffer<PixelParamCB> m_pixelParamCB;
-        DirectX::ConstantBuffer<LightCB> m_lightCB;
-
-        std::shared_ptr<DirectX::CommonStates> m_states;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
+        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowMap;
+        std::optional<GraphicsMemoryManager::DescriptorIndex> m_environmentMap;
+        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowCubeArray;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

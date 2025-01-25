@@ -1,6 +1,6 @@
 {
   "dependencies": [
-    "directxtk",
+    "directxtk12",
     "joltphysics",
     "spdlog",
     "imgui"

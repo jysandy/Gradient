@@ -4,15 +4,16 @@
 
 #include "pch.h"
 #include "Game.h"
-#include "directxtk/Keyboard.h"
+#include "directxtk12/Keyboard.h"
+#include "Core/GraphicsMemoryManager.h"
 #include "Core/TextureManager.h"
 #include "Core/Rendering/GeometricPrimitive.h"
 #include "Core/Parameters.h"
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
 
 #include <imgui.h>
 #include "GUI/imgui_impl_win32.h"
-#include "GUI/imgui_impl_dx11.h"
+#include "GUI/imgui_impl_dx12.h"
 #include "Core/ReadData.h"
 
 extern void ExitGame() noexcept;
@@ -25,14 +26,11 @@ Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>(
         DXGI_FORMAT_B8G8R8A8_UNORM,
-        DXGI_FORMAT_UNKNOWN,
         DXGI_FORMAT_D32_FLOAT,
         2,
-        D3D_FEATURE_LEVEL_11_1,
-        DX::DeviceResources::c_FlipPresent | DX::DeviceResources::c_AllowTearing
+        D3D_FEATURE_LEVEL_12_2,
+        DX::DeviceResources::c_AllowTearing
     );
-    // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
-    //   Add DX::DeviceResources::c_AllowTearing to opt-in to variable rate displays.
     //   Add DX::DeviceResources::c_EnableHDR for HDR10 display.
     m_deviceResources->RegisterDeviceNotify(this);
 }
@@ -40,6 +38,8 @@ Game::Game() noexcept(false)
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
+    auto device = m_deviceResources->GetD3DDevice();
+    Gradient::GraphicsMemoryManager::Initialize(device);
     Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
@@ -55,9 +55,39 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
     m_camera.SetPosition(Vector3{ 0, 30, 25 });
 
+    auto cq = m_deviceResources->GetCommandQueue();
+
     // Initialize ImGUI
 
-    ImGui_ImplDX11_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetD3DDeviceContext());
+    ImGui_ImplDX12_InitInfo initInfo = {};
+    initInfo.Device = device;
+    initInfo.CommandQueue = cq;
+    initInfo.NumFramesInFlight = 2;
+    initInfo.RTVFormat = m_deviceResources->GetBackBufferFormat(); // Or your render target format.
+
+    auto gmm = Gradient::GraphicsMemoryManager::Get();
+    initInfo.SrvDescriptorHeap = gmm->GetSrvDescriptorHeap();
+    initInfo.SrvDescriptorAllocFn
+        = [](ImGui_ImplDX12_InitInfo*,
+            D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle,
+            D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle)
+        {
+            auto gmm = Gradient::GraphicsMemoryManager::Get();
+            auto index = gmm->AllocateSrv();
+            *outCpuHandle = gmm->GetSrvCpuHandle(index);
+            *outGpuHandle = gmm->GetSRVGpuHandle(index);
+        };
+    initInfo.SrvDescriptorFreeFn
+        = [](ImGui_ImplDX12_InitInfo*,
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle,
+            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+        {
+            auto gmm = Gradient::GraphicsMemoryManager::Get();
+            gmm->FreeSrvByCpuHandle(cpuHandle);
+        };
+
+
+    ImGui_ImplDX12_Init(&initInfo);
     Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
 }
 
@@ -138,11 +168,11 @@ void Game::Render()
     }
 
     auto entityManager = Gradient::EntityManager::Get();
-    auto context = m_deviceResources->GetD3DDeviceContext();
+    auto cl = m_deviceResources->GetCommandList();
 
     m_dLight->ClearAndSetDSV(context);
 
-    m_deviceResources->PIXBeginEvent(L"Shadow Pass");
+    PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Shadow Pass");
 
     // Camera position is needed for tessellation. 
     // But direction is not needed because culling is 
@@ -173,15 +203,15 @@ void Game::Render()
             });
     }
 
-    m_deviceResources->PIXEndEvent();
+    PIXEndEvent();
 
-    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
     m_skyDomePipeline->SetDirectionalLight(m_dLight.get());
 
-    m_deviceResources->PIXBeginEvent(L"Environment Map");
+    PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Environment Map");
 
     m_environmentMap->Render(context,
         [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
@@ -193,11 +223,11 @@ void Game::Render()
             m_sky->Draw(context);
         });
 
-    m_deviceResources->PIXEndEvent();
+    PIXEndEvent();
 
     Clear();
 
-    m_deviceResources->PIXBeginEvent(L"Render");
+    PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Render");
     m_skyDomePipeline->SetSunCircleEnabled(true);
     m_skyDomePipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_skyDomePipeline->SetView(m_camera.GetViewMatrix());
@@ -224,13 +254,13 @@ void Game::Render()
     entityManager->DrawAll(context);
 
     m_multisampledRenderTexture->CopyToSingleSampled(context);
-    m_deviceResources->PIXEndEvent();
+    PIXEndEvent();
 
     // Post-process ----
-    m_deviceResources->PIXBeginEvent(L"Bloom");
+    PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Bloom");
     auto bloomOutput = m_bloomProcessor->Process(context,
         m_multisampledRenderTexture.get());
-    m_deviceResources->PIXEndEvent();
+    PIXEndEvent();
 
     // Tonemap and draw GUI
     bloomOutput->DrawTo(context,
@@ -247,7 +277,8 @@ void Game::Render()
     m_perfWindow.Draw();
 
     ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), 
+        m_deviceResources->GetCommandList());
 
     context->CopyResource(m_deviceResources->GetRenderTarget(),
         m_tonemappedRenderTexture->GetSingleSampledTexture());
@@ -259,10 +290,10 @@ void Game::Render()
 // Helper method to clear the back buffers.
 void Game::Clear()
 {
-    m_deviceResources->PIXBeginEvent(L"Clear");
+    auto cl = m_deviceResources->GetCommandList();
+    PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Clear");
 
     // Clear the views.
-    auto context = m_deviceResources->GetD3DDeviceContext();
 
     m_multisampledRenderTexture->ClearAndSetAsTarget(context);
 
@@ -270,7 +301,7 @@ void Game::Clear()
     auto const viewport = m_deviceResources->GetScreenViewport();
     context->RSSetViewports(1, &viewport);
 
-    m_deviceResources->PIXEndEvent();
+    PIXEndEvent();
 }
 #pragma endregion
 
@@ -319,12 +350,12 @@ void Game::OnWindowSizeChanged(int width, int height)
     // TODO: Game window is being resized.
 }
 
-void Game::OnQuit()
+Game::~Game()
 {
     Gradient::Physics::PhysicsEngine::Shutdown();
     Gradient::TextureManager::Shutdown();
     Gradient::EntityManager::Shutdown();
-    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 }
@@ -332,7 +363,6 @@ void Game::OnQuit()
 // Properties
 void Game::GetDefaultSize(int& width, int& height) const noexcept
 {
-    // TODO: Change to desired default window size (note minimum size is 320x200).
     width = 1920;
     height = 1080;
 }
@@ -345,107 +375,107 @@ void Game::CreateEntities()
     auto entityManager = EntityManager::Get();
     auto textureManager = TextureManager::Get();
     auto device = m_deviceResources->GetD3DDevice();
-    auto context = m_deviceResources->GetD3DDeviceContext();
+    auto cq = m_deviceResources->GetCommandQueue();
 
 #pragma region Textures
     // TODO: display a loading screen while loading all these textures
+    // TODO: load these in a single upload batch
     // TODO: cut down on the texture size, these are way too big
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "crate",
         L"Assets\\Wood_Crate_001_basecolor.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "crateNormal",
         L"Assets\\Wood_Crate_001_normal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "crateRoughness",
         L"Assets\\Wood_Crate_001_roughness.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "crateAO",
         L"Assets\\Wood_Crate_001_ambientOcclusion.dds");
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tilesAlbedo",
         L"Assets\\TilesDiffuse.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tilesNormal",
         L"Assets\\TilesNormal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tilesAO",
         L"Assets\\TilesAO.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tilesMetalness",
         L"Assets\\TilesMetalness.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tilesRoughness",
         L"Assets\\TilesRoughness.dds");
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tiles06Albedo",
         L"Assets\\Tiles_Decorative_06_basecolor.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tiles06Normal",
         L"Assets\\Tiles_Decorative_06_normal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tiles06AO",
         L"Assets\\Tiles_Decorative_06_ambientocclusion.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tiles06Metalness",
         L"Assets\\Tiles_Decorative_06_metallic.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "tiles06Roughness",
         L"Assets\\Tiles_Decorative_06_roughness.dds");
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metal01Albedo",
         L"Assets\\Metal_Floor_01_basecolor.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metal01Normal",
         L"Assets\\Metal_Floor_01_normal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metal01AO",
         L"Assets\\Metal_Floor_01_ambientocclusion.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metal01Metalness",
         L"Assets\\Metal_Floor_01_metallic.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metal01Roughness",
         L"Assets\\Metal_Floor_01_roughness.dds");
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metalSAlbedo",
         L"Assets\\Metal_Semirough_01_basecolor.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metalSNormal",
         L"Assets\\Metal_Semirough_01_normal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metalSAO",
         L"Assets\\Metal_Semirough_01_ambientocclusion.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metalSMetalness",
         L"Assets\\Metal_Semirough_01_metallic.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "metalSRoughness",
         L"Assets\\Metal_Semirough_01_roughness.dds");
 
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "ornamentAlbedo",
         L"Assets\\Metal_Ornament_01_basecolor.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "ornamentNormal",
         L"Assets\\Metal_Ornament_01_normal.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "ornamentAO",
         L"Assets\\Metal_Ornament_01_ambientocclusion.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "ornamentMetalness",
         L"Assets\\Metal_Ornament_01_metallic.dds");
-    textureManager->LoadDDS(device, context,
+    textureManager->LoadDDS(device, cq,
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.dds");
 #pragma endregion
 
-    auto deviceContext = m_deviceResources->GetD3DDeviceContext();
     JPH::BodyInterface& bodyInterface
         = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
@@ -575,7 +605,7 @@ void Game::CreateEntities()
         800,
         100);
     water.RenderPipeline = m_waterPipeline.get();
-    water.ShadowPipeline = m_waterShadowPipeline.get();
+    water.ShadowPipeline = nullptr;
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
 
@@ -593,7 +623,7 @@ void Game::CreateEntities()
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
     pointLight1.Colour = Color(Vector3{ 0.9, 0.8, 0.5 });
-    pointLight1.Irradiance = 7.f; 
+    pointLight1.Irradiance = 7.f;
     pointLight1.MaxRange = 10.f;
     pointLight1.ShadowCubeIndex = 0;
     m_pointLights.push_back(pointLight1);
@@ -605,8 +635,8 @@ void Game::CreateEntities()
         Physics::ObjectLayers::MOVING
     );
     ePointLight1Settings.mRestitution = 0.9f;
-    ePointLight1.BodyID 
-        = bodyInterface.CreateAndAddBody(ePointLight1Settings, 
+    ePointLight1.BodyID
+        = bodyInterface.CreateAndAddBody(ePointLight1Settings,
             JPH::EActivation::Activate);
     entityManager->AddEntity(std::move(ePointLight1));
 
@@ -664,16 +694,15 @@ void Game::CreateDeviceDependentResources()
     using namespace Gradient;
 
     auto device = m_deviceResources->GetD3DDevice();
-    auto context = m_deviceResources->GetD3DDeviceContext();
+    auto cq = m_deviceResources->GetCommandQueue();
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device, m_states);
     m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device, m_states);
-    m_waterShadowPipeline = std::make_unique<Pipelines::WaterShadowPipeline>(device, m_states);
     m_tonemapperPS = LoadPixelShader(L"ACESTonemapper_PS.cso");
 
     EntityManager::Initialize();
-    TextureManager::Initialize(device, context);
+    TextureManager::Initialize(device, cq);
 
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
@@ -688,13 +717,14 @@ void Game::CreateDeviceDependentResources()
     m_shadowMapPipeline = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device, m_states);
     m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device, m_states);
     m_skyDomePipeline->SetAmbientIrradiance(1.f);
-    m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, context, 2.f, 3,
+    m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, 
+        cq, 2.f, 3,
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
         256,
         DXGI_FORMAT_R32G32B32A32_FLOAT);
 
-    auto waterParams = Params::Water{ 
+    auto waterParams = Params::Water{
         50.f, 400.f
     };
     m_waterPipeline->SetWaterParams(waterParams);
@@ -704,7 +734,7 @@ void Game::CreateDeviceDependentResources()
 
     CreateEntities();
 
-    m_shadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device, 
+    m_shadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device,
         256, m_pointLights.size());
 
     for (int i = 0; i < m_pointLights.size(); i++)

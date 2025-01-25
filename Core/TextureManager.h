@@ -1,27 +1,44 @@
 #pragma once
 
 #include "pch.h"
-
+              
+#include "Core/GraphicsMemoryManager.h"
 #include <unordered_map>
+#include <optional>
 
 namespace Gradient
 {
     class TextureManager
     {
     public:
-        static void Initialize(ID3D11Device* device, ID3D11DeviceContext* context);
+        struct TextureMapEntry
+        {
+            Microsoft::WRL::ComPtr<ID3D12Resource> Resource;
+            GraphicsMemoryManager::DescriptorIndex SrvIndex;
+        };
+
+        static void Initialize(ID3D12Device* device,
+            ID3D12CommandQueue* cq);
         static void Shutdown();
 
         static TextureManager* Get();
-        void LoadWIC(ID3D11Device* device, ID3D11DeviceContext* context, std::string key, std::wstring path, bool sRGB = false);
-        void LoadDDS(ID3D11Device* device, ID3D11DeviceContext* context, std::string key, std::wstring path);
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetTexture(std::string key);
+        void LoadWIC(ID3D12Device* device,
+            ID3D12CommandQueue* cq,
+            std::string key,
+            std::wstring path,
+            bool sRGB = false);
+        void LoadDDS(ID3D12Device* device, 
+            ID3D12CommandQueue* cq, 
+            std::string key, 
+            std::wstring path);
+        std::optional<GraphicsMemoryManager::DescriptorIndex>
+            GetTexture(std::string key);
 
     private:
         static std::unique_ptr<TextureManager> s_textureManager;
 
         TextureManager();
 
-        std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_textureMap;
+        std::unordered_map<std::string, TextureMapEntry> m_textureMap;
     };
 }
