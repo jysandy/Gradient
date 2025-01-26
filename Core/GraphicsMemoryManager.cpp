@@ -69,7 +69,7 @@ namespace Gradient
         }
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateSrv(
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateSRV(
         ID3D12Device* device,
         ID3D12Resource* resource,
         bool isCubeMap
@@ -77,15 +77,78 @@ namespace Gradient
     {
         auto index = AllocateSrv();
 
-        DirectX::CreateShaderResourceView(device, 
-            resource, 
-            GetSrvCpuHandle(index),
+        DirectX::CreateShaderResourceView(device,
+            resource,
+            GetSRVCpuHandle(index),
             isCubeMap);
 
         return index;
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSrvCpuHandle(DescriptorIndex index)
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateSRV(
+        ID3D12Device* device,
+        ID3D12Resource* resource,
+        D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
+    )
+    {
+        auto index = AllocateSrv();
+
+        device->CreateShaderResourceView(resource,
+            srvDesc, GetSRVCpuHandle(index));
+
+        return index;
+    }
+
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateRTV()
+    {
+        return m_rtvDescriptors->Allocate();
+    }
+
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateRTV(
+        ID3D12Device* device,
+        ID3D12Resource* resource
+    )
+    {
+        auto index = AllocateRTV();
+
+        DirectX::CreateRenderTargetView(device,
+            resource,
+            GetRTVCpuHandle(index));
+
+        return index;
+    }
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetRTVCpuHandle(DescriptorIndex index)
+    {
+        return m_rtvDescriptors->GetCpuHandle(index);
+    }
+
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateDSV()
+    {
+        return m_dsvDescriptors->Allocate();
+    }
+
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateDSV(
+        ID3D12Device* device,
+        ID3D12Resource* resource,
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc
+    )
+    {
+        auto index = AllocateDSV();
+
+        device->CreateDepthStencilView(resource,
+            &dsvDesc,
+            GetDSVCpuHandle(index));
+
+        return index;
+    }
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetDSVCpuHandle(DescriptorIndex index)
+    {
+        return m_dsvDescriptors->GetCpuHandle(index);
+    }
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSRVCpuHandle(DescriptorIndex index)
     {
         return m_srvDescriptors->GetCpuHandle(index);
     }

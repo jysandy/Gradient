@@ -50,6 +50,7 @@
     <ClInclude Include="GUI\imgui_impl_dx12.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\RootSignature.h" />
+    <ClInclude Include="Core\BarrierResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="GUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\RootSignature.cpp" />
+    <ClCompile Include="Core\BarrierResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -236,6 +238,7 @@
     <None Include="Core\Shaders\PBRLighting.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
+    <None Include="TODO.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />

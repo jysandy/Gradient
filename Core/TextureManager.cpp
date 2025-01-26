@@ -67,7 +67,7 @@ namespace Gradient
         uploadFinished.wait();
 
         auto gmm = GraphicsMemoryManager::Get();
-        auto srvIndex = gmm->CreateSrv(device, resource.Get());
+        auto srvIndex = gmm->CreateSRV(device, resource.Get());
 
         m_textureMap.insert({ key, {resource, srvIndex} });
     }
@@ -92,7 +92,7 @@ namespace Gradient
         uploadFinished.wait();
 
         auto gmm = GraphicsMemoryManager::Get();
-        auto srvIndex = gmm->CreateSrv(device, resource.Get());
+        auto srvIndex = gmm->CreateSRV(device, resource.Get());
 
         m_textureMap.insert({ key, {resource, srvIndex} });
     }

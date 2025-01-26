@@ -195,6 +195,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Core\BarrierResource.h" />
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
@@ -233,6 +234,7 @@
     <ClInclude Include="StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\BarrierResource.cpp" />
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
@@ -330,6 +332,7 @@
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="ImportTex.ps1" />
     <None Include="README.md" />
+    <None Include="TODO.md" />
     <None Include="vcpkg-configuration.json" />
     <None Include="vcpkg.json" />
   </ItemGroup>

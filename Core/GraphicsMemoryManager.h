@@ -24,23 +24,57 @@ namespace Gradient
         inline DirectX::GraphicsResource AllocateConstant(const T& data);
 
         void Commit(ID3D12CommandQueue* cq);
+
+
+        // SRV
+
         DescriptorIndex AllocateSrv();
         void FreeSrv(DescriptorIndex index);
         // Used by ImGui
         void FreeSrvByCpuHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
-        // TODO: Methods to create RTVs, SRVs and DSVs
-
-        DescriptorIndex CreateSrv(
+        DescriptorIndex CreateSRV(
             ID3D12Device* device,
             ID3D12Resource* resource,
             bool isCubeMap = false
         );
 
-        D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle(DescriptorIndex index);
+        DescriptorIndex CreateSRV(
+            ID3D12Device* device,
+            ID3D12Resource* resource,
+            D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
+        );
+
+        D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuHandle(DescriptorIndex index);
         D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuHandle(DescriptorIndex index);
 
         ID3D12DescriptorHeap* GetSrvDescriptorHeap();
+
+
+        // RTV
+
+        DescriptorIndex AllocateRTV();
+
+        DescriptorIndex CreateRTV(
+            ID3D12Device* device,
+            ID3D12Resource* resource
+        );
+
+        D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuHandle(DescriptorIndex index);
+
+
+        // DSV
+
+        DescriptorIndex AllocateDSV();
+
+        DescriptorIndex CreateDSV(
+            ID3D12Device* device,
+            ID3D12Resource* resource,
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc
+        );
+
+        D3D12_CPU_DESCRIPTOR_HANDLE GetDSVCpuHandle(DescriptorIndex index);
+
     private:
         GraphicsMemoryManager(ID3D12Device* device);
         void TrackCpuDescriptorHandle(DescriptorIndex index);

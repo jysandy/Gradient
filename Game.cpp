@@ -74,7 +74,7 @@ void Game::Initialize(HWND window, int width, int height)
         {
             auto gmm = Gradient::GraphicsMemoryManager::Get();
             auto index = gmm->AllocateSrv();
-            *outCpuHandle = gmm->GetSrvCpuHandle(index);
+            *outCpuHandle = gmm->GetSRVCpuHandle(index);
             *outGpuHandle = gmm->GetSRVGpuHandle(index);
         };
     initInfo.SrvDescriptorFreeFn
@@ -233,6 +233,8 @@ void Game::Render()
     m_skyDomePipeline->SetView(m_camera.GetViewMatrix());
     m_skyDomePipeline->Apply(context);
     m_sky->Draw(context);
+
+    m_dLight->TransitionToShaderResource(cl);
 
     m_pbrPipeline->SetCameraPosition(m_camera.GetPosition());
     m_pbrPipeline->SetDirectionalLight(m_dLight.get());
