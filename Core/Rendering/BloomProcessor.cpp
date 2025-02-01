@@ -6,17 +6,14 @@
 
 namespace Gradient::Rendering
 {
-    BloomProcessor::BloomProcessor(ID3D11Device* device,
-        ID3D11DeviceContext* context,
-        std::shared_ptr<DirectX::CommonStates> states,
+    BloomProcessor::BloomProcessor(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         int width,
         int height,
-        DXGI_FORMAT format) : m_states(states)
+        DXGI_FORMAT format)
     {
         m_downsampled1 = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
-            context,
-            m_states,
             width / 4,
             height / 4,
             format,
@@ -25,8 +22,6 @@ namespace Gradient::Rendering
 
         m_downsampled2 = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
-            context,
-            m_states,
             width / 6,
             height / 6,
             format,
@@ -35,8 +30,6 @@ namespace Gradient::Rendering
 
         m_downsampled3 = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
-            context,
-            m_states,
             width / 4,
             height / 4,
             format,
@@ -45,37 +38,45 @@ namespace Gradient::Rendering
 
         m_screensizeRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
             device,
-            context,
-            m_states,
             width,
             height,
             format,
             false
         );
 
-        m_brightnessFilterPS = LoadPixelShader(device, L"BrightnessFilter_PS.cso");
-        m_additiveBlendPS = LoadPixelShader(device, L"AdditiveBlend_PS.cso");
-        m_blurPS = LoadPixelShader(device, L"blur.cso");
-        m_gaussianHorizontalPS = LoadPixelShader(device, L"GaussianHorizontal_PS.cso");
-        m_gaussianVerticalPS = LoadPixelShader(device, L"GaussianVertical_PS.cso");
+        m_brightnessFilter = std::make_unique<TextureDrawer>(
+            device,
+            cq,
+            format,
+            L"BrightnessFilter_PS.cso"
+        );
 
-        m_brightnessFilterCB.Create(device);
-    }
+        m_additiveBlend = std::make_unique<TextureDrawer>(
+            device,
+            cq,
+            format,
+            L"AdditiveBlend_PS.cso"
+        );
 
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> BloomProcessor::LoadPixelShader(
-        ID3D11Device* device,
-        const std::wstring& path)
-    {
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
+        m_gaussianHorizontal = std::make_unique<TextureDrawer>(
+            device,
+            cq,
+            format,
+            L"GaussianHorizontal_PS.cso"
+        );
 
-        auto psData = DX::ReadData(path.c_str());
-        DX::ThrowIfFailed(
-            device->CreatePixelShader(psData.data(),
-                psData.size(),
-                nullptr,
-                ps.ReleaseAndGetAddressOf()));
+        m_gaussianVertical = std::make_unique<TextureDrawer>(
+            device,
+            cq,
+            format,
+            L"GaussianVertical_PS.cso"
+        );
 
-        return ps;
+        m_vanilla = std::make_unique<TextureDrawer>(
+            device,
+            cq,
+            format
+        );
     }
 
     void BloomProcessor::SetExposure(float bt)
@@ -98,55 +99,45 @@ namespace Gradient::Rendering
         return m_intensity;
     }
 
-    RenderTexture* BloomProcessor::Process(ID3D11DeviceContext* context,
+    RenderTexture* BloomProcessor::Process(ID3D12GraphicsCommandList* cl,
         RenderTexture* input)
     {
-        input->DrawTo(context, m_downsampled1.get());
+        input->DrawTo(cl, m_downsampled1.get(), m_vanilla.get());
 
-        m_downsampled1->DrawTo(context, m_downsampled2.get());
-        m_downsampled2->DrawTo(context, m_downsampled1.get());
+        m_downsampled1->DrawTo(cl, m_downsampled2.get(), m_vanilla.get());
+        m_downsampled2->DrawTo(cl, m_downsampled1.get(), m_vanilla.get());
 
-        m_downsampled1->DrawTo(context, m_downsampled3.get(),
-            [=]
-            {
-                context->PSSetShader(m_gaussianHorizontalPS.Get(), nullptr, 0);
-            });
+        m_downsampled1->DrawTo(cl, m_downsampled3.get(),
+            m_gaussianHorizontal.get());
 
-        m_downsampled3->DrawTo(context, m_downsampled1.get(),
-            [=]
-            {
-                context->PSSetShader(m_gaussianVerticalPS.Get(), nullptr, 0);
-            });
+        m_downsampled3->DrawTo(cl, m_downsampled1.get(),
+            m_gaussianVertical.get());
 
-        m_downsampled1->DrawTo(context, m_downsampled3.get(),
-            [=]
-            {
-                m_brightnessFilterCB.SetData(context, { m_exposure, m_intensity });
-                context->PSSetShader(m_brightnessFilterPS.Get(), nullptr, 0);
-                auto cb = m_brightnessFilterCB.GetBuffer();
-                context->PSSetConstantBuffers(0, 1, &cb);
-            });
+        TextureDrawer::SetCBV(cl, BloomParams{ m_exposure, m_intensity });
 
-        m_downsampled3->DrawTo(context, m_downsampled1.get(),
-            [=]
-            {
-                context->PSSetShader(m_gaussianHorizontalPS.Get(), nullptr, 0);
-            });
+        m_downsampled1->DrawTo(cl,
+            m_downsampled3.get(),
+            m_brightnessFilter.get()
+        );
 
-        m_downsampled1->DrawTo(context, m_downsampled3.get(),
-            [=]
-            {
-                context->PSSetShader(m_gaussianVerticalPS.Get(), nullptr, 0);
-            });
+        m_downsampled3->DrawTo(cl, m_downsampled1.get(),
+            m_gaussianHorizontal.get()
+        );
 
-        input->DrawTo(context,
+        m_downsampled1->DrawTo(cl, m_downsampled3.get(),
+            m_gaussianVertical.get()
+        );
+
+        m_downsampled3
+            ->GetSingleSampledBarrierResource()
+            ->Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+        auto srv = m_downsampled3->GetSRV();
+        TextureDrawer::SetSRV(cl, srv);
+
+        input->DrawTo(cl,
             m_screensizeRenderTexture.get(),
-            [=]
-            {
-                auto srv = m_downsampled3->GetSRV();
-                context->PSSetShader(m_additiveBlendPS.Get(), nullptr, 0);
-                context->PSSetShaderResources(1, 1, &srv);
-            });
+            m_additiveBlend.get()
+        );
 
         return m_screensizeRenderTexture.get();
     }

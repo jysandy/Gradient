@@ -51,6 +51,7 @@
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\RootSignature.h" />
     <ClInclude Include="Core\BarrierResource.h" />
+    <ClInclude Include="Core\Rendering\TextureDrawer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -86,6 +87,7 @@
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\RootSignature.cpp" />
     <ClCompile Include="Core\BarrierResource.cpp" />
+    <ClCompile Include="Core\Rendering\TextureDrawer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

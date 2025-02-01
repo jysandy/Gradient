@@ -6,13 +6,31 @@ namespace Gradient
 {
     RootSignature::RootSignature()
     {
-        for (auto& space : m_spaceToSlotToRPIndex)
+        for (auto& space : m_cbvSpaceToSlotToRPIndex)
         {
             for (auto& slot : space)
             {
                 slot = UINT_MAX;
             }
         }
+
+        for (auto& space : m_srvSpaceToSlotToRPIndex)
+        {
+            for (auto& slot : space)
+            {
+                slot = UINT_MAX;
+            }
+        }
+    }
+
+    ID3D12RootSignature* RootSignature::Get()
+    {
+        return m_rootSignature.Get();
+    }
+
+    void RootSignature::Reset()
+    {
+        m_rootSignature.Reset();
     }
 
     void RootSignature::AddCBV(UINT slot, UINT space)
@@ -22,7 +40,7 @@ namespace Gradient
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, slot, space);
         m_descRanges.push_back(range);
-        m_spaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
+        m_cbvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
     }
 
     void RootSignature::AddSRV(UINT slot, UINT space)
@@ -32,7 +50,7 @@ namespace Gradient
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, slot, space);
         m_descRanges.push_back(range);
-        m_spaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
+        m_srvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
     }
 
     void RootSignature::AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC samplerDesc,
@@ -59,10 +77,12 @@ namespace Gradient
             case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
                 rp.InitAsConstantBufferView(m_descRanges[i].BaseShaderRegister,
                     m_descRanges[i].RegisterSpace);
+                rootParameters.push_back(rp);
                 break;
 
             case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
                 rp.InitAsDescriptorTable(1, &m_descRanges[i]);
+                rootParameters.push_back(rp);
                 break;
 
             default:
@@ -75,6 +95,8 @@ namespace Gradient
             rootParameters.data(),
             m_staticSamplers.size(),
             m_staticSamplers.data());
+
+        rootSig.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
         using Microsoft::WRL::ComPtr;
 
         ComPtr<ID3DBlob> serializedRootSig;
@@ -91,6 +113,8 @@ namespace Gradient
                 serializedRootSig->GetBufferSize(),
                 IID_PPV_ARGS(m_rootSignature.ReleaseAndGetAddressOf())
             ));
+
+        m_isBuilt = true;
     }
 
     void RootSignature::SetSRV(ID3D12GraphicsCommandList* cl,
@@ -101,7 +125,7 @@ namespace Gradient
         assert(m_isBuilt);
         auto gmm = GraphicsMemoryManager::Get();
 
-        auto rpIndex = m_spaceToSlotToRPIndex[space][slot];
+        auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
         assert(rpIndex != UINT32_MAX);
         cl->SetGraphicsRootDescriptorTable(rpIndex,
             gmm->GetSRVGpuHandle(index));

@@ -27,7 +27,7 @@ namespace Gradient::Pipelines
         explicit ShadowMapPipeline(ID3D12Device* device);
         virtual ~ShadowMapPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = false) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;

@@ -18,6 +18,8 @@ namespace Gradient
             UINT space);
 
         void Build(ID3D12Device* device);
+        ID3D12RootSignature* Get();
+        void Reset();
 
         template <typename T>
         void SetCBV(ID3D12GraphicsCommandList* cl, 
@@ -37,7 +39,8 @@ namespace Gradient
 
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> m_descRanges;
         std::vector< CD3DX12_STATIC_SAMPLER_DESC> m_staticSamplers;
-        std::array<std::array<UINT, 128>, 6> m_spaceToSlotToRPIndex;
+        std::array<std::array<UINT, 64>, 6> m_cbvSpaceToSlotToRPIndex;
+        std::array<std::array<UINT, 64>, 6> m_srvSpaceToSlotToRPIndex;
 
         Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
     };
@@ -50,7 +53,7 @@ namespace Gradient
     {
         assert(m_isBuilt);
 
-        auto rpIndex = m_spaceToSlotToRPIndex[space][slot];
+        auto rpIndex = m_cbvSpaceToSlotToRPIndex[space][slot];
 
         assert(rpIndex != UINT32_MAX);
 

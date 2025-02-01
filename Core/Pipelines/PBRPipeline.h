@@ -47,7 +47,7 @@ namespace Gradient::Pipelines
         explicit PBRPipeline(ID3D12Device* device);
         virtual ~PBRPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
         virtual void SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
         virtual void SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
@@ -68,7 +68,8 @@ namespace Gradient::Pipelines
         void SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         RootSignature m_rootSignature;
 
         std::optional<GraphicsMemoryManager::DescriptorIndex> m_texture;

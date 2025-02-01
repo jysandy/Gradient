@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Camera.h"
-#include <directxtk/Keyboard.h>
-#include <directxtk/Mouse.h>
+#include <directxtk12/Keyboard.h>
+#include <directxtk12/Mouse.h>
 #include <algorithm>
 
 using namespace DirectX::SimpleMath;

@@ -7,6 +7,7 @@
 #include "directxtk12/Keyboard.h"
 #include "Core/GraphicsMemoryManager.h"
 #include "Core/TextureManager.h"
+#include "Core/Rendering/TextureDrawer.h"
 #include "Core/Rendering/GeometricPrimitive.h"
 #include "Core/Parameters.h"
 #include <directxtk12/SimpleMath.h>
@@ -38,16 +39,18 @@ Game::Game() noexcept(false)
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
-    auto device = m_deviceResources->GetD3DDevice();
-    Gradient::GraphicsMemoryManager::Initialize(device);
     Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
     m_deviceResources->CreateDeviceResources();
+    //m_deviceResources->Prepare(D3D12_RESOURCE_STATE_PRESENT,
+    //    D3D12_RESOURCE_STATE_COPY_DEST);
+
     CreateDeviceDependentResources();
 
     m_deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
+    //m_deviceResources->Present(D3D12_RESOURCE_STATE_COPY_DEST);
 
     m_keyboard = std::make_unique<Keyboard>();
     m_mouse = std::make_unique<Mouse>();
@@ -57,37 +60,6 @@ void Game::Initialize(HWND window, int width, int height)
 
     auto cq = m_deviceResources->GetCommandQueue();
 
-    // Initialize ImGUI
-
-    ImGui_ImplDX12_InitInfo initInfo = {};
-    initInfo.Device = device;
-    initInfo.CommandQueue = cq;
-    initInfo.NumFramesInFlight = 2;
-    initInfo.RTVFormat = m_deviceResources->GetBackBufferFormat(); // Or your render target format.
-
-    auto gmm = Gradient::GraphicsMemoryManager::Get();
-    initInfo.SrvDescriptorHeap = gmm->GetSrvDescriptorHeap();
-    initInfo.SrvDescriptorAllocFn
-        = [](ImGui_ImplDX12_InitInfo*,
-            D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle,
-            D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle)
-        {
-            auto gmm = Gradient::GraphicsMemoryManager::Get();
-            auto index = gmm->AllocateSrv();
-            *outCpuHandle = gmm->GetSRVCpuHandle(index);
-            *outGpuHandle = gmm->GetSRVGpuHandle(index);
-        };
-    initInfo.SrvDescriptorFreeFn
-        = [](ImGui_ImplDX12_InitInfo*,
-            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle,
-            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
-        {
-            auto gmm = Gradient::GraphicsMemoryManager::Get();
-            gmm->FreeSrvByCpuHandle(cpuHandle);
-        };
-
-
-    ImGui_ImplDX12_Init(&initInfo);
     Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
 }
 
@@ -139,8 +111,6 @@ void Game::Update(DX::StepTimer const& timer)
 
     m_waterPipeline->SetTotalTime(totalSeconds);
     m_waterPipeline->SetWaterParams(m_renderingWindow.Water);
-    m_waterShadowPipeline->SetTotalTime(totalSeconds);
-    m_waterShadowPipeline->SetWaterParams(m_renderingWindow.Water);
     m_bloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_bloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
 }
@@ -167,28 +137,35 @@ void Game::Render()
         return;
     }
 
+    m_deviceResources->Prepare(D3D12_RESOURCE_STATE_PRESENT,
+        D3D12_RESOURCE_STATE_COPY_DEST);
+
     auto entityManager = Gradient::EntityManager::Get();
+    auto gmm = Gradient::GraphicsMemoryManager::Get();
     auto cl = m_deviceResources->GetCommandList();
 
-    m_dLight->ClearAndSetDSV(context);
+    ID3D12DescriptorHeap* heaps[] = { gmm->GetSrvDescriptorHeap(), m_states->Heap() };
+    cl->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
+
+    D3D12_RECT scissorRect;
+    scissorRect.left = 0;
+    scissorRect.top = 0;
+    scissorRect.right = LONG_MAX; // Large value ensures no clipping
+    scissorRect.bottom = LONG_MAX;
+
+    cl->RSSetScissorRects(1, &scissorRect);
 
     PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Shadow Pass");
 
-    // Camera position is needed for tessellation. 
-    // But direction is not needed because culling is 
-    // disabled when drawing water shadows.
-    m_waterShadowPipeline->SetCameraPosition(m_camera.GetPosition());
-
+    m_dLight->ClearAndSetDSV(cl);
     m_shadowMapPipeline->SetView(m_dLight->GetView());
-    m_waterShadowPipeline->SetView(m_dLight->GetView());
     m_shadowMapPipeline->SetProjection(m_dLight->GetProjection());
-    m_waterShadowPipeline->SetProjection(m_dLight->GetProjection());
 
-    entityManager->DrawAll(context, true);
+    entityManager->DrawAll(cl, true);
 
     for (auto& pointLight : m_pointLights)
     {
-        m_shadowCubeArray->Render(context,
+        m_shadowCubeArray->Render(cl,
             pointLight.ShadowCubeIndex,
             pointLight.AsParams().Position,
             pointLight.MinRange,
@@ -196,14 +173,12 @@ void Game::Render()
             [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
             {
                 m_shadowMapPipeline->SetView(view);
-                m_waterShadowPipeline->SetView(view);
                 m_shadowMapPipeline->SetProjection(proj);
-                m_waterShadowPipeline->SetProjection(proj);
-                entityManager->DrawAll(context, true);
+                entityManager->DrawAll(cl, true);
             });
     }
 
-    PIXEndEvent();
+    PIXEndEvent(cl);
 
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -213,17 +188,17 @@ void Game::Render()
 
     PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Environment Map");
 
-    m_environmentMap->Render(context,
+    m_environmentMap->Render(cl,
         [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
         {
             m_skyDomePipeline->SetSunCircleEnabled(false);
             m_skyDomePipeline->SetProjection(proj);
             m_skyDomePipeline->SetView(view);
-            m_skyDomePipeline->Apply(context);
-            m_sky->Draw(context);
+            m_skyDomePipeline->Apply(cl, false);
+            m_sky->Draw(cl);
         });
 
-    PIXEndEvent();
+    PIXEndEvent(cl);
 
     Clear();
 
@@ -231,10 +206,13 @@ void Game::Render()
     m_skyDomePipeline->SetSunCircleEnabled(true);
     m_skyDomePipeline->SetProjection(m_camera.GetProjectionMatrix());
     m_skyDomePipeline->SetView(m_camera.GetViewMatrix());
-    m_skyDomePipeline->Apply(context);
-    m_sky->Draw(context);
+    m_skyDomePipeline->Apply(cl);
+    m_sky->Draw(cl);
 
+    // TODO: Batch these barrier transitions
     m_dLight->TransitionToShaderResource(cl);
+    m_environmentMap->TransitionToShaderResource(cl);
+    m_shadowCubeArray->TransitionToShaderResource(cl);
 
     m_pbrPipeline->SetCameraPosition(m_camera.GetPosition());
     m_pbrPipeline->SetDirectionalLight(m_dLight.get());
@@ -253,40 +231,45 @@ void Game::Render()
     m_waterPipeline->SetPointLights(PointLightParams());
     m_waterPipeline->SetShadowCubeArray(m_shadowCubeArray->GetSRV());
 
-    entityManager->DrawAll(context);
+    entityManager->DrawAll(cl);
 
-    m_multisampledRenderTexture->CopyToSingleSampled(context);
-    PIXEndEvent();
+    m_multisampledRenderTexture->CopyToSingleSampled(cl);
+    PIXEndEvent(cl);
 
     // Post-process ----
     PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Bloom");
-    auto bloomOutput = m_bloomProcessor->Process(context,
+    auto bloomOutput = m_bloomProcessor->Process(cl,
         m_multisampledRenderTexture.get());
-    PIXEndEvent();
+    PIXEndEvent(cl);
 
     // Tonemap and draw GUI
-    bloomOutput->DrawTo(context,
+    bloomOutput->DrawTo(cl,
         m_tonemappedRenderTexture.get(),
-        [=]
-        {
-            context->PSSetShader(m_tonemapperPS.Get(), nullptr, 0);
-        });
+        m_tonemapper.get());
 
-    m_tonemappedRenderTexture->SetAsTarget(context);
+    m_tonemappedRenderTexture->SetAsTarget(cl);
     m_physicsWindow.Draw();
     m_entityWindow.Draw();
     m_renderingWindow.Draw();
     m_perfWindow.Draw();
 
     ImGui::Render();
-    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), 
-        m_deviceResources->GetCommandList());
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(),
+        cl);
 
-    context->CopyResource(m_deviceResources->GetRenderTarget(),
-        m_tonemappedRenderTexture->GetSingleSampledTexture());
+    // This should already be in the COPY_DEST state
+    auto presentResource = m_deviceResources->GetRenderTarget();
+    auto tonemappedBarrierResource
+        = m_tonemappedRenderTexture->GetSingleSampledBarrierResource();
+    tonemappedBarrierResource->Transition(cl, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+    cl->CopyResource(presentResource,
+        tonemappedBarrierResource->Get());
 
     // Show the new frame.
-    m_deviceResources->Present();
+    m_deviceResources->Present(D3D12_RESOURCE_STATE_COPY_DEST);
+
+    gmm->Commit(m_deviceResources->GetCommandQueue());
 }
 
 // Helper method to clear the back buffers.
@@ -297,11 +280,11 @@ void Game::Clear()
 
     // Clear the views.
 
-    m_multisampledRenderTexture->ClearAndSetAsTarget(context);
+    m_multisampledRenderTexture->ClearAndSetAsTarget(cl);
 
     // Set the viewport.
     auto const viewport = m_deviceResources->GetScreenViewport();
-    context->RSSetViewports(1, &viewport);
+    cl->RSSetViewports(1, &viewport);
 
     PIXEndEvent();
 }
@@ -357,9 +340,12 @@ Game::~Game()
     Gradient::Physics::PhysicsEngine::Shutdown();
     Gradient::TextureManager::Shutdown();
     Gradient::EntityManager::Shutdown();
+    Gradient::Rendering::TextureDrawer::Shutdown();
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+    Gradient::GraphicsMemoryManager::Shutdown();
+    m_deviceResources.reset();
 }
 
 // Properties
@@ -378,6 +364,7 @@ void Game::CreateEntities()
     auto textureManager = TextureManager::Get();
     auto device = m_deviceResources->GetD3DDevice();
     auto cq = m_deviceResources->GetCommandQueue();
+    auto cl = m_deviceResources->GetCommandList();
 
 #pragma region Textures
     // TODO: display a loading screen while loading all these textures
@@ -485,7 +472,8 @@ void Game::CreateEntities()
 
     Entity sphere1;
     sphere1.id = "sphere1";
-    sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
+    sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
+        cq, 2.f);
     sphere1.RenderPipeline = m_pbrPipeline.get();
     sphere1.ShadowPipeline = m_shadowMapPipeline.get();
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
@@ -509,7 +497,8 @@ void Game::CreateEntities()
 
     Entity sphere2;
     sphere2.id = "sphere2";
-    sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device, deviceContext, 2.f);
+    sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
+        cq, 2.f);
     sphere2.RenderPipeline = m_pbrPipeline.get();
     sphere2.ShadowPipeline = m_shadowMapPipeline.get();
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
@@ -531,7 +520,8 @@ void Game::CreateEntities()
 
     Entity floor;
     floor.id = "floor";
-    floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 20.f, 0.5f, 20.f });
+    floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
+        cq, Vector3{ 20.f, 0.5f, 20.f });
     floor.RenderPipeline = m_pbrPipeline.get();
     floor.ShadowPipeline = m_shadowMapPipeline.get();
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
@@ -556,7 +546,8 @@ void Game::CreateEntities()
 
     Entity box1;
     box1.id = "box1";
-    box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
+        cq, Vector3{ 3.f, 3.f, 3.f });
     box1.RenderPipeline = m_pbrPipeline.get();
     box1.ShadowPipeline = m_shadowMapPipeline.get();
     box1.Texture = textureManager->GetTexture("metal01Albedo");
@@ -579,7 +570,8 @@ void Game::CreateEntities()
 
     Entity box2;
     box2.id = "box2";
-    box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device, deviceContext, Vector3{ 3.f, 3.f, 3.f });
+    box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
+        cq, Vector3{ 3.f, 3.f, 3.f });
     box2.RenderPipeline = m_pbrPipeline.get();
     box2.ShadowPipeline = m_shadowMapPipeline.get();
     box2.Texture = textureManager->GetTexture("crate");
@@ -602,19 +594,20 @@ void Game::CreateEntities()
     Entity water;
     water.id = "water";
     water.Drawable = Rendering::GeometricPrimitive::CreateGrid(device,
-        deviceContext,
+        cq,
         800,
         800,
         100);
     water.RenderPipeline = m_waterPipeline.get();
     water.ShadowPipeline = nullptr;
     water.CastsShadows = false;
+    //DEBUGGING
     entityManager->AddEntity(std::move(water));
 
     Entity ePointLight1;
     ePointLight1.id = "pointLight1";
     ePointLight1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
-        deviceContext,
+        cq,
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
     ePointLight1.ShadowPipeline = m_shadowMapPipeline.get();
@@ -645,7 +638,7 @@ void Game::CreateEntities()
     Entity ePointLight2;
     ePointLight2.id = "pointLight2";
     ePointLight2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
-        deviceContext,
+        cq,
         0.5f);
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
     ePointLight2.ShadowPipeline = m_shadowMapPipeline.get();
@@ -674,21 +667,6 @@ void Game::CreateEntities()
     entityManager->AddEntity(std::move(ePointLight2));
 }
 
-Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const std::wstring& path)
-{
-    auto device = m_deviceResources->GetD3DDevice();
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
-
-    auto psData = DX::ReadData(path.c_str());
-    DX::ThrowIfFailed(
-        device->CreatePixelShader(psData.data(),
-            psData.size(),
-            nullptr,
-            ps.ReleaseAndGetAddressOf()));
-
-    return ps;
-}
-
 #pragma region Direct3D Resources
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
@@ -697,11 +675,51 @@ void Game::CreateDeviceDependentResources()
 
     auto device = m_deviceResources->GetD3DDevice();
     auto cq = m_deviceResources->GetCommandQueue();
+    auto cl = m_deviceResources->GetCommandList();
+    Gradient::GraphicsMemoryManager::Initialize(device);
+    Rendering::TextureDrawer::CreateRootSignature(device);
+
+    // Initialize ImGUI
+
+    ImGui_ImplDX12_InitInfo initInfo = {};
+    initInfo.Device = device;
+    initInfo.CommandQueue = cq;
+    initInfo.NumFramesInFlight = 2;
+    initInfo.RTVFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+
+    auto gmm = Gradient::GraphicsMemoryManager::Get();
+    initInfo.SrvDescriptorHeap = gmm->GetSrvDescriptorHeap();
+    initInfo.SrvDescriptorAllocFn
+        = [](ImGui_ImplDX12_InitInfo*,
+            D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle,
+            D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle)
+        {
+            auto gmm = Gradient::GraphicsMemoryManager::Get();
+            auto index = gmm->AllocateSrv();
+            *outCpuHandle = gmm->GetSRVCpuHandle(index);
+            *outGpuHandle = gmm->GetSRVGpuHandle(index);
+        };
+    initInfo.SrvDescriptorFreeFn
+        = [](ImGui_ImplDX12_InitInfo*,
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle,
+            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
+        {
+            auto gmm = Gradient::GraphicsMemoryManager::Get();
+            gmm->FreeSrvByCpuHandle(cpuHandle);
+        };
+
+
+    ImGui_ImplDX12_Init(&initInfo);
 
     m_states = std::make_shared<DirectX::CommonStates>(device);
-    m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device, m_states);
-    m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device, m_states);
-    m_tonemapperPS = LoadPixelShader(L"ACESTonemapper_PS.cso");
+    m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device);
+    m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device);
+    m_tonemapper = std::make_unique<Rendering::TextureDrawer>(
+        device,
+        cq,
+        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+        L"ACESTonemapper_PS.cso"
+    );
 
     EntityManager::Initialize();
     TextureManager::Initialize(device, cq);
@@ -716,10 +734,10 @@ void Game::CreateDeviceDependentResources()
     m_dLight->SetColour(lightColor);
     m_dLight->SetIrradiance(7.f);
 
-    m_shadowMapPipeline = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device, m_states);
-    m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device, m_states);
+    m_shadowMapPipeline = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device);
+    m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device);
     m_skyDomePipeline->SetAmbientIrradiance(1.f);
-    m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device, 
+    m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device,
         cq, 2.f, 3,
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
@@ -730,8 +748,6 @@ void Game::CreateDeviceDependentResources()
         50.f, 400.f
     };
     m_waterPipeline->SetWaterParams(waterParams);
-    m_waterShadowPipeline->SetWaterParams(waterParams);
-    m_waterShadowPipeline->SetWaves(m_waterPipeline->GetWaves());
     m_renderingWindow.Water = waterParams;
 
     CreateEntities();
@@ -752,14 +768,13 @@ void Game::CreateWindowSizeDependentResources()
     m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
 
     auto device = m_deviceResources->GetD3DDevice();
-    auto context = m_deviceResources->GetD3DDeviceContext();
+    auto cl = m_deviceResources->GetCommandList();
+    auto cq = m_deviceResources->GetCommandQueue();
     auto width = static_cast<UINT>(windowSize.right);
     auto height = static_cast<UINT>(windowSize.bottom);
 
     m_multisampledRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
-        context,
-        m_states,
         width,
         height,
         DXGI_FORMAT_R32G32B32A32_FLOAT,
@@ -768,8 +783,6 @@ void Game::CreateWindowSizeDependentResources()
 
     m_tonemappedRenderTexture = std::make_unique<Gradient::Rendering::RenderTexture>(
         device,
-        context,
-        m_states,
         width,
         height,
         DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
@@ -778,8 +791,7 @@ void Game::CreateWindowSizeDependentResources()
 
     m_bloomProcessor = std::make_unique<Gradient::Rendering::BloomProcessor>(
         device,
-        context,
-        m_states,
+        cq,
         width,
         height,
         DXGI_FORMAT_R32G32B32A32_FLOAT
@@ -801,6 +813,8 @@ void Game::OnDeviceLost()
     auto entityManager = Gradient::EntityManager::Get();
     entityManager->OnDeviceLost();
 
+    Gradient::Rendering::TextureDrawer::Shutdown();
+    Gradient::GraphicsMemoryManager::Shutdown();
     // TODO: Fill this out maybe
 }
 

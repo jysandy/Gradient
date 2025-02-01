@@ -604,15 +604,16 @@ namespace Gradient::Rendering
 
     void GeometricPrimitive::Draw(ID3D12GraphicsCommandList* cl)
     {
-        constexpr UINT vertexStride = sizeof(VertexType);
-        constexpr UINT vertexOffset = 0;
-
         cl->IASetVertexBuffers(0,
             1,
             &m_vbv);
         cl->IASetIndexBuffer(&m_ibv);
 
-        cl->DrawInstanced(m_vertexCount, 1, 0, 0);
+        cl->DrawIndexedInstanced(m_indexCount,
+            1,
+            0,
+            0,
+            0);
     }
 
     void GeometricPrimitive::Initialize(ID3D12Device* device,
@@ -641,15 +642,13 @@ namespace Gradient::Rendering
         
         uploadFinished.wait();
 
-        D3D12_VERTEX_BUFFER_VIEW vbv;
-        vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-        vbv.StrideInBytes = sizeof(VertexType);
-        vbv.SizeInBytes = vbv.StrideInBytes * vertices.size();
+        m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+        m_vbv.StrideInBytes = sizeof(VertexType);
+        m_vbv.SizeInBytes = m_vbv.StrideInBytes * vertices.size();
 
-        D3D12_INDEX_BUFFER_VIEW ibv;
-        ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-        ibv.Format = DXGI_FORMAT_R16_UINT;
-        ibv.SizeInBytes = sizeof(uint16_t) * indices.size();
+        m_ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+        m_ibv.Format = DXGI_FORMAT_R16_UINT;
+        m_ibv.SizeInBytes = sizeof(uint16_t) * indices.size();
 
         m_vertexCount = vertices.size();
         m_indexCount = indices.size();

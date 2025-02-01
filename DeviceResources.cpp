@@ -561,7 +561,7 @@ void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
     if (m_options & c_AllowTearing)
     {
         // Recommended to always use tearing if supported when using a sync interval of 0.
-        // Note this will fail if in true 'fullscreen' mode.
+        // Note this will fail if in true 'fullscreen' mode.             
         hr = m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
     }
     else

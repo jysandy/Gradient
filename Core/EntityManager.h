@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <set>
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
 #include "Core/Entity.h"
 #include "StepTimer.h"
 
@@ -25,11 +25,11 @@ namespace Gradient
 
         void UpdateAll(DX::StepTimer const&);
         void DrawEntity(
-            ID3D11DeviceContext* context,
+            ID3D12GraphicsCommandList* cl,
             const Entity& entity,
             bool drawingShadows = false);
         void DrawAll(
-            ID3D11DeviceContext* context,
+            ID3D12GraphicsCommandList* cl,
             bool drawingShadows = false);
 
         void AddEntity(Entity&&);

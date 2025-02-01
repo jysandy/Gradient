@@ -33,12 +33,12 @@ namespace Gradient::Pipelines
             float ambientIrradiance;
         };
 
-        using VertexType = DirectX::VertexPosition;
+        using VertexType = DirectX::VertexPositionNormalTexture;
 
         explicit SkyDomePipeline(ID3D12Device* device);
         virtual ~SkyDomePipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -50,7 +50,8 @@ namespace Gradient::Pipelines
         void SetAmbientIrradiance(float ambientIrradiance);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
         RootSignature m_rootSignature;
 
         DirectX::SimpleMath::Matrix m_world;

@@ -16,7 +16,7 @@ namespace Gradient
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
             D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
             32);
-        m_rtvDescriptors = std::make_unique<DirectX::DescriptorPile>(device,
+        m_dsvDescriptors = std::make_unique<DirectX::DescriptorPile>(device,
             D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
             D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
             32);
@@ -114,6 +114,23 @@ namespace Gradient
         DirectX::CreateRenderTargetView(device,
             resource,
             GetRTVCpuHandle(index));
+
+        return index;
+    }
+
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateRTV(
+        ID3D12Device* device,
+        D3D12_RENDER_TARGET_VIEW_DESC desc,
+        ID3D12Resource* resource
+    )
+    {
+        auto index = AllocateRTV();
+
+        device->CreateRenderTargetView(
+            resource,
+            &desc,
+            GetRTVCpuHandle(index)
+        );
 
         return index;
     }

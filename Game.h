@@ -83,8 +83,6 @@ private:
     void CreateEntities();
     std::vector<Gradient::Params::PointLight> PointLightParams();
 
-    Microsoft::WRL::ComPtr<ID3D12PixelShader> LoadPixelShader(const std::wstring& path);
-
     // Device resources.
     std::unique_ptr<DX::DeviceResources>        m_deviceResources;
     // Rendering loop timer.
@@ -119,5 +117,5 @@ private:
     std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> m_skyDomePipeline;
     std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
     
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> m_tonemapperPS;
+    std::unique_ptr<Gradient::Rendering::TextureDrawer> m_tonemapper;
 };

@@ -40,28 +40,22 @@ namespace Gradient::Rendering
             1.f
         };
 
-        D3D12_RESOURCE_DESC depthStencilDesc = {};
-        depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        depthStencilDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-        depthStencilDesc.MipLevels = depthStencilDesc.DepthOrArraySize = 1;
-        depthStencilDesc.Width = (int)shadowMapWidth;
-        depthStencilDesc.Height = (int)shadowMapWidth;
-        depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+        auto depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+            DXGI_FORMAT_R32_TYPELESS,
+            (UINT64)shadowMapWidth,
+            (UINT64)shadowMapWidth
+            );
+        depthStencilDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
         D3D12_CLEAR_VALUE depthClearValue = {};
         depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
         depthClearValue.DepthStencil.Depth = 1.0f;
         depthClearValue.DepthStencil.Stencil = 0;
 
-        DX::ThrowIfFailed(
-            device->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-                D3D12_HEAP_FLAG_NONE,
-                &depthStencilDesc,
-                D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                &depthClearValue,
-                IID_PPV_ARGS(m_shadowMapDS.ReleaseAndGetAddressOf())));
-        m_shadowMapDS.SetState(D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        m_shadowMapDS.Create(device,
+            &depthStencilDesc,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            &depthClearValue);
 
         auto gmm = GraphicsMemoryManager::Get();
 
@@ -71,7 +65,7 @@ namespace Gradient::Rendering
         dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
         dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-        gmm->CreateDSV(device, m_shadowMapDS.Get(), dsvDesc);
+        m_shadowMapDSV = gmm->CreateDSV(device, m_shadowMapDS.Get(), dsvDesc);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -80,7 +74,7 @@ namespace Gradient::Rendering
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-        gmm->CreateSRV(device, m_shadowMapDS.Get(), &srvDesc);
+        m_shadowMapSRV = gmm->CreateSRV(device, m_shadowMapDS.Get(), &srvDesc);
     }
 
     void DirectionalLight::SetColour(DirectX::SimpleMath::Color colour)
@@ -175,6 +169,6 @@ namespace Gradient::Rendering
 
     void DirectionalLight::TransitionToShaderResource(ID3D12GraphicsCommandList* cl)
     {
-        m_shadowMapDS.Transition(cl, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        m_shadowMapDS.Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     }
 }

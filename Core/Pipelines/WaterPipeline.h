@@ -69,7 +69,7 @@ namespace Gradient::Pipelines
         explicit WaterPipeline(ID3D12Device* device);
         virtual ~WaterPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -90,7 +90,8 @@ namespace Gradient::Pipelines
     private:
         void GenerateWaves();
 
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         RootSignature m_rootSignature;
 
         std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowMap;

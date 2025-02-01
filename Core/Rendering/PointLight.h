@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
 
 #include "Core/Parameters.h"
 #include "Core/Rendering/DepthCubeArray.h"

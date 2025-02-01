@@ -1,5 +1,5 @@
 Texture2D<float4> Texture : register(t0);
-Texture2D<float4> TextureToBlend : register(t1);
+Texture2D<float4> TextureToBlend : register(t0, space1);
 sampler TextureSampler : register(s0);
 
 float4 main(float4 color : COLOR0,

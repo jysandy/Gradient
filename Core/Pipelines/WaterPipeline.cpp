@@ -10,39 +10,6 @@ namespace Gradient::Pipelines
 {
     WaterPipeline::WaterPipeline(ID3D12Device* device)
     {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-
-        auto vsData = DX::ReadData(L"Water_VS.cso");
-        auto hsData = DX::ReadData(L"Water_HS.cso");
-        auto dsData = DX::ReadData(L"Water_DS.cso");
-        auto psData = DX::ReadData(L"Water_PS.cso");
-
-        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
-        std::copy(VertexType::InputLayout.pInputElementDescs,
-            VertexType::InputLayout.pInputElementDescs + 3,
-            inputElements.begin());
-        inputElements[0].SemanticName = "LOCALPOS";
-        inputElements[0].SemanticIndex = 0;
-
-        psoDesc.InputLayout = { inputElements.data(), 3 };
-        psoDesc.VS = { vsData.data(), vsData.size() };
-        psoDesc.HS = { hsData.data(), hsData.size() };
-        psoDesc.DS = { dsData.data(), dsData.size() };
-        psoDesc.PS = { psData.data(), psData.size() };
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState.DepthEnable = TRUE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.SampleDesc.Count = 1;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_B8G8R8A8_UNORM;
-
-        DX::ThrowIfFailed(
-            device->CreateGraphicsPipelineState(&psoDesc,
-                IID_PPV_ARGS(&m_pso)));
-
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);
         m_rootSignature.AddCBV(1, 1);
@@ -70,7 +37,54 @@ namespace Gradient::Pipelines
             D3D12_COMPARISON_FUNC_LESS),
             1, 3);
 
-        m_rootSignature.Build();
+        m_rootSignature.Build(device);
+
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+
+        auto vsData = DX::ReadData(L"Water_VS.cso");
+        auto hsData = DX::ReadData(L"Water_HS.cso");
+        auto dsData = DX::ReadData(L"Water_DS.cso");
+        auto psData = DX::ReadData(L"Water_PS.cso");
+
+        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
+        std::copy(VertexType::InputLayout.pInputElementDescs,
+            VertexType::InputLayout.pInputElementDescs + 3,
+            inputElements.begin());
+        inputElements[0].SemanticName = "LOCALPOS";
+        inputElements[0].SemanticIndex = 0;
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = { inputElements.data(), 3 };
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.HS = { hsData.data(), hsData.size() };
+        psoDesc.DS = { dsData.data(), dsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState = DirectX::CommonStates::DepthDefault;
+        psoDesc.SampleMask = UINT_MAX;
+
+        // TODO: Get render target state from the render texture
+        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.SampleDesc.Count = 1;
+        psoDesc.SampleDesc.Quality = 0;
+
+        DX::ThrowIfFailed(
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_singleSampledPSO)));
+
+        psoDesc.RasterizerState.MultisampleEnable = TRUE;
+        psoDesc.SampleDesc.Count = 4;
+        psoDesc.SampleDesc.Quality = 0;
+
+        DX::ThrowIfFailed(
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_multisampledPSO)));
+
         GenerateWaves();
     }
 
@@ -111,9 +125,12 @@ namespace Gradient::Pipelines
         }
     }
 
-    void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl)
+    void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
     {
-        cl->SetPipelineState(m_pso.Get());
+        if (multisampled)
+            cl->SetPipelineState(m_multisampledPSO.Get());
+        else
+            cl->SetPipelineState(m_singleSampledPSO.Get());
         m_rootSignature.SetOnCommandList(cl);
 
         MatrixCB matrixConstants;
@@ -143,6 +160,7 @@ namespace Gradient::Pipelines
         waveConstants.numWaves = m_waves.size();
         waveConstants.totalTimeSeconds = m_totalTimeSeconds;
 
+        m_rootSignature.SetCBV(cl, 0, 0, waveConstants);
         m_rootSignature.SetCBV(cl, 1, 2, waveConstants);
         
         LightCB lightConstants;
@@ -179,7 +197,6 @@ namespace Gradient::Pipelines
         pixelConstants.refractiveIndex = m_waterParams.Scattering.RefractiveIndex;
 
         m_rootSignature.SetCBV(cl, 1, 3, pixelConstants);
-
 
         if (m_shadowMap)
             m_rootSignature.SetSRV(cl, 1, 3, m_shadowMap.value());

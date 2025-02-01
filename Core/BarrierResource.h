@@ -12,8 +12,16 @@ namespace Gradient
 
         ID3D12Resource* Get();
         ID3D12Resource** ReleaseAndGetAddressOf();
+
+        void Create(
+            ID3D12Device* device,
+            const D3D12_RESOURCE_DESC* pDesc,
+            D3D12_RESOURCE_STATES       InitialResourceState,
+            const D3D12_CLEAR_VALUE* pOptimizedClearValue
+        );
+
         void SetState(D3D12_RESOURCE_STATES newState);
-        void Transition(ID3D12GraphicsCommandList* cl, 
+        void Transition(ID3D12GraphicsCommandList* cl,
             D3D12_RESOURCE_STATES newState);
 
     private:

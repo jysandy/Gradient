@@ -3,7 +3,7 @@
 #include "pch.h"
 
 #include <set>
-#include <unordered_map>
+#include <map>
 #include <directxtk12/DescriptorHeap.h>
 #include <directxtk12/DirectXHelpers.h>
 
@@ -13,6 +13,10 @@ namespace Gradient
     class GraphicsMemoryManager
     {
     public:
+        // TODO: Make these things free themselves.
+        // The descriptor heap runs out of space whenever the 
+        // window is resized because the old descriptors are 
+        // never reclaimed.
         using DescriptorIndex = DirectX::DescriptorPile::IndexType;
 
         static void Initialize(ID3D12Device* device);
@@ -59,6 +63,12 @@ namespace Gradient
             ID3D12Device* device,
             ID3D12Resource* resource
         );
+                   
+        DescriptorIndex CreateRTV(
+            ID3D12Device* device,
+            D3D12_RENDER_TARGET_VIEW_DESC desc,
+            ID3D12Resource* resource
+        );
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuHandle(DescriptorIndex index);
 
@@ -88,7 +98,29 @@ namespace Gradient
         std::unique_ptr<DirectX::DescriptorPile> m_dsvDescriptors;
 
         std::set<DescriptorIndex> m_freeSrvIndices;
-        std::unordered_map<D3D12_CPU_DESCRIPTOR_HANDLE, DescriptorIndex> m_cpuHandleToSrvIndex;
+
+        struct DescriptorHandleHash
+        {
+            std::size_t operator()(const D3D12_CPU_DESCRIPTOR_HANDLE& h) const noexcept
+            {
+                return std::hash<SIZE_T>{}(h.ptr);
+            }
+        };
+
+        struct DescriptorHandleEqual
+        {
+            constexpr bool operator()(const D3D12_CPU_DESCRIPTOR_HANDLE& l,
+                const D3D12_CPU_DESCRIPTOR_HANDLE& r) const
+            {
+                return l.ptr == r.ptr;
+            }
+        };
+
+        std::unordered_map<D3D12_CPU_DESCRIPTOR_HANDLE, 
+            DescriptorIndex, 
+            DescriptorHandleHash,
+            DescriptorHandleEqual> 
+            m_cpuHandleToSrvIndex;
     };
 
     template <typename T>

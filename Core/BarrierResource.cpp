@@ -21,6 +21,26 @@ namespace Gradient
         return m_resource.ReleaseAndGetAddressOf();
     }
 
+    void BarrierResource::Create(
+        ID3D12Device* device,
+        const D3D12_RESOURCE_DESC* desc,
+        D3D12_RESOURCE_STATES       initialResourceState,
+        const D3D12_CLEAR_VALUE* optimizedClearValue
+    )
+    {
+        auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+        DX::ThrowIfFailed(
+            device->CreateCommittedResource(
+                &heapProperties,
+                D3D12_HEAP_FLAG_NONE,
+                desc,
+                initialResourceState,
+                optimizedClearValue,
+                IID_PPV_ARGS(m_resource.ReleaseAndGetAddressOf())));
+        SetState(initialResourceState);
+    }
+
     void BarrierResource::SetState(D3D12_RESOURCE_STATES newState)
     {
         m_resourceState = newState;
