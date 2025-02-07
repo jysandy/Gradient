@@ -156,7 +156,7 @@ namespace Gradient::Rendering
         return &m_offscreenRT;
     }
 
-    GraphicsMemoryManager::DescriptorIndex RenderTexture::GetRTV()
+    GraphicsMemoryManager::DescriptorView RenderTexture::GetRTV()
     {
         return m_rtv;
     }
@@ -206,8 +206,8 @@ namespace Gradient::Rendering
         m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
         m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-        auto rtvHandle = gmm->GetRTVCpuHandle(m_rtv);
-        auto dsvHandle = gmm->GetDSVCpuHandle(m_dsv);
+        auto rtvHandle = m_rtv->GetCPUHandle();
+        auto dsvHandle = m_dsv->GetCPUHandle();
 
         cl->ClearRenderTargetView(rtvHandle,
             DirectX::ColorsLinear::CornflowerBlue,
@@ -229,13 +229,13 @@ namespace Gradient::Rendering
         m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
         m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-        auto rtvHandle = gmm->GetRTVCpuHandle(m_rtv);
-        auto dsvHandle = gmm->GetDSVCpuHandle(m_dsv);
+        auto rtvHandle = m_rtv->GetCPUHandle();
+        auto dsvHandle = m_dsv->GetCPUHandle();
 
         cl->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
 
-    GraphicsMemoryManager::DescriptorIndex RenderTexture::GetSRV()
+    GraphicsMemoryManager::DescriptorView RenderTexture::GetSRV()
     {
         return m_srv;
     }

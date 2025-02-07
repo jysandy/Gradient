@@ -32,13 +32,13 @@ namespace Gradient::Rendering
         DirectX::SimpleMath::Matrix GetView() const;
         DirectX::SimpleMath::Matrix GetProjection() const;
 
-        GraphicsMemoryManager::DescriptorIndex GetShadowMapDescriptorIndex() const;
+        GraphicsMemoryManager::DescriptorView GetShadowMapSRV() const;
 
     private:
         D3D12_VIEWPORT m_shadowMapViewport;
-        GraphicsMemoryManager::DescriptorIndex m_shadowMapSRV;
+        GraphicsMemoryManager::DescriptorView m_shadowMapSRV;
         BarrierResource m_shadowMapDS;
-        GraphicsMemoryManager::DescriptorIndex m_shadowMapDSV;
+        GraphicsMemoryManager::DescriptorView m_shadowMapDSV;
 
         DirectX::SimpleMath::Color m_colour;
         float m_irradiance = 10.f;

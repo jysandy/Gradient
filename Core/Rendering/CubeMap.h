@@ -19,15 +19,15 @@ namespace Gradient::Rendering
             DXGI_FORMAT format);
 
         void Render(ID3D12GraphicsCommandList* cl, DrawFn fn);
-        GraphicsMemoryManager::DescriptorIndex GetSRV() const;
+        GraphicsMemoryManager::DescriptorView GetSRV() const;
         void TransitionToShaderResource(ID3D12GraphicsCommandList* cl);
 
     private:
         BarrierResource m_texture;
         BarrierResource m_depthTex;
-        GraphicsMemoryManager::DescriptorIndex m_srv;
-        GraphicsMemoryManager::DescriptorIndex m_rtv[6];
-        GraphicsMemoryManager::DescriptorIndex m_dsv;
+        GraphicsMemoryManager::DescriptorView m_srv;
+        GraphicsMemoryManager::DescriptorView m_rtv[6];
+        GraphicsMemoryManager::DescriptorView m_dsv;
 
         D3D12_VIEWPORT m_viewport;
     };

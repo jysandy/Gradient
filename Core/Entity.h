@@ -26,11 +26,11 @@ namespace Gradient
         Pipelines::IRenderPipeline* ShadowPipeline;
         bool CastsShadows = true;
 
-        std::optional<GraphicsMemoryManager::DescriptorIndex> Texture = std::nullopt;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> NormalMap = std::nullopt;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> AOMap = std::nullopt;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> MetalnessMap = std::nullopt;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> RoughnessMap = std::nullopt;
+        GraphicsMemoryManager::DescriptorView Texture = nullptr;
+        GraphicsMemoryManager::DescriptorView NormalMap = nullptr;
+        GraphicsMemoryManager::DescriptorView AOMap = nullptr;
+        GraphicsMemoryManager::DescriptorView MetalnessMap = nullptr;
+        GraphicsMemoryManager::DescriptorView RoughnessMap = nullptr;
         DirectX::SimpleMath::Vector3 EmissiveRadiance = { 0, 0, 0 };
 
         Entity();

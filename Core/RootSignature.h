@@ -30,7 +30,7 @@ namespace Gradient
         void SetSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,
             UINT space, 
-            GraphicsMemoryManager::DescriptorIndex index);
+            GraphicsMemoryManager::DescriptorView index);
 
         void SetOnCommandList(ID3D12GraphicsCommandList* cl);
 

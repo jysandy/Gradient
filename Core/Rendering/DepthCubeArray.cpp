@@ -117,7 +117,7 @@ namespace Gradient::Rendering
         {
             auto dsvIndex = cubeMapIndex * 6 + i;
 
-            auto dsvHandle = gmm->GetDSVCpuHandle(m_dsvs[dsvIndex]);
+            auto dsvHandle = m_dsvs[dsvIndex]->GetCPUHandle();
 
             cl->ClearDepthStencilView(dsvHandle,
                 D3D12_CLEAR_FLAG_DEPTH,
@@ -134,7 +134,7 @@ namespace Gradient::Rendering
         }
     }
 
-    GraphicsMemoryManager::DescriptorIndex DepthCubeArray::GetSRV() const
+    GraphicsMemoryManager::DescriptorView DepthCubeArray::GetSRV() const
     {
         return m_srv;
     }

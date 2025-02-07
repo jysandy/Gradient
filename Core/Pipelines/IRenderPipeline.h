@@ -24,11 +24,11 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) = 0;
 
-        virtual void SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        virtual void SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        virtual void SetAOMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        virtual void SetMetalnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        virtual void SetRoughnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
+        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index);
         virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance);
 
     protected:

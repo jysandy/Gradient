@@ -21,10 +21,10 @@ namespace Gradient::Rendering
 
         ID3D12Resource* GetTexture();
         BarrierResource* GetBarrierResource();
-        GraphicsMemoryManager::DescriptorIndex GetRTV();
+        GraphicsMemoryManager::DescriptorView GetRTV();
         ID3D12Resource* GetSingleSampledTexture();
         BarrierResource* GetSingleSampledBarrierResource();
-        GraphicsMemoryManager::DescriptorIndex GetSRV();
+        GraphicsMemoryManager::DescriptorView GetSRV();
         RECT GetOutputSize();
         void CopyToSingleSampled(ID3D12GraphicsCommandList* cl);
         void ClearAndSetAsTarget(ID3D12GraphicsCommandList* cl);
@@ -40,10 +40,10 @@ namespace Gradient::Rendering
 
         BarrierResource m_offscreenRT;
         BarrierResource m_singleSampledRT;
-        GraphicsMemoryManager::DescriptorIndex m_rtv;
-        GraphicsMemoryManager::DescriptorIndex m_srv;
+        GraphicsMemoryManager::DescriptorView m_rtv;
+        GraphicsMemoryManager::DescriptorView m_srv;
 
         BarrierResource m_depthBuffer;
-        GraphicsMemoryManager::DescriptorIndex m_dsv;
+        GraphicsMemoryManager::DescriptorView m_dsv;
     };
 }

@@ -160,13 +160,13 @@ namespace Gradient
         m_textureMap.insert({ key, {resource, srvIndex} });
     }
 
-    std::optional<GraphicsMemoryManager::DescriptorIndex>
+    GraphicsMemoryManager::DescriptorView
         TextureManager::GetTexture(std::string key)
     {
         if (auto entry = m_textureMap.find(key); entry != m_textureMap.end())
         {
             return entry->second.SrvIndex;
         }
-        return std::nullopt;
+        return nullptr;
     }
 }

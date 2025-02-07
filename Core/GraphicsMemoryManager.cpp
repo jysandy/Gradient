@@ -69,7 +69,7 @@ namespace Gradient
         }
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateSRV(
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateSRV(
         ID3D12Device* device,
         ID3D12Resource* resource,
         bool isCubeMap
@@ -82,10 +82,10 @@ namespace Gradient
             GetSRVCpuHandle(index),
             isCubeMap);
 
-        return index;
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRV);
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateSRV(
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateSRV(
         ID3D12Device* device,
         ID3D12Resource* resource,
         D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
@@ -96,15 +96,28 @@ namespace Gradient
         device->CreateShaderResourceView(resource,
             srvDesc, GetSRVCpuHandle(index));
 
-        return index;
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRV);
     }
 
     GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateRTV()
     {
+        if (!m_freeRTVIndices.empty())
+        {
+            auto index_it = m_freeRTVIndices.begin();
+            auto index = *index_it;
+            m_freeRTVIndices.erase(index_it);
+            return index;
+        }
+
         return m_rtvDescriptors->Allocate();
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateRTV(
+    void GraphicsMemoryManager::FreeRTV(DescriptorIndex index)
+    {
+        m_freeRTVIndices.insert(index);
+    }
+
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateRTV(
         ID3D12Device* device,
         ID3D12Resource* resource
     )
@@ -115,10 +128,10 @@ namespace Gradient
             resource,
             GetRTVCpuHandle(index));
 
-        return index;
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::RTV);
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateRTV(
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateRTV(
         ID3D12Device* device,
         D3D12_RENDER_TARGET_VIEW_DESC desc,
         ID3D12Resource* resource
@@ -132,7 +145,7 @@ namespace Gradient
             GetRTVCpuHandle(index)
         );
 
-        return index;
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::RTV);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetRTVCpuHandle(DescriptorIndex index)
@@ -142,10 +155,23 @@ namespace Gradient
 
     GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateDSV()
     {
+        if (!m_freeDSVIndices.empty())
+        {
+            auto index_it = m_freeDSVIndices.begin();
+            auto index = *index_it;
+            m_freeDSVIndices.erase(index_it);
+            return index;
+        }
+
         return m_dsvDescriptors->Allocate();
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::CreateDSV(
+    void GraphicsMemoryManager::FreeDSV(DescriptorIndex index)
+    {
+        m_freeDSVIndices.insert(index);
+    }
+
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateDSV(
         ID3D12Device* device,
         ID3D12Resource* resource,
         D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc
@@ -157,7 +183,7 @@ namespace Gradient
             &dsvDesc,
             GetDSVCpuHandle(index));
 
-        return index;
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::DSV);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetDSVCpuHandle(DescriptorIndex index)
@@ -194,5 +220,56 @@ namespace Gradient
     GraphicsMemoryManager* GraphicsMemoryManager::Get()
     {
         return s_instance.get();
+    }
+
+    GraphicsMemoryManager::DescriptorIndexContainer::DescriptorIndexContainer(DescriptorIndex index, DescriptorIndexType indexType)
+        : m_index(index), m_indexType(indexType)
+    {
+    }
+
+    GraphicsMemoryManager::DescriptorIndexContainer::~DescriptorIndexContainer()
+    {
+        auto gmm = GraphicsMemoryManager::Get();
+        
+        if (gmm == nullptr) return; // the memory has already been freed
+
+        switch (m_indexType)
+        {
+        case DescriptorIndexType::SRV:
+            gmm->FreeSrv(m_index);
+            break; 
+        case DescriptorIndexType::RTV:
+            gmm->FreeRTV(m_index);
+            break;
+        case DescriptorIndexType::DSV:
+            gmm->FreeDSV(m_index);
+            break;
+        }
+    }
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::DescriptorIndexContainer::GetCPUHandle()
+    {
+        auto gmm = GraphicsMemoryManager::Get();
+
+        switch (m_indexType)
+        {
+        case DescriptorIndexType::SRV:
+            return gmm->GetSRVCpuHandle(m_index);
+            break;
+        case DescriptorIndexType::RTV:
+            return gmm->GetRTVCpuHandle(m_index);
+            break;
+        case DescriptorIndexType::DSV:
+            return gmm->GetDSVCpuHandle(m_index);
+            break;
+        }
+    }
+
+    D3D12_GPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::DescriptorIndexContainer::GetGPUHandle()
+    {
+        assert(m_indexType == DescriptorIndexType::SRV);
+        auto gmm = GraphicsMemoryManager::Get();
+
+        return gmm->GetSRVGpuHandle(m_index);
     }
 }

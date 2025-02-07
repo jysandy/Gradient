@@ -134,6 +134,7 @@ namespace Gradient::Rendering
         auto srv = m_downsampled3->GetSRV();
         TextureDrawer::SetSRV(cl, srv);
 
+        // TODO: This is broken somehow
         input->DrawTo(cl,
             m_screensizeRenderTexture.get(),
             m_additiveBlend.get()

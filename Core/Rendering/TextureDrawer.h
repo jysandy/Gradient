@@ -26,7 +26,7 @@ namespace Gradient::Rendering
             DXGI_FORMAT format);
 
         void Draw(ID3D12GraphicsCommandList* cl,
-            GraphicsMemoryManager::DescriptorIndex texSRV,
+            GraphicsMemoryManager::DescriptorView texSRV,
             RECT inputSize,
             RECT outputSize);
 
@@ -38,7 +38,7 @@ namespace Gradient::Rendering
             const T& data);
 
         static void SetSRV(ID3D12GraphicsCommandList* cl,
-            GraphicsMemoryManager::DescriptorIndex index);
+            GraphicsMemoryManager::DescriptorView index);
 
     private:
         std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;

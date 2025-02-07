@@ -14,7 +14,7 @@ namespace Gradient
         struct TextureMapEntry
         {
             Microsoft::WRL::ComPtr<ID3D12Resource> Resource;
-            GraphicsMemoryManager::DescriptorIndex SrvIndex;
+            GraphicsMemoryManager::DescriptorView SrvIndex;
         };
 
         static void Initialize(ID3D12Device* device,
@@ -31,7 +31,7 @@ namespace Gradient
             ID3D12CommandQueue* cq, 
             std::string key, 
             std::wstring path);
-        std::optional<GraphicsMemoryManager::DescriptorIndex>
+        GraphicsMemoryManager::DescriptorView
             GetTexture(std::string key);
 
     private:

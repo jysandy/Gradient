@@ -4,27 +4,27 @@
 
 namespace Gradient::Pipelines
 {
-    void IRenderPipeline::SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void IRenderPipeline::SetAlbedo(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void IRenderPipeline::SetNormalMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetAOMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void IRenderPipeline::SetAOMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetMetalnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void IRenderPipeline::SetMetalnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetRoughnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void IRenderPipeline::SetRoughnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }

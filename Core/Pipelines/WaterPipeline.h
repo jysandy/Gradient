@@ -80,8 +80,8 @@ namespace Gradient::Pipelines
         void SetCameraDirection(DirectX::SimpleMath::Vector3 cameraDirection);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        void SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
+        void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
+        void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
         void SetTotalTime(float totalTimeSeconds);
         void SetWaterParams(Params::Water waterParams);
 
@@ -94,9 +94,9 @@ namespace Gradient::Pipelines
         Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         RootSignature m_rootSignature;
 
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_environmentMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowCubeArray;
+        GraphicsMemoryManager::DescriptorView m_shadowMap;
+        GraphicsMemoryManager::DescriptorView m_environmentMap;
+        GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

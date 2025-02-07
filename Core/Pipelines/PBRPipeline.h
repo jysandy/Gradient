@@ -49,11 +49,11 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
-        virtual void SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
-        virtual void SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
-        virtual void SetAOMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
-        virtual void SetMetalnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
-        virtual void SetRoughnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index) override;
+        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index) override;
         virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
@@ -64,22 +64,22 @@ namespace Gradient::Pipelines
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
-        void SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index);
+        void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
+        void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
 
     private:
         Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
         Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         RootSignature m_rootSignature;
 
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_texture;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_normalMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_aoMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_metalnessMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_roughnessMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_environmentMap;
-        std::optional<GraphicsMemoryManager::DescriptorIndex> m_shadowCubeArray;
+        GraphicsMemoryManager::DescriptorView m_texture;
+        GraphicsMemoryManager::DescriptorView m_shadowMap;
+        GraphicsMemoryManager::DescriptorView m_normalMap;
+        GraphicsMemoryManager::DescriptorView m_aoMap;
+        GraphicsMemoryManager::DescriptorView m_metalnessMap;
+        GraphicsMemoryManager::DescriptorView m_roughnessMap;
+        GraphicsMemoryManager::DescriptorView m_environmentMap;
+        GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

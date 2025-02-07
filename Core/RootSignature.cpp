@@ -120,15 +120,15 @@ namespace Gradient
     void RootSignature::SetSRV(ID3D12GraphicsCommandList* cl,
         UINT slot,
         UINT space,
-        GraphicsMemoryManager::DescriptorIndex index)
+        GraphicsMemoryManager::DescriptorView index)
     {
         assert(m_isBuilt);
-        auto gmm = GraphicsMemoryManager::Get();
+        if (!index) return;
 
         auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
         assert(rpIndex != UINT32_MAX);
         cl->SetGraphicsRootDescriptorTable(rpIndex,
-            gmm->GetSRVGpuHandle(index));
+            index->GetGPUHandle());
     }
 
     void RootSignature::SetOnCommandList(ID3D12GraphicsCommandList* cl)

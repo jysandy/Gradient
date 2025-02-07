@@ -19,6 +19,30 @@ namespace Gradient
         // never reclaimed.
         using DescriptorIndex = DirectX::DescriptorPile::IndexType;
 
+        enum class DescriptorIndexType
+        {
+            SRV, RTV, DSV
+        };
+
+        class DescriptorIndexContainer
+        {
+        public:
+            DescriptorIndexContainer(DescriptorIndex index, DescriptorIndexType indexType);
+            DescriptorIndexContainer(const DescriptorIndexContainer&) = delete;
+            DescriptorIndexContainer(const DescriptorIndexContainer&&) = delete;
+
+            D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle();
+            D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
+
+            ~DescriptorIndexContainer();
+
+            DescriptorIndex m_index;
+            DescriptorIndexType m_indexType;
+        };
+
+        using DescriptorView = std::shared_ptr<DescriptorIndexContainer>;
+
+
         static void Initialize(ID3D12Device* device);
         static void Shutdown();
 
@@ -37,13 +61,13 @@ namespace Gradient
         // Used by ImGui
         void FreeSrvByCpuHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
-        DescriptorIndex CreateSRV(
+        DescriptorView CreateSRV(
             ID3D12Device* device,
             ID3D12Resource* resource,
             bool isCubeMap = false
         );
 
-        DescriptorIndex CreateSRV(
+        DescriptorView CreateSRV(
             ID3D12Device* device,
             ID3D12Resource* resource,
             D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
@@ -57,14 +81,15 @@ namespace Gradient
 
         // RTV
 
-        DescriptorIndex AllocateRTV();
+        DescriptorIndex AllocateRTV();    
+        void FreeRTV(DescriptorIndex index);
 
-        DescriptorIndex CreateRTV(
+        DescriptorView CreateRTV(
             ID3D12Device* device,
             ID3D12Resource* resource
         );
                    
-        DescriptorIndex CreateRTV(
+        DescriptorView CreateRTV(
             ID3D12Device* device,
             D3D12_RENDER_TARGET_VIEW_DESC desc,
             ID3D12Resource* resource
@@ -76,8 +101,9 @@ namespace Gradient
         // DSV
 
         DescriptorIndex AllocateDSV();
+        void FreeDSV(DescriptorIndex index);
 
-        DescriptorIndex CreateDSV(
+        DescriptorView CreateDSV(
             ID3D12Device* device,
             ID3D12Resource* resource,
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc
@@ -98,6 +124,8 @@ namespace Gradient
         std::unique_ptr<DirectX::DescriptorPile> m_dsvDescriptors;
 
         std::set<DescriptorIndex> m_freeSrvIndices;
+        std::set<DescriptorIndex> m_freeRTVIndices;
+        std::set<DescriptorIndex> m_freeDSVIndices;
 
         struct DescriptorHandleHash
         {

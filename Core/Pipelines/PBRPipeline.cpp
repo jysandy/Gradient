@@ -123,64 +123,56 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 1, 1, pixelConstants);
 
-        if (m_texture)
-            m_rootSignature.SetSRV(cl, 0, 1, m_texture.value());
-        if (m_shadowMap)
-            m_rootSignature.SetSRV(cl, 1, 1, m_shadowMap.value());
-        if (m_normalMap)
-            m_rootSignature.SetSRV(cl, 2, 1, m_normalMap.value());
-        if (m_aoMap)
-            m_rootSignature.SetSRV(cl, 3, 1, m_aoMap.value());
-        if (m_metalnessMap)
-            m_rootSignature.SetSRV(cl, 4, 1, m_metalnessMap.value());
-        if (m_roughnessMap)
-            m_rootSignature.SetSRV(cl, 5, 1, m_roughnessMap.value());
-        if (m_environmentMap)
-            m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap.value());
-        if (m_shadowCubeArray)
-            m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray.value());
+        m_rootSignature.SetSRV(cl, 0, 1, m_texture);
+        m_rootSignature.SetSRV(cl, 1, 1, m_shadowMap);
+        m_rootSignature.SetSRV(cl, 2, 1, m_normalMap);
+        m_rootSignature.SetSRV(cl, 3, 1, m_aoMap);
+        m_rootSignature.SetSRV(cl, 4, 1, m_metalnessMap);
+        m_rootSignature.SetSRV(cl, 5, 1, m_roughnessMap);
+        m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap);
+        m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void PBRPipeline::SetAlbedo(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetAlbedo(GraphicsMemoryManager::DescriptorView index)
     {
         m_texture = index;
     }
 
-    void PBRPipeline::SetNormalMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetNormalMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_normalMap = index;
     }
 
-    void PBRPipeline::SetAOMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetAOMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_aoMap = index;
     }
 
-    void PBRPipeline::SetMetalnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetMetalnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_metalnessMap = index;
     }
 
-    void PBRPipeline::SetRoughnessMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetRoughnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_roughnessMap = index;
     }
 
-    void PBRPipeline::SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_environmentMap = index;
     }
 
-    void PBRPipeline::SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void PBRPipeline::SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index)
     {
         m_shadowCubeArray = index;
     }
 
     void PBRPipeline::SetDirectionalLight(Rendering::DirectionalLight* dlight)
     {
-        m_shadowMap = dlight->GetShadowMapDescriptorIndex();
+        m_shadowMap = dlight->GetShadowMapSRV();
         m_shadowTransform = dlight->GetShadowTransform();
 
         m_dLightCBData.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(dlight->GetColour());

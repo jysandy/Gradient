@@ -26,13 +26,13 @@ namespace Gradient::Rendering
             float farPlane,
             DrawFn fn);
 
-        GraphicsMemoryManager::DescriptorIndex GetSRV() const;
+        GraphicsMemoryManager::DescriptorView GetSRV() const;
         void TransitionToShaderResource(ID3D12GraphicsCommandList* cl);
 
     private:
         BarrierResource m_cubemapArray;
-        GraphicsMemoryManager::DescriptorIndex m_srv;
-        std::vector<GraphicsMemoryManager::DescriptorIndex> m_dsvs;
+        GraphicsMemoryManager::DescriptorView m_srv;
+        std::vector<GraphicsMemoryManager::DescriptorView> m_dsvs;
 
         D3D12_VIEWPORT m_viewport;
     };

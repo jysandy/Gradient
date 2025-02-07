@@ -148,7 +148,7 @@ namespace Gradient::Pipelines
         lodConstants.minLodDistance = m_waterParams.MinLod;
         lodConstants.maxLodDistance = m_waterParams.MaxLod;
         lodConstants.cullingEnabled = 1;
-        
+
         m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
         m_rootSignature.SetCBV(cl, 2, 2, lodConstants);
 
@@ -162,7 +162,7 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 0, 0, waveConstants);
         m_rootSignature.SetCBV(cl, 1, 2, waveConstants);
-        
+
         LightCB lightConstants;
         lightConstants.directionalLight.colour = static_cast<DirectX::XMFLOAT3>(m_directionalLightColour);
         lightConstants.directionalLight.irradiance = m_lightIrradiance;
@@ -198,12 +198,9 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 1, 3, pixelConstants);
 
-        if (m_shadowMap)
-            m_rootSignature.SetSRV(cl, 1, 3, m_shadowMap.value());
-        if (m_environmentMap)
-            m_rootSignature.SetSRV(cl, 2, 3, m_environmentMap.value());
-        if (m_shadowCubeArray)
-            m_rootSignature.SetSRV(cl, 3, 3, m_shadowCubeArray.value());
+        m_rootSignature.SetSRV(cl, 1, 3, m_shadowMap);
+        m_rootSignature.SetSRV(cl, 2, 3, m_environmentMap);
+        m_rootSignature.SetSRV(cl, 3, 3, m_shadowCubeArray);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
@@ -248,7 +245,7 @@ namespace Gradient::Pipelines
         m_directionalLightColour = dlight->GetColour();
         m_lightDirection = dlight->GetDirection();
         m_lightIrradiance = dlight->GetIrradiance();
-        m_shadowMap = dlight->GetShadowMapDescriptorIndex();
+        m_shadowMap = dlight->GetShadowMapSRV();
         m_shadowTransform = dlight->GetShadowTransform();
     }
 
@@ -257,12 +254,12 @@ namespace Gradient::Pipelines
         m_pointLights = pointLights;
     }
 
-    void WaterPipeline::SetEnvironmentMap(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void WaterPipeline::SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index)
     {
         m_environmentMap = index;
     }
 
-    void WaterPipeline::SetShadowCubeArray(std::optional<GraphicsMemoryManager::DescriptorIndex> index)
+    void WaterPipeline::SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index)
     {
         m_shadowCubeArray = index;
     }

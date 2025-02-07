@@ -118,8 +118,8 @@ namespace Gradient::Rendering
 
         for (int i = 0; i < 6; i++)
         {
-            auto rtvHandle = gmm->GetRTVCpuHandle(m_rtv[i]);
-            auto dsvHandle = gmm->GetDSVCpuHandle(m_dsv);
+            auto rtvHandle = m_rtv[i]->GetCPUHandle();
+            auto dsvHandle = m_dsv->GetCPUHandle();
 
             cl->ClearRenderTargetView(rtvHandle,
                 DirectX::ColorsLinear::CornflowerBlue,
@@ -144,7 +144,7 @@ namespace Gradient::Rendering
         m_texture.Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     }
 
-    GraphicsMemoryManager::DescriptorIndex CubeMap::GetSRV() const
+    GraphicsMemoryManager::DescriptorView CubeMap::GetSRV() const
     {
         return m_srv;
     }

@@ -142,7 +142,7 @@ namespace Gradient::Rendering
     {
         auto gmm = GraphicsMemoryManager::Get();
 
-        auto cpuHandle = gmm->GetDSVCpuHandle(m_shadowMapDSV);
+        auto cpuHandle = m_shadowMapDSV->GetCPUHandle();
 
         m_shadowMapDS.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
@@ -162,7 +162,7 @@ namespace Gradient::Rendering
         cl->RSSetViewports(1, &m_shadowMapViewport);
     }
 
-    GraphicsMemoryManager::DescriptorIndex DirectionalLight::GetShadowMapDescriptorIndex() const
+    GraphicsMemoryManager::DescriptorView DirectionalLight::GetShadowMapSRV() const
     {
         return m_shadowMapSRV;
     }

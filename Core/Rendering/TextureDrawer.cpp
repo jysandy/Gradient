@@ -29,7 +29,7 @@ namespace Gradient::Rendering
     }
 
     void TextureDrawer::SetSRV(ID3D12GraphicsCommandList* cl,
-        GraphicsMemoryManager::DescriptorIndex index)
+        GraphicsMemoryManager::DescriptorView index)
     {
         s_rootSignature.SetSRV(cl, 0, 1, index);
     }
@@ -96,7 +96,7 @@ namespace Gradient::Rendering
     }
 
     void TextureDrawer::Draw(ID3D12GraphicsCommandList* cl,
-        GraphicsMemoryManager::DescriptorIndex texSRV,
+        GraphicsMemoryManager::DescriptorView texSRV,
         RECT inputSize,
         RECT outputSize)
     {
@@ -112,7 +112,7 @@ namespace Gradient::Rendering
         };
         m_spriteBatch->SetViewport(viewport);
         m_spriteBatch->Begin(cl);
-        m_spriteBatch->Draw(gmm->GetSRVGpuHandle(texSRV),
+        m_spriteBatch->Draw(texSRV->GetGPUHandle(),
             { 
                 static_cast<uint32_t>(inputSize.right), 
                 static_cast<uint32_t>(inputSize.bottom)
