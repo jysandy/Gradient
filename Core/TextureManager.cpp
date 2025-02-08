@@ -1,24 +1,81 @@
 #include "pch.h"
 
 #include "Core/TextureManager.h"
-#include <directxtk/WICTextureLoader.h>
-#include <directxtk/DDSTextureLoader.h>
+#include <directxtk12/WICTextureLoader.h>
+#include <directxtk12/DDSTextureLoader.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
 namespace Gradient
 {
     std::unique_ptr<TextureManager> TextureManager::s_textureManager;
 
-    TextureManager::TextureManager()
+    TextureManager::TextureManager(ID3D12Device* device)
     {
+        DX::ThrowIfFailed(
+            device->CreateCommandAllocator(
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
+                IID_PPV_ARGS(m_commandAllocator.ReleaseAndGetAddressOf())));
+
+        DX::ThrowIfFailed(
+            device->CreateCommandList(
+                0,
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
+                m_commandAllocator.Get(),
+                nullptr,
+                IID_PPV_ARGS(m_commandList.ReleaseAndGetAddressOf())));
+        m_commandList->Close();
+
+        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+        DX::ThrowIfFailed(
+            device->CreateFence(0,
+                D3D12_FENCE_FLAG_NONE,
+                IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())));
     }
 
-    void TextureManager::Initialize(ID3D11Device* device, ID3D11DeviceContext* context)
+    void TextureManager::WaitForGPU(ID3D12CommandQueue* cq)
     {
-        auto tm = new TextureManager();
+        cq->Signal(m_fence.Get(), m_fenceValue);
+        if (m_fence->GetCompletedValue() < m_fenceValue)
+        {
+            m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent);
+            WaitForSingleObject(m_fenceEvent, INFINITE);
+        }
+    }
+
+    void TextureManager::ResetCommandList(ID3D12CommandQueue* cq)
+    {
+        WaitForGPU(cq);
+        m_commandAllocator->Reset();
+        m_commandList->Reset(m_commandAllocator.Get(), nullptr);
+    }
+
+    void TextureManager::SubmitCommandList(ID3D12CommandQueue* cq)
+    {
+        m_commandList->Close();
+        ID3D12CommandList* commandLists[] = { m_commandList.Get() };
+        cq->ExecuteCommandLists(1, commandLists);
+        m_fenceValue++;
+    }
+
+    void TextureManager::Initialize(ID3D12Device* device,
+        ID3D12CommandQueue* cq)
+    {
+        auto tm = new TextureManager(device);
         s_textureManager = std::unique_ptr<TextureManager>(tm);
-        s_textureManager->LoadWIC(device, context, "default", L"Assets\\DefaultTexture.png", true);
-        s_textureManager->LoadWIC(device, context, "defaultNormal", L"Assets\\DefaultNormalMap.png");
-        s_textureManager->LoadWIC(device, context, "defaultMetalness", L"Assets\\DefaultMetalness.bmp");
+        s_textureManager->LoadWIC(device,
+            cq,
+            "default",
+            L"Assets\\DefaultTexture.png",
+            true);
+        s_textureManager->LoadWIC(device,
+            cq,
+            "defaultNormal",
+            L"Assets\\DefaultNormalMap.png");
+        s_textureManager->LoadWIC(device,
+            cq,
+            "defaultMetalness",
+            L"Assets\\DefaultMetalness.bmp");
     }
 
     void TextureManager::Shutdown()
@@ -31,53 +88,84 @@ namespace Gradient
         return s_textureManager.get();
     }
 
-    void TextureManager::LoadWIC(ID3D11Device* device,
-        ID3D11DeviceContext* context,
+    void TextureManager::LoadWIC(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         std::string key,
         std::wstring path,
         bool sRGB)
     {
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+        DirectX::ResourceUploadBatch uploadBatch(device);
 
-        // DXTK doesn't seem to create mipmappable SRVs 
-        // all the time, I think it depends on the image format.
-        // Not fixing in favour of just using DDS instead.
+        uploadBatch.Begin();
+
         DX::ThrowIfFailed(
             DirectX::CreateWICTextureFromFileEx(device,
+                uploadBatch,
                 path.c_str(),
                 0,
-                D3D11_USAGE_DEFAULT,
-                D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
-                0,
-                D3D11_RESOURCE_MISC_GENERATE_MIPS,
-                sRGB ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_IGNORE_SRGB,
-                nullptr,
-                srv.ReleaseAndGetAddressOf()));
+                D3D12_RESOURCE_FLAG_NONE,
+                DirectX::WIC_LOADER_MIP_AUTOGEN | (sRGB ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_IGNORE_SRGB),
+                resource.ReleaseAndGetAddressOf()));
 
-        m_textureMap.insert({ key, srv });
-        context->GenerateMips(srv.Get());
+        auto uploadFinished = uploadBatch.End(cq);
+        uploadFinished.wait();
+
+        ResetCommandList(cq);
+
+        DirectX::TransitionResource(m_commandList.Get(),
+            resource.Get(),
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+
+        SubmitCommandList(cq);
+
+        auto gmm = GraphicsMemoryManager::Get();
+        auto srvIndex = gmm->CreateSRV(device, resource.Get());
+
+        m_textureMap.insert({ key, {resource, srvIndex} });
     }
 
-    void TextureManager::LoadDDS(ID3D11Device* device,
-        ID3D11DeviceContext* context,
+    void TextureManager::LoadDDS(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
         std::string key,
         std::wstring path)
     {
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+        DirectX::ResourceUploadBatch uploadBatch(device);
+
+        uploadBatch.Begin();
 
         DX::ThrowIfFailed(
-            DirectX::CreateDDSTextureFromFile(device, 
-                path.c_str(), 
-                nullptr, 
-                srv.ReleaseAndGetAddressOf()));
-        m_textureMap.insert({ key, srv });
+            DirectX::CreateDDSTextureFromFile(device,
+                uploadBatch,
+                path.c_str(),
+                resource.ReleaseAndGetAddressOf()));
+
+        auto uploadFinished = uploadBatch.End(cq);
+        uploadFinished.wait();
+
+        ResetCommandList(cq);
+
+        DirectX::TransitionResource(m_commandList.Get(),
+            resource.Get(),
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+
+        SubmitCommandList(cq);
+
+        auto gmm = GraphicsMemoryManager::Get();
+        auto srvIndex = gmm->CreateSRV(device, resource.Get());
+
+        m_textureMap.insert({ key, {resource, srvIndex} });
     }
 
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> TextureManager::GetTexture(std::string key)
+    GraphicsMemoryManager::DescriptorView
+        TextureManager::GetTexture(std::string key)
     {
         if (auto entry = m_textureMap.find(key); entry != m_textureMap.end())
         {
-            return entry->second;
+            return entry->second.SrvIndex;
         }
         return nullptr;
     }

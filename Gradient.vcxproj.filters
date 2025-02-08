@@ -25,7 +25,6 @@
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\TextureManager.h" />
-    <ClInclude Include="GUI\imgui_impl_dx11.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
@@ -47,7 +46,12 @@
     <ClInclude Include="Core\Rendering\PointLight.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Rendering\DepthCubeArray.h" />
-    <ClInclude Include="Core\Pipelines\WaterShadowPipeline.h" />
+    <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="GUI\imgui_impl_dx12.h" />
+    <ClInclude Include="Core\GraphicsMemoryManager.h" />
+    <ClInclude Include="Core\RootSignature.h" />
+    <ClInclude Include="Core\BarrierResource.h" />
+    <ClInclude Include="Core\Rendering\TextureDrawer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -62,7 +66,6 @@
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
-    <ClCompile Include="GUI\imgui_impl_dx11.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
@@ -80,7 +83,11 @@
     <ClCompile Include="GUI\PerformanceWindow.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
-    <ClCompile Include="Core\Pipelines\WaterShadowPipeline.cpp" />
+    <ClCompile Include="GUI\imgui_impl_dx12.cpp" />
+    <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
+    <ClCompile Include="Core\RootSignature.cpp" />
+    <ClCompile Include="Core\BarrierResource.cpp" />
+    <ClCompile Include="Core\Rendering\TextureDrawer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -233,6 +240,7 @@
     <None Include="Core\Shaders\PBRLighting.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
+    <None Include="TODO.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />

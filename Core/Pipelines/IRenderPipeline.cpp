@@ -4,27 +4,27 @@
 
 namespace Gradient::Pipelines
 {
-    void IRenderPipeline::SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void IRenderPipeline::SetAlbedo(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void IRenderPipeline::SetNormalMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void IRenderPipeline::SetAOMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void IRenderPipeline::SetMetalnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }
 
-    void IRenderPipeline::SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+    void IRenderPipeline::SetRoughnessMap(GraphicsMemoryManager::DescriptorView index)
     {
         // Ignored
     }

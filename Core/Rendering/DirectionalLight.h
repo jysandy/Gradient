@@ -1,8 +1,9 @@
 #pragma once
 
 #include "pch.h"
-
-#include <directxtk/SimpleMath.h>
+#include "Core/BarrierResource.h"
+#include "Core/GraphicsMemoryManager.h"
+#include <directxtk12/SimpleMath.h>
 
 namespace Gradient::Rendering
 {
@@ -10,7 +11,7 @@ namespace Gradient::Rendering
     class DirectionalLight
     {
     public:
-        DirectionalLight(ID3D11Device* device,
+        DirectionalLight(ID3D12Device* device,
             DirectX::SimpleMath::Vector3 lightDirection,
             float sceneRadius,
             DirectX::SimpleMath::Vector3 sceneCentre = DirectX::SimpleMath::Vector3::Zero);
@@ -21,7 +22,8 @@ namespace Gradient::Rendering
         void SetColour(DirectX::SimpleMath::Color colour);
         void SetLightDirection(const DirectX::SimpleMath::Vector3& direction);
         void SetIrradiance(float irradiance);
-        void ClearAndSetDSV(ID3D11DeviceContext*);
+        void ClearAndSetDSV(ID3D12GraphicsCommandList* cl);
+        void TransitionToShaderResource(ID3D12GraphicsCommandList* cl);
 
         DirectX::SimpleMath::Color GetColour() const;
         float GetIrradiance() const;
@@ -30,14 +32,13 @@ namespace Gradient::Rendering
         DirectX::SimpleMath::Matrix GetView() const;
         DirectX::SimpleMath::Matrix GetProjection() const;
 
-        ID3D11ShaderResourceView* GetShadowMapSRV() const;
+        GraphicsMemoryManager::DescriptorView GetShadowMapSRV() const;
 
     private:
-        D3D11_VIEWPORT m_shadowMapViewport;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMapSRV;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_shadowMapDS;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_shadowMapDSV;
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_shadowMapRSState;
+        D3D12_VIEWPORT m_shadowMapViewport;
+        GraphicsMemoryManager::DescriptorView m_shadowMapSRV;
+        BarrierResource m_shadowMapDS;
+        GraphicsMemoryManager::DescriptorView m_shadowMapDSV;
 
         DirectX::SimpleMath::Color m_colour;
         float m_irradiance = 10.f;

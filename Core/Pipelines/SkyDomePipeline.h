@@ -1,18 +1,19 @@
 #pragma once
 
 #include "pch.h"
-#include <directxtk/Effects.h>
-#include <directxtk/VertexTypes.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/BufferHelpers.h>
-#include <directxtk/CommonStates.h>
+#include <directxtk12/Effects.h>
+#include <directxtk12/VertexTypes.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/CommonStates.h>
 
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Pipelines/IRenderPipeline.h"
+#include "Core/RootSignature.h"
 
 namespace Gradient::Pipelines
 {
-    class SkyDomePipeline : public IRenderPipeline, public DirectX::IEffectMatrices
+    class SkyDomePipeline : public IRenderPipeline
     {
     public:
         struct __declspec(align(16)) VertexCB
@@ -32,30 +33,26 @@ namespace Gradient::Pipelines
             float ambientIrradiance;
         };
 
-        using VertexType = DirectX::VertexPosition;
+        using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit SkyDomePipeline(ID3D11Device* device,
-            std::shared_ptr<DirectX::CommonStates> states);
+        explicit SkyDomePipeline(ID3D12Device* device);
+        virtual ~SkyDomePipeline() noexcept = default;
 
-        virtual void Apply(ID3D11DeviceContext* context) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
-        ID3D11InputLayout* GetInputLayout() const;
         void SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight);
         void SetSunCircleEnabled(bool enabled);
         void SetAmbientIrradiance(float ambientIrradiance);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
-        DirectX::ConstantBuffer<VertexCB> m_vertexCB;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
-        DirectX::ConstantBuffer<PixelCB> m_pixelCB;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-        std::shared_ptr<DirectX::CommonStates> m_states;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
+        RootSignature m_rootSignature;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
@@ -67,7 +64,5 @@ namespace Gradient::Pipelines
         float m_irradiance;
         float m_ambientIrradiance = 1.f;
         bool m_sunCircleEnabled;
-
-        std::vector<uint8_t> m_vsData;
     };
 }

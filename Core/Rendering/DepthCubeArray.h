@@ -1,34 +1,39 @@
 #pragma once
 
 #include "pch.h"
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
 #include <functional>
+
+#include "Core/GraphicsMemoryManager.h"
+#include "Core/BarrierResource.h"
 
 namespace Gradient::Rendering
 {
+    // TODO: Replace this nonsense with bindless rendering
     class DepthCubeArray
     {
     public:
         using DrawFn = std::function<void(DirectX::SimpleMath::Matrix, DirectX::SimpleMath::Matrix)>;
 
-        DepthCubeArray(ID3D11Device* device,
+        DepthCubeArray(ID3D12Device* device,
             int width,
             int numCubes);
 
-        void Render(ID3D11DeviceContext* context,
+        void Render(ID3D12GraphicsCommandList* cl,
             int cubeMapIndex,
             DirectX::SimpleMath::Vector3 origin,
             float nearPlane,
             float farPlane,
             DrawFn fn);
 
-        ID3D11ShaderResourceView* GetSRV() const;
+        GraphicsMemoryManager::DescriptorView GetSRV() const;
+        void TransitionToShaderResource(ID3D12GraphicsCommandList* cl);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_cubemapArray;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srv;
-        std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_dsvs;
+        BarrierResource m_cubemapArray;
+        GraphicsMemoryManager::DescriptorView m_srv;
+        std::vector<GraphicsMemoryManager::DescriptorView> m_dsvs;
 
-        D3D11_VIEWPORT m_viewport;
+        D3D12_VIEWPORT m_viewport;
     };
 }

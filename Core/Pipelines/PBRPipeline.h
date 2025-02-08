@@ -5,11 +5,12 @@
 #include "Core/Pipelines/BufferStructs.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
-#include <directxtk/Effects.h>
-#include <directxtk/VertexTypes.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/BufferHelpers.h>
-#include <directxtk/CommonStates.h>
+#include "Core/RootSignature.h"
+#include <directxtk12/Effects.h>
+#include <directxtk12/VertexTypes.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/CommonStates.h>
 
 namespace Gradient::Pipelines
 {
@@ -43,18 +44,17 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit PBRPipeline(ID3D11Device* device, std::shared_ptr<DirectX::CommonStates> states);
+        explicit PBRPipeline(ID3D12Device* device);
+        virtual ~PBRPipeline() noexcept = default;
 
-        virtual void Apply(ID3D11DeviceContext* context) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
 
-        virtual void SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
-        virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
-        virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
-        virtual void SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
-        virtual void SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv) override;
+        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index) override;
+        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index) override;
         virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance) override;
-
-        virtual ID3D11InputLayout* GetInputLayout() const override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -64,26 +64,22 @@ namespace Gradient::Pipelines
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        void SetShadowCubeArray(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+        void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
+        void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vs;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ps;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_aoMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_metalnessMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roughnessMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_environmentMap;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowCubeArray;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-        DirectX::ConstantBuffer<VertexCB> m_vertexCB;
-        DirectX::ConstantBuffer<PixelCB> m_pixelCameraCB;
-        DirectX::ConstantBuffer<LightCB> m_lightCB;
-        std::shared_ptr<DirectX::CommonStates> m_states;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_comparisonSS;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
+        RootSignature m_rootSignature;
+
+        GraphicsMemoryManager::DescriptorView m_texture;
+        GraphicsMemoryManager::DescriptorView m_shadowMap;
+        GraphicsMemoryManager::DescriptorView m_normalMap;
+        GraphicsMemoryManager::DescriptorView m_aoMap;
+        GraphicsMemoryManager::DescriptorView m_metalnessMap;
+        GraphicsMemoryManager::DescriptorView m_roughnessMap;
+        GraphicsMemoryManager::DescriptorView m_environmentMap;
+        GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

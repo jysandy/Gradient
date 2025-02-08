@@ -1,7 +1,10 @@
 #pragma once
 #include "pch.h"
-#include <directxtk/CommonStates.h>
-#include <directxtk/SpriteBatch.h>
+#include "Core/BarrierResource.h"
+#include "Core/GraphicsMemoryManager.h"
+#include "Core/Rendering/TextureDrawer.h"
+#include <directxtk12/CommonStates.h>
+#include <directxtk12/SpriteBatch.h>
 #include <memory>
 
 namespace Gradient::Rendering
@@ -10,40 +13,38 @@ namespace Gradient::Rendering
     {
     public:
         RenderTexture(
-            ID3D11Device* device,
-            ID3D11DeviceContext* context,
-            std::shared_ptr<DirectX::CommonStates> commonStates,
+            ID3D12Device* device,
             UINT width,
             UINT height,
             DXGI_FORMAT format,
             bool multisamplingEnabled);
 
-        ID3D11Texture2D* GetTexture();
-        ID3D11RenderTargetView* GetRTV();
-        ID3D11Texture2D* GetSingleSampledTexture();
-        ID3D11ShaderResourceView* GetSRV();
+        ID3D12Resource* GetTexture();
+        BarrierResource* GetBarrierResource();
+        GraphicsMemoryManager::DescriptorView GetRTV();
+        ID3D12Resource* GetSingleSampledTexture();
+        BarrierResource* GetSingleSampledBarrierResource();
+        GraphicsMemoryManager::DescriptorView GetSRV();
         RECT GetOutputSize();
-        void CopyToSingleSampled(ID3D11DeviceContext* context);
-        void ClearAndSetAsTarget(ID3D11DeviceContext* context);
-        void SetAsTarget(ID3D11DeviceContext* context);
-        void DrawTo(ID3D11DeviceContext* context,
+        void CopyToSingleSampled(ID3D12GraphicsCommandList* cl);
+        void ClearAndSetAsTarget(ID3D12GraphicsCommandList* cl);
+        void SetAsTarget(ID3D12GraphicsCommandList* cl);
+        void DrawTo(ID3D12GraphicsCommandList* cl,
             RenderTexture* destination,
-            std::function<void __cdecl()> customState = nullptr);
+            TextureDrawer* texDrawer,
+            D3D12_VIEWPORT viewport);
 
     private:
         bool m_multisamplingEnabled;
         DXGI_FORMAT m_format;
-        std::shared_ptr<DirectX::CommonStates> m_states;
-        RECT m_outputSize;
-        std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+        RECT m_size;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_offscreenRenderTarget;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_singleSampledRT;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_offscreenRTV;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srv;
+        BarrierResource m_offscreenRT;
+        BarrierResource m_singleSampledRT;
+        GraphicsMemoryManager::DescriptorView m_rtv;
+        GraphicsMemoryManager::DescriptorView m_srv;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthBuffer;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilSRV;
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_multisampledRSState;
+        BarrierResource m_depthBuffer;
+        GraphicsMemoryManager::DescriptorView m_dsv;
     };
 }

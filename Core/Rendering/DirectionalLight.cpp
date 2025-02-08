@@ -1,13 +1,14 @@
 #include "pch.h"
 
 #include "Core/Rendering/DirectionalLight.h"
+#include <directxtk12/DirectXHelpers.h>
 
 namespace Gradient::Rendering
 {
     using namespace DirectX;
     using namespace DirectX::SimpleMath;
 
-    DirectionalLight::DirectionalLight(ID3D11Device* device,
+    DirectionalLight::DirectionalLight(ID3D12Device* device,
         Vector3 lightDirection,
         float sceneRadius,
         Vector3 sceneCentre)
@@ -39,43 +40,41 @@ namespace Gradient::Rendering
             1.f
         };
 
-        CD3D11_TEXTURE2D_DESC depthStencilDesc(
+        auto depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
             DXGI_FORMAT_R32_TYPELESS,
-            (int)shadowMapWidth,
-            (int)shadowMapWidth,
-            1, // Use a single array entry.
-            1, // Use a single mipmap level.
-            D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
-        );
+            (UINT64)shadowMapWidth,
+            (UINT64)shadowMapWidth
+            );
+        depthStencilDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-        DX::ThrowIfFailed(device->CreateTexture2D(
+        D3D12_CLEAR_VALUE depthClearValue = {};
+        depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthClearValue.DepthStencil.Depth = 1.0f;
+        depthClearValue.DepthStencil.Stencil = 0;
+
+        m_shadowMapDS.Create(device,
             &depthStencilDesc,
-            nullptr,
-            m_shadowMapDS.ReleaseAndGetAddressOf()
-        ));
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            &depthClearValue);
 
-        CD3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc(
-            D3D11_DSV_DIMENSION_TEXTURE2D,
-            DXGI_FORMAT_D32_FLOAT
-        );
+        auto gmm = GraphicsMemoryManager::Get();
 
-        DX::ThrowIfFailed(device->CreateDepthStencilView(
-            m_shadowMapDS.Get(),
-            &dsvDesc,
-            m_shadowMapDSV.ReleaseAndGetAddressOf()
-        ));
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 
-        CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc(m_shadowMapDS.Get(),
-            D3D11_SRV_DIMENSION_TEXTURE2D,
-            DXGI_FORMAT_R32_FLOAT);
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 
-        DX::ThrowIfFailed(device->CreateShaderResourceView(
-            m_shadowMapDS.Get(),
-            &srvDesc,
-            m_shadowMapSRV.ReleaseAndGetAddressOf()
-        ));
+        m_shadowMapDSV = gmm->CreateDSV(device, m_shadowMapDS.Get(), dsvDesc);
 
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
+        m_shadowMapSRV = gmm->CreateSRV(device, m_shadowMapDS.Get(), &srvDesc);
     }
 
     void DirectionalLight::SetColour(DirectX::SimpleMath::Color colour)
@@ -139,20 +138,37 @@ namespace Gradient::Rendering
         return m_shadowMapProj;
     }
 
-    void DirectionalLight::ClearAndSetDSV(ID3D11DeviceContext* context)
+    void DirectionalLight::ClearAndSetDSV(ID3D12GraphicsCommandList* cl)
     {
-        context->ClearDepthStencilView(m_shadowMapDSV.Get(),
-            D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-            1.f, 0);
+        auto gmm = GraphicsMemoryManager::Get();
 
-        ID3D11RenderTargetView* nullRTV = nullptr;
+        auto cpuHandle = m_shadowMapDSV->GetCPUHandle();
 
-        context->OMSetRenderTargets(1, &nullRTV, m_shadowMapDSV.Get());
-        context->RSSetViewports(1, &m_shadowMapViewport);
+        m_shadowMapDS.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+        cl->ClearDepthStencilView(
+            cpuHandle,
+            D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+            1.f, 
+            0, 0, nullptr);
+
+        cl->OMSetRenderTargets(
+            0,
+            nullptr,
+            FALSE,
+            &cpuHandle
+        );
+
+        cl->RSSetViewports(1, &m_shadowMapViewport);
     }
 
-    ID3D11ShaderResourceView* DirectionalLight::GetShadowMapSRV() const
+    GraphicsMemoryManager::DescriptorView DirectionalLight::GetShadowMapSRV() const
     {
-        return m_shadowMapSRV.Get();
+        return m_shadowMapSRV;
+    }
+
+    void DirectionalLight::TransitionToShaderResource(ID3D12GraphicsCommandList* cl)
+    {
+        m_shadowMapDS.Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
     }
 }

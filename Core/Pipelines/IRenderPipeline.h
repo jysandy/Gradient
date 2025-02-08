@@ -3,8 +3,10 @@
 #include "pch.h"
 
 #include "Core/Rendering/IDrawable.h"
-#include <directxtk/Effects.h>
-#include <directxtk/SimpleMath.h>
+#include "Core/GraphicsMemoryManager.h"
+#include <optional>
+#include <directxtk12/Effects.h>
+#include <directxtk12/SimpleMath.h>
 
 namespace Gradient::Pipelines
 {
@@ -15,20 +17,19 @@ namespace Gradient::Pipelines
     class IRenderPipeline : public DirectX::IEffectMatrices
     {
     public:
-        virtual ~IRenderPipeline() = default;
+        virtual ~IRenderPipeline() noexcept = default;
 
         IRenderPipeline(const IRenderPipeline&) = delete;
         IRenderPipeline& operator=(const IRenderPipeline&) = delete;
 
-        virtual void Apply(ID3D11DeviceContext* context) = 0;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) = 0;
 
-        virtual void SetAlbedo(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        virtual void SetNormalMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        virtual void SetAOMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        virtual void SetMetalnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
-        virtual void SetRoughnessMap(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index);
+        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index);
         virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance);
-        virtual ID3D11InputLayout* GetInputLayout() const = 0;
 
     protected:
         IRenderPipeline() = default;

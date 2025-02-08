@@ -4,7 +4,7 @@ struct VSOutput
     float3 texcoord : TEXCOORD0;
 };
 
-cbuffer SunBuffer : register(b0)
+cbuffer SunBuffer : register(b0, space1)
 {
     float3 g_sunColour;
     float g_sunExp;

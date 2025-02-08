@@ -2,23 +2,23 @@
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
 
-SamplerState linearSampler : register(s0);
-SamplerComparisonState shadowMapSampler : register(s1);
+SamplerState linearSampler : register(s0, space3);
+SamplerComparisonState shadowMapSampler : register(s1, space3);
 
-Texture2D shadowMap : register(t1);
-TextureCube environmentMap : register(t2);
-TextureCubeArray pointShadowMaps : register(t3);
+Texture2D shadowMap : register(t1, space3);
+TextureCube environmentMap : register(t2, space3);
+TextureCubeArray pointShadowMaps : register(t3, space3);
 
 #define MAX_POINT_LIGHTS 8
 
-cbuffer LightBuffer : register(b0)
+cbuffer LightBuffer : register(b0, space3)
 {
     DirectionalLight directionalLight;
     PointLight g_pointLights[MAX_POINT_LIGHTS];
     uint g_numPointLights;
 };
 
-cbuffer Constants : register(b1)
+cbuffer Constants : register(b1, space3)
 {
     float3 cameraPosition;
     float maxAmplitude;

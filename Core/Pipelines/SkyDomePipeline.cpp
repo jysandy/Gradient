@@ -5,39 +5,46 @@
 
 namespace Gradient::Pipelines
 {
-    SkyDomePipeline::SkyDomePipeline(ID3D11Device* device,
-        std::shared_ptr<DirectX::CommonStates> states)
-        : m_states(states)
+    SkyDomePipeline::SkyDomePipeline(ID3D12Device* device)
     {
-        m_vsData = DX::ReadData(L"Skydome_VS.cso");
+        m_rootSignature.AddCBV(0, 0);
+        m_rootSignature.AddCBV(0, 1);
 
-        DX::ThrowIfFailed(
-            device->CreateVertexShader(m_vsData.data(),
-                m_vsData.size(),
-                nullptr,
-                m_vs.ReleaseAndGetAddressOf()));
-        m_vertexCB.Create(device);
+        m_rootSignature.Build(device);
 
-        device->CreateInputLayout(
-            VertexType::InputElements,
-            VertexType::InputElementCount,
-            m_vsData.data(),
-            m_vsData.size(),
-            m_inputLayout.ReleaseAndGetAddressOf()
-        );
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
+        auto vsData = DX::ReadData(L"Skydome_VS.cso");
         auto psData = DX::ReadData(L"Skydome_PS.cso");
-        DX::ThrowIfFailed(
-            device->CreatePixelShader(psData.data(),
-                psData.size(),
-                nullptr,
-                m_ps.ReleaseAndGetAddressOf()));
-        m_pixelCB.Create(device);
-    }
 
-    ID3D11InputLayout* SkyDomePipeline::GetInputLayout() const
-    {
-        return m_inputLayout.Get();
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState = DirectX::CommonStates::DepthDefault;
+        psoDesc.SampleMask = UINT_MAX;
+
+        // TODO: Get render target state from the render texture
+        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.SampleDesc.Count = 1;
+        psoDesc.SampleDesc.Quality = 0;
+
+        DX::ThrowIfFailed(
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_singleSampledPSO)));
+
+        psoDesc.RasterizerState.MultisampleEnable = TRUE;
+        psoDesc.SampleDesc.Count = 4;
+        psoDesc.SampleDesc.Quality = 0;
+        
+        DX::ThrowIfFailed(
+            device->CreateGraphicsPipelineState(&psoDesc,
+                IID_PPV_ARGS(&m_multisampledPSO)));
     }
 
     void SkyDomePipeline::SetWorld(DirectX::FXMMATRIX _value)
@@ -65,21 +72,20 @@ namespace Gradient::Pipelines
         SetProjection(projection);
     }
 
-    void SkyDomePipeline::Apply(ID3D11DeviceContext* context)
+    void SkyDomePipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
     {
-        context->HSSetShader(nullptr, nullptr, 0);
-        context->DSSetShader(nullptr, nullptr, 0);
+        if (multisampled)                                      
+            cl->SetPipelineState(m_multisampledPSO.Get());
+        else
+            cl->SetPipelineState(m_singleSampledPSO.Get());
+        m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
-        m_vertexCB.SetData(context, vertexConstants);
-
-        context->VSSetShader(m_vs.Get(), nullptr, 0);
-        auto cb = m_vertexCB.GetBuffer();
-        context->VSSetConstantBuffers(0, 1, &cb);
+        m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
         PixelCB pixelConstants;
         pixelConstants.sunColour = m_sunColour.ToVector3();
@@ -92,13 +98,9 @@ namespace Gradient::Pipelines
         else
             pixelConstants.sunCircleEnabled = 0;
 
-        m_pixelCB.SetData(context, pixelConstants);
-        cb = m_pixelCB.GetBuffer();
-        context->PSSetConstantBuffers(0, 1, &cb);
-        context->PSSetShader(m_ps.Get(), nullptr, 0);
-         
-        context->IASetInputLayout(m_inputLayout.Get());
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_rootSignature.SetCBV(cl, 0, 1, pixelConstants);
+
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     void SkyDomePipeline::SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight)

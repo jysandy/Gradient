@@ -1,7 +1,7 @@
 Texture2D<float4> Texture : register(t0);
 sampler TextureSampler : register(s0);
 
-cbuffer BloomParams : register(b0)
+cbuffer BloomParams : register(b0, space1)
 {
     float g_exposure;
     float g_intensity;

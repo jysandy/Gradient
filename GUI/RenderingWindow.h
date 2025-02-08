@@ -2,7 +2,7 @@
 
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Parameters.h"
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
 
 namespace Gradient::GUI
 {

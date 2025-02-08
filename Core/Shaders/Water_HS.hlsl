@@ -18,14 +18,14 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float InsideTessFactor			: SV_InsideTessFactor;
 };
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixBuffer : register(b0, space1)
 {
     matrix g_worldMatrix;
     matrix g_viewMatrix;
     matrix g_projectionMatrix;
 };
 
-cbuffer LodBuffer : register(b1)
+cbuffer LodBuffer : register(b1, space1)
 {
     float3 g_cameraPosition;
     float  g_minLodDistance;

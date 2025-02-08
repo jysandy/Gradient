@@ -2,8 +2,8 @@
 
 #include "Core/EntityManager.h"
 #include "Core/TextureManager.h"
-#include <directxtk/GeometricPrimitive.h>
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/GeometricPrimitive.h>
+#include <directxtk12/SimpleMath.h>
 #include <utility>
 #include "Core/Physics/PhysicsEngine.h"
 
@@ -114,7 +114,7 @@ namespace Gradient
     // from the Entity, rather than having to accept data 
     // passed in from elsewhere.
     void EntityManager::DrawEntity(
-        ID3D11DeviceContext* context,
+        ID3D12GraphicsCommandList* cl,
         const Entity& entity,
         bool drawingShadows)
     {
@@ -139,27 +139,27 @@ namespace Gradient
 
         if (!drawingShadows)
         {
-            if (entity.Texture != nullptr)
+            if (entity.Texture)
                 pipeline->SetAlbedo(entity.Texture);
             else
                 pipeline->SetAlbedo(blankTexture);
 
-            if (entity.NormalMap != nullptr)
+            if (entity.NormalMap)
                 pipeline->SetNormalMap(entity.NormalMap);
             else
                 pipeline->SetNormalMap(outwardNormalMap);
 
-            if (entity.AOMap != nullptr)
+            if (entity.AOMap)
                 pipeline->SetAOMap(entity.AOMap);
             else
                 pipeline->SetAOMap(blankTexture);
 
-            if (entity.MetalnessMap != nullptr)
+            if (entity.MetalnessMap)
                 pipeline->SetMetalnessMap(entity.MetalnessMap);
             else
                 pipeline->SetMetalnessMap(dielectricMetalnessMap);
 
-            if (entity.RoughnessMap != nullptr)
+            if (entity.RoughnessMap)
                 pipeline->SetRoughnessMap(entity.RoughnessMap);
             else
                 pipeline->SetRoughnessMap(blankTexture);
@@ -168,18 +168,22 @@ namespace Gradient
         }
 
         pipeline->SetWorld(entity.GetWorldMatrix());
-        pipeline->Apply(context);
+        pipeline->Apply(cl);
 
-        entity.Drawable->Draw(context);
+        entity.Drawable->Draw(cl);
     }
 
     void EntityManager::DrawAll(
-        ID3D11DeviceContext* context,
+        ID3D12GraphicsCommandList* cl,
         bool drawingShadows)
     {
+        //// DEBUGGING
+        //DrawEntity(cl, m_entities[0], drawingShadows);
+        //return;
+
         for (auto const& entity : m_entities)
         {
-            DrawEntity(context, entity, drawingShadows);
+            DrawEntity(cl, entity, drawingShadows);
         }
     }
 

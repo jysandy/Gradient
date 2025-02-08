@@ -22,17 +22,16 @@ namespace DX
     class DeviceResources
     {
     public:
-        static constexpr unsigned int c_FlipPresent  = 0x1;
-        static constexpr unsigned int c_AllowTearing = 0x2;
-        static constexpr unsigned int c_EnableHDR    = 0x4;
+        static constexpr unsigned int c_AllowTearing = 0x1;
+        static constexpr unsigned int c_EnableHDR = 0x2;
+        static constexpr unsigned int c_ReverseDepth = 0x4;
 
         DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
-                        DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-                        DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
-                        UINT backBufferCount = 2,
-                        D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_10_0,
-                        unsigned int flags = c_FlipPresent) noexcept;
-        ~DeviceResources() = default;
+            DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
+            UINT backBufferCount = 2,
+            D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0,
+            unsigned int flags = 0) noexcept(false);
+        ~DeviceResources();
 
         DeviceResources(DeviceResources&&) = default;
         DeviceResources& operator= (DeviceResources&&) = default;
@@ -46,83 +45,109 @@ namespace DX
         bool WindowSizeChanged(int width, int height);
         void HandleDeviceLost();
         void RegisterDeviceNotify(IDeviceNotify* deviceNotify) noexcept { m_deviceNotify = deviceNotify; }
-        void Present();
+        void Prepare(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT,
+            D3D12_RESOURCE_STATES afterState = D3D12_RESOURCE_STATE_RENDER_TARGET);
+        void Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
+        void WaitForGpu() noexcept;
         void UpdateColorSpace();
 
         // Device Accessors.
         RECT GetOutputSize() const noexcept { return m_outputSize; }
 
         // Direct3D Accessors.
-        auto                    GetD3DDevice() const noexcept           { return m_d3dDevice.Get(); }
-        auto                    GetD3DDeviceContext() const noexcept    { return m_d3dContext.Get(); }
-        auto                    GetSwapChain() const noexcept           { return m_swapChain.Get(); }
-        auto                    GetDXGIFactory() const noexcept         { return m_dxgiFactory.Get(); }
-        HWND                    GetWindow() const noexcept              { return m_window; }
-        D3D_FEATURE_LEVEL       GetDeviceFeatureLevel() const noexcept  { return m_d3dFeatureLevel; }
-        ID3D11Texture2D*        GetRenderTarget() const noexcept        { return m_renderTarget.Get(); }
-        ID3D11Texture2D*        GetDepthStencil() const noexcept        { return m_depthStencil.Get(); }
-        ID3D11RenderTargetView*	GetRenderTargetView() const noexcept    { return m_d3dRenderTargetView.Get(); }
-        ID3D11DepthStencilView* GetDepthStencilView() const noexcept    { return m_d3dDepthStencilView.Get(); }
-        DXGI_FORMAT             GetBackBufferFormat() const noexcept    { return m_backBufferFormat; }
-        DXGI_FORMAT             GetDepthBufferFormat() const noexcept   { return m_depthBufferFormat; }
-        D3D11_VIEWPORT          GetScreenViewport() const noexcept      { return m_screenViewport; }
-        UINT                    GetBackBufferCount() const noexcept     { return m_backBufferCount; }
-        DXGI_COLOR_SPACE_TYPE   GetColorSpace() const noexcept          { return m_colorSpace; }
-        unsigned int            GetDeviceOptions() const noexcept       { return m_options; }
+        auto                        GetD3DDevice() const noexcept { return m_d3dDevice.Get(); }
+        auto                        GetSwapChain() const noexcept { return m_swapChain.Get(); }
+        auto                        GetDXGIFactory() const noexcept { return m_dxgiFactory.Get(); }
+        HWND                        GetWindow() const noexcept { return m_window; }
+        D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const noexcept { return m_d3dFeatureLevel; }
+        ID3D12Resource* GetRenderTarget() const noexcept { return m_renderTargets[m_backBufferIndex].Get(); }
+        ID3D12Resource* GetDepthStencil() const noexcept { return m_depthStencil.Get(); }
+        ID3D12CommandQueue* GetCommandQueue() const noexcept { return m_commandQueue.Get(); }
+        ID3D12CommandAllocator* GetCommandAllocator() const noexcept { return m_commandAllocators[m_backBufferIndex].Get(); }
+        auto                        GetCommandList() const noexcept { return m_commandList.Get(); }
+        DXGI_FORMAT                 GetBackBufferFormat() const noexcept { return m_backBufferFormat; }
+        DXGI_FORMAT                 GetDepthBufferFormat() const noexcept { return m_depthBufferFormat; }
+        D3D12_VIEWPORT              GetScreenViewport() const noexcept { return m_screenViewport; }
+        D3D12_RECT                  GetScissorRect() const noexcept { return m_scissorRect; }
+        UINT                        GetCurrentFrameIndex() const noexcept { return m_backBufferIndex; }
+        UINT                        GetBackBufferCount() const noexcept { return m_backBufferCount; }
+        DXGI_COLOR_SPACE_TYPE       GetColorSpace() const noexcept { return m_colorSpace; }
+        unsigned int                GetDeviceOptions() const noexcept { return m_options; }
 
-        // Performance events
-        void PIXBeginEvent(_In_z_ const wchar_t* name)
+        CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const noexcept
         {
-            m_d3dAnnotation->BeginEvent(name);
+#ifdef __MINGW32__
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+            std::ignore = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(&cpuHandle);
+#else
+            auto cpuHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+#endif
+
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuHandle, static_cast<INT>(m_backBufferIndex), m_rtvDescriptorSize);
         }
-
-        void PIXEndEvent()
+        CD3DX12_CPU_DESCRIPTOR_HANDLE GetDepthStencilView() const noexcept
         {
-            m_d3dAnnotation->EndEvent();
-        }
+#ifdef __MINGW32__
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+            std::ignore = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(&cpuHandle);
+#else
+            auto cpuHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+#endif
 
-        void PIXSetMarker(_In_z_ const wchar_t* name)
-        {
-            m_d3dAnnotation->SetMarker(name);
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuHandle);
         }
 
     private:
-        void CreateFactory();
-        void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
+        void MoveToNextFrame();
+        void GetAdapter(IDXGIAdapter1** ppAdapter);
+
+        static constexpr size_t MAX_BACK_BUFFER_COUNT = 3;
+
+        UINT                                                m_backBufferIndex;
 
         // Direct3D objects.
-        Microsoft::WRL::ComPtr<IDXGIFactory2>               m_dxgiFactory;
-        Microsoft::WRL::ComPtr<ID3D11Device1>               m_d3dDevice;
-        Microsoft::WRL::ComPtr<ID3D11DeviceContext1>        m_d3dContext;
-        Microsoft::WRL::ComPtr<IDXGISwapChain1>             m_swapChain;
-        Microsoft::WRL::ComPtr<ID3DUserDefinedAnnotation>   m_d3dAnnotation;
+        Microsoft::WRL::ComPtr<ID3D12Device>                m_d3dDevice;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   m_commandList;
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue>          m_commandQueue;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      m_commandAllocators[MAX_BACK_BUFFER_COUNT];
 
-        // Direct3D rendering objects. Required for 3D.
-        Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_renderTarget;
-        Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_depthStencil;
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_d3dRenderTargetView;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_d3dDepthStencilView;
-        D3D11_VIEWPORT                                  m_screenViewport;
+        // Swap chain objects.
+        Microsoft::WRL::ComPtr<IDXGIFactory4>               m_dxgiFactory;
+        Microsoft::WRL::ComPtr<IDXGISwapChain3>             m_swapChain;
+        Microsoft::WRL::ComPtr<ID3D12Resource>              m_renderTargets[MAX_BACK_BUFFER_COUNT];
+        Microsoft::WRL::ComPtr<ID3D12Resource>              m_depthStencil;
+
+        // Presentation fence objects.
+        Microsoft::WRL::ComPtr<ID3D12Fence>                 m_fence;
+        UINT64                                              m_fenceValues[MAX_BACK_BUFFER_COUNT];
+        Microsoft::WRL::Wrappers::Event                     m_fenceEvent;
+
+        // Direct3D rendering objects.
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_rtvDescriptorHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        m_dsvDescriptorHeap;
+        UINT                                                m_rtvDescriptorSize;
+        D3D12_VIEWPORT                                      m_screenViewport;
+        D3D12_RECT                                          m_scissorRect;
 
         // Direct3D properties.
-        DXGI_FORMAT                                     m_backBufferFormat;
-        DXGI_FORMAT                                     m_depthBufferFormat;
-        DXGI_FORMAT                                     m_renderTargetFormat;
-        UINT                                            m_backBufferCount;
-        D3D_FEATURE_LEVEL                               m_d3dMinFeatureLevel;
+        DXGI_FORMAT                                         m_backBufferFormat;
+        DXGI_FORMAT                                         m_depthBufferFormat;
+        UINT                                                m_backBufferCount;
+        D3D_FEATURE_LEVEL                                   m_d3dMinFeatureLevel;
 
         // Cached device properties.
-        HWND                                            m_window;
-        D3D_FEATURE_LEVEL                               m_d3dFeatureLevel;
-        RECT                                            m_outputSize;
+        HWND                                                m_window;
+        D3D_FEATURE_LEVEL                                   m_d3dFeatureLevel;
+        DWORD                                               m_dxgiFactoryFlags;
+        RECT                                                m_outputSize;
 
         // HDR Support
-        DXGI_COLOR_SPACE_TYPE                           m_colorSpace;
+        DXGI_COLOR_SPACE_TYPE                               m_colorSpace;
 
         // DeviceResources options (see flags above)
-        unsigned int                                    m_options;
+        unsigned int                                        m_options;
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
-        IDeviceNotify*                                  m_deviceNotify;
+        IDeviceNotify* m_deviceNotify;
     };
 }

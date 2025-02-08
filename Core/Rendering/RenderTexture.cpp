@@ -1,7 +1,9 @@
 #include "pch.h"
 
 #include "Core/Rendering/RenderTexture.h"
-#include <directxtk/SimpleMath.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/DirectXHelpers.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
 namespace
 {
@@ -12,136 +14,154 @@ namespace
 namespace Gradient::Rendering
 {
     RenderTexture::RenderTexture(
-        ID3D11Device* device,
-        ID3D11DeviceContext* context,
-        std::shared_ptr<DirectX::CommonStates> commonStates,
+        ID3D12Device* device,
         UINT width,
         UINT height,
         DXGI_FORMAT format,
         bool multisamplingEnabled)
         : m_multisamplingEnabled(multisamplingEnabled),
-        m_format(format),
-        m_states(commonStates)
+        m_format(format)
     {
-        m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
+        const auto depthFormat = DXGI_FORMAT_D32_FLOAT;
+        auto gmm = GraphicsMemoryManager::Get();
 
-        m_outputSize = RECT();
-        m_outputSize.left = 0;
-        m_outputSize.right = width;
-        m_outputSize.top = 0;
-        m_outputSize.bottom = height;
+        m_size = RECT();
+        m_size.left = 0;
+        m_size.right = width;
+        m_size.top = 0;
+        m_size.bottom = height;
 
-        CD3D11_TEXTURE2D_DESC rtDesc;
-        CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
-        CD3D11_TEXTURE2D_DESC dsDesc;
-        CD3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+        D3D12_RESOURCE_DESC rtDesc = {};
+        D3D12_RESOURCE_DESC dsDesc = {};
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 
         if (multisamplingEnabled)
         {
-            rtDesc = CD3D11_TEXTURE2D_DESC(format,
-                width, height, 1, 1,
-                D3D11_BIND_RENDER_TARGET,
-                D3D11_USAGE_DEFAULT, 0,
-                MSAA_COUNT, MSAA_QUALITY);
+            rtDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+                format,
+                width,
+                height,
+                1,
+                1,
+                MSAA_COUNT,
+                MSAA_QUALITY
+            );
+            rtDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-
-            rtvDesc = CD3D11_RENDER_TARGET_VIEW_DESC(
-                D3D11_RTV_DIMENSION_TEXTURE2DMS
+            auto singleRTDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+                format,
+                width,
+                height,
+                1,
+                1
             );
 
-            CD3D11_TEXTURE2D_DESC singleRTDesc(format,
-                width, height, 1, 1,
-                D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
-                D3D11_USAGE_DEFAULT);
+            m_singleSampledRT.Create(device,
+                &singleRTDesc,
+                D3D12_RESOURCE_STATE_RESOLVE_DEST,
+                nullptr);
 
-            DX::ThrowIfFailed(
-                device->CreateTexture2D(&singleRTDesc, nullptr,
-                    m_singleSampledRT.ReleaseAndGetAddressOf()));
 
-            dsDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_D32_FLOAT,
-                width, height, 1, 1,
-                D3D11_BIND_DEPTH_STENCIL, D3D11_USAGE_DEFAULT, 0,
-                MSAA_COUNT, MSAA_QUALITY);
+            dsDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+                DXGI_FORMAT_D32_FLOAT,
+                width,
+                height,
+                1,
+                1,
+                MSAA_COUNT,
+                MSAA_QUALITY
+            );
+            dsDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-            dsvDesc = CD3D11_DEPTH_STENCIL_VIEW_DESC(D3D11_DSV_DIMENSION_TEXTURE2DMS);
+            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
         }
         else
         {
-            rtDesc = CD3D11_TEXTURE2D_DESC(format,
-                width, height, 1, 1,
-                D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
-                D3D11_USAGE_DEFAULT);
+            rtDesc = CD3DX12_RESOURCE_DESC();
 
-            rtvDesc = CD3D11_RENDER_TARGET_VIEW_DESC(
-                D3D11_RTV_DIMENSION_TEXTURE2D
-            );
+            rtDesc.Format = format;
+            rtDesc.Width = width;
+            rtDesc.Height = height;
+            rtDesc.MipLevels = 1;
+            rtDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+            rtDesc.DepthOrArraySize = 1;
+            rtDesc.SampleDesc.Count = 1;
+            rtDesc.SampleDesc.Quality = 0;
+            rtDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-            dsDesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_D32_FLOAT,
-                width, height, 1, 1,
-                D3D11_BIND_DEPTH_STENCIL, D3D11_USAGE_DEFAULT);
+            dsDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+            dsDesc.Width = width;
+            dsDesc.Height = height;
+            dsDesc.DepthOrArraySize = 1;
+            dsDesc.MipLevels = 1;
+            dsDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsDesc.SampleDesc.Count = 1;
+            dsDesc.SampleDesc.Quality = 0;
+            dsDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-            dsvDesc = CD3D11_DEPTH_STENCIL_VIEW_DESC(D3D11_DSV_DIMENSION_TEXTURE2D);
+            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
         }
 
-        DX::ThrowIfFailed(
-            device->CreateTexture2D(&rtDesc, nullptr,
-                m_offscreenRenderTarget.ReleaseAndGetAddressOf()));
+        D3D12_CLEAR_VALUE clearValue = {};
+        clearValue.Format = format;
+        clearValue.Color[0] = DirectX::ColorsLinear::CornflowerBlue.f[0];
+        clearValue.Color[1] = DirectX::ColorsLinear::CornflowerBlue.f[1];
+        clearValue.Color[2] = DirectX::ColorsLinear::CornflowerBlue.f[2];
+        clearValue.Color[3] = DirectX::ColorsLinear::CornflowerBlue.f[3];
 
-        DX::ThrowIfFailed(
-            device->CreateRenderTargetView(m_offscreenRenderTarget.Get(),
-                &rtvDesc,
-                m_offscreenRTV.ReleaseAndGetAddressOf()));
+        m_offscreenRT.Create(
+            device,
+            &rtDesc,
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            &clearValue
+        );
 
-        DX::ThrowIfFailed(
-            device->CreateTexture2D(&dsDesc, nullptr, m_depthBuffer.GetAddressOf()));
+        m_rtv = gmm->CreateRTV(device, m_offscreenRT.Get());
 
-        DX::ThrowIfFailed(
-            device->CreateDepthStencilView(m_depthBuffer.Get(),
-                &dsvDesc,
-                m_depthStencilSRV.ReleaseAndGetAddressOf()));
+        D3D12_CLEAR_VALUE depthClearValue = {};
+        depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthClearValue.DepthStencil.Depth = 1.0f;
+        depthClearValue.DepthStencil.Stencil = 0;
 
-        CD3D11_RASTERIZER_DESC rastDesc(D3D11_FILL_SOLID, D3D11_CULL_BACK, FALSE,
-            D3D11_DEFAULT_DEPTH_BIAS, D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
-            D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS, TRUE, FALSE, TRUE, FALSE);
+        m_depthBuffer.Create(
+            device,
+            &dsDesc,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            &depthClearValue
+        );
 
-        DX::ThrowIfFailed(device->CreateRasterizerState(&rastDesc,
-            m_multisampledRSState.ReleaseAndGetAddressOf()));
-
-        CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+        m_dsv = gmm->CreateDSV(device,
+            m_depthBuffer.Get(),
+            dsvDesc);
 
         if (multisamplingEnabled)
         {
-            srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(m_singleSampledRT.Get(),
-                D3D11_SRV_DIMENSION_TEXTURE2D,
-                m_format);
-            DX::ThrowIfFailed(
-                device->CreateShaderResourceView(m_singleSampledRT.Get(),
-                    &srvDesc,
-                    m_srv.ReleaseAndGetAddressOf()));
+            m_srv = gmm->CreateSRV(device, m_singleSampledRT.Get());
         }
         else
         {
-            srvDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(m_offscreenRenderTarget.Get(),
-                D3D11_SRV_DIMENSION_TEXTURE2D,
-                m_format);
-            DX::ThrowIfFailed(
-                device->CreateShaderResourceView(m_offscreenRenderTarget.Get(),
-                    &srvDesc,
-                    m_srv.ReleaseAndGetAddressOf()));
+            m_srv = gmm->CreateSRV(device, m_offscreenRT.Get());
         }
     }
 
-    ID3D11Texture2D* RenderTexture::GetTexture()
+    ID3D12Resource* RenderTexture::GetTexture()
     {
-        return m_offscreenRenderTarget.Get();
+        return m_offscreenRT.Get();
     }
 
-    ID3D11RenderTargetView* RenderTexture::GetRTV()
+    BarrierResource* RenderTexture::GetBarrierResource()
     {
-        return m_offscreenRTV.Get();
+        return &m_offscreenRT;
     }
 
-    ID3D11Texture2D* RenderTexture::GetSingleSampledTexture()
+    GraphicsMemoryManager::DescriptorView RenderTexture::GetRTV()
+    {
+        return m_rtv;
+    }
+
+    ID3D12Resource* RenderTexture::GetSingleSampledTexture()
     {
         if (m_multisamplingEnabled)
         {
@@ -149,72 +169,105 @@ namespace Gradient::Rendering
         }
         else
         {
-            return m_offscreenRenderTarget.Get();
+            return m_offscreenRT.Get();
         }
     }
 
-    void RenderTexture::CopyToSingleSampled(ID3D11DeviceContext* context)
+    BarrierResource* RenderTexture::GetSingleSampledBarrierResource()
     {
         if (m_multisamplingEnabled)
         {
-            context->ResolveSubresource(m_singleSampledRT.Get(), 0,
-                m_offscreenRenderTarget.Get(), 0,
+            return &m_singleSampledRT;
+        }
+        else
+        {
+            return &m_offscreenRT;
+        }
+    }
+
+    void RenderTexture::CopyToSingleSampled(ID3D12GraphicsCommandList* cl)
+    {
+        if (m_multisamplingEnabled)
+        {
+            // TODO: Batch these barrier transitions
+            m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+            m_singleSampledRT.Transition(cl, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+            cl->ResolveSubresource(m_singleSampledRT.Get(), 0,
+                m_offscreenRT.Get(), 0,
                 m_format);
         }
     }
 
-    void RenderTexture::ClearAndSetAsTarget(ID3D11DeviceContext* context)
+    void RenderTexture::ClearAndSetAsTarget(ID3D12GraphicsCommandList* cl)
     {
-        auto renderTarget = m_offscreenRTV.Get();
-        auto depthStencil = m_depthStencilSRV.Get();
+        auto gmm = GraphicsMemoryManager::Get();
 
-        context->ClearRenderTargetView(renderTarget, DirectX::ColorsLinear::CornflowerBlue);
-        context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-        
-        if (m_multisamplingEnabled)
-            context->RSSetState(m_multisampledRSState.Get());
-        else
-            context->RSSetState(m_states->CullClockwise());
+        // TODO: Batch these barrier transitions
+        m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+        auto rtvHandle = m_rtv->GetCPUHandle();
+        auto dsvHandle = m_dsv->GetCPUHandle();
+
+        cl->ClearRenderTargetView(rtvHandle,
+            DirectX::ColorsLinear::CornflowerBlue,
+            0, nullptr);
+
+        cl->ClearDepthStencilView(dsvHandle,
+            D3D12_CLEAR_FLAG_DEPTH,
+            1.0f,
+            0, 0, nullptr);
+
+        cl->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
 
-    void RenderTexture::SetAsTarget(ID3D11DeviceContext* context)
+    void RenderTexture::SetAsTarget(ID3D12GraphicsCommandList* cl)
     {
-        auto renderTarget = m_offscreenRTV.Get();
-        auto depthStencil = m_depthStencilSRV.Get();
+        auto gmm = GraphicsMemoryManager::Get();
 
-        context->OMSetRenderTargets(1, &renderTarget, depthStencil);
+        // TODO: Batch these barrier transitions
+        m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-        if (m_multisamplingEnabled)
-            context->RSSetState(m_multisampledRSState.Get());
-        else
-            context->RSSetState(m_states->CullCounterClockwise());
+        auto rtvHandle = m_rtv->GetCPUHandle();
+        auto dsvHandle = m_dsv->GetCPUHandle();
+
+        cl->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
 
-    ID3D11ShaderResourceView* RenderTexture::GetSRV()
+    GraphicsMemoryManager::DescriptorView RenderTexture::GetSRV()
     {
-        return m_srv.Get();
+        return m_srv;
     }
 
     RECT RenderTexture::GetOutputSize()
     {
-        return m_outputSize;
+        return m_size;
     }
 
     void RenderTexture::DrawTo(
-        ID3D11DeviceContext* context,
+        ID3D12GraphicsCommandList* cl,
         Gradient::Rendering::RenderTexture* destination,
-        std::function<void __cdecl()> customState)
+        TextureDrawer* texDrawer,
+        D3D12_VIEWPORT viewport)
     {
-        destination->ClearAndSetAsTarget(context);
+        destination->ClearAndSetAsTarget(cl);
+        auto outputSize = destination->GetOutputSize();
+        
+        // TODO: Batch this transition with the clearing?
+        if (m_multisamplingEnabled)
+        {
+            // Multisampled RTs have to be resolved before they can be drawn.
+            m_singleSampledRT.Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+        }
+        else
+        {
+            m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+        }
 
-        context->VSSetShader(nullptr, nullptr, 0);
-        context->HSSetShader(nullptr, nullptr, 0);
-        context->DSSetShader(nullptr, nullptr, 0);
-        m_spriteBatch->Begin(DirectX::SpriteSortMode_Immediate,
-            nullptr, nullptr, nullptr, nullptr, customState);
-        m_spriteBatch->Draw(this->GetSRV(),
-            destination->GetOutputSize());
-        m_spriteBatch->End();
+        texDrawer->Draw(cl, m_srv,
+            viewport,
+            m_size,
+            outputSize);
     }
 }

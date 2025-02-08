@@ -7,7 +7,7 @@
 
 #include <winsdkver.h>
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0601
+#define _WIN32_WINNT 0x0A00
 #endif
 #include <sdkddkver.h>
 
@@ -28,7 +28,17 @@
 
 #include <wrl/client.h>
 
-#include <d3d11_1.h>
+#ifdef USING_DIRECTX_HEADERS
+#include <directx/dxgiformat.h>
+#include <directx/d3d12.h>
+#include <directx/d3dx12.h>
+#include <dxguids/dxguids.h>
+#else
+#include <d3d12.h>
+
+#include "d3dx12.h"
+#endif
+
 #include <dxgi1_6.h>
 
 #include <DirectXMath.h>
@@ -49,6 +59,8 @@
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif
+
+#include "directxtk12/GraphicsMemory.h"
 
 // Jolt blows up without these because vcpkg is compiling 
 // with these defines for some reason.
@@ -87,3 +99,57 @@ namespace DX
         }
     }
 }
+
+#ifdef __MINGW32__
+namespace Microsoft
+{
+    namespace WRL
+    {
+        namespace Wrappers
+        {
+            class Event
+            {
+            public:
+                Event() noexcept : m_handle{} {}
+                explicit Event(HANDLE h) noexcept : m_handle{ h } {}
+                ~Event() { if (m_handle) { ::CloseHandle(m_handle); m_handle = nullptr; } }
+
+                void Attach(HANDLE h) noexcept
+                {
+                    if (h != m_handle)
+                    {
+                        if (m_handle) ::CloseHandle(m_handle);
+                        m_handle = h;
+                    }
+                }
+
+                bool IsValid() const { return m_handle != nullptr; }
+                HANDLE Get() const { return m_handle; }
+
+            private:
+                HANDLE m_handle;
+            };
+        }
+    }
+}
+#else
+#include <wrl/event.h>
+#endif
+
+#ifdef __MINGW32__
+constexpr UINT PIX_COLOR_DEFAULT = 0;
+
+inline void PIXBeginEvent(UINT64, PCWSTR) {}
+
+template<typename T>
+inline void PIXBeginEvent(T*, UINT64, PCWSTR) {}
+
+inline void PIXEndEvent() {}
+
+template<typename T>
+inline void PIXEndEvent(T*) {}
+#else
+// To use graphics and CPU markup events with the latest version of PIX, change this to include <pix3.h>
+// then add the NuGet package WinPixEventRuntime to the project.
+#include <pix.h>
+#endif

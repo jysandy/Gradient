@@ -1,6 +1,6 @@
 #include "WaterWaves.hlsli"
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixBuffer : register(b0, space2)
 {
     matrix worldMatrix;
     matrix viewMatrix;
@@ -9,7 +9,7 @@ cbuffer MatrixBuffer : register(b0)
 
 #define MAX_WAVES 32
             
-cbuffer WaveBuffer : register(b1)
+cbuffer WaveBuffer : register(b1, space2)
 {
     uint g_numWaves;
     float g_totalTime;
@@ -17,7 +17,7 @@ cbuffer WaveBuffer : register(b1)
     Wave g_waves[MAX_WAVES];
 }
 
-cbuffer LodBuffer : register(b2)
+cbuffer LodBuffer : register(b2, space2)
 {
     float3 g_cameraPosition;
     float g_minLodDistance;

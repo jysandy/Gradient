@@ -1,8 +1,13 @@
 {
   "dependencies": [
-    "directxtk",
-    "joltphysics",
-    "spdlog",
-    "imgui"
+    {
+      "name": "directxtk12"
+    },
+    { "name": "joltphysics" },
+    { "name": "spdlog" },
+    {
+      "name": "imgui",
+      "version>=": "1.91.7"
+    }
   ]
 }

@@ -2,10 +2,11 @@
 
 #include <Jolt/Physics/Body/BodyID.h>
 
-#include <directxtk/SimpleMath.h>
-#include <directxtk/GeometricPrimitive.h>
+#include <directxtk12/SimpleMath.h>
 #include <memory>
 #include <string>
+#include <optional>
+#include "Core/GraphicsMemoryManager.h"
 #include "Core/Rendering/IDrawable.h"
 #include "Core/Pipelines/IRenderPipeline.h"
 
@@ -25,11 +26,11 @@ namespace Gradient
         Pipelines::IRenderPipeline* ShadowPipeline;
         bool CastsShadows = true;
 
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Texture = nullptr;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> NormalMap = nullptr;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> AOMap = nullptr;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MetalnessMap = nullptr;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> RoughnessMap = nullptr;
+        GraphicsMemoryManager::DescriptorView Texture = nullptr;
+        GraphicsMemoryManager::DescriptorView NormalMap = nullptr;
+        GraphicsMemoryManager::DescriptorView AOMap = nullptr;
+        GraphicsMemoryManager::DescriptorView MetalnessMap = nullptr;
+        GraphicsMemoryManager::DescriptorView RoughnessMap = nullptr;
         DirectX::SimpleMath::Vector3 EmissiveRadiance = { 0, 0, 0 };
 
         Entity();

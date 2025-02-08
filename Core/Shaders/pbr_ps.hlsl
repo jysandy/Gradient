@@ -3,42 +3,36 @@
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
 
-Texture2D albedoMap : register(t0);
-SamplerState anisotropicSampler : register(s0);
+Texture2D albedoMap : register(t0, space1);
+Texture2D shadowMap : register(t1, space1);
+Texture2D normalMap : register(t2, space1);
+Texture2D aoMap : register(t3, space1);
+Texture2D metalnessMap : register(t4, space1);
+Texture2D roughnessMap : register(t5, space1);
+TextureCube environmentMap : register(t6, space1);
+TextureCubeArray pointShadowMaps : register(t7, space1);
 
-Texture2D shadowMap : register(t1);
-SamplerComparisonState shadowMapSampler : register(s1);
-
-Texture2D normalMap : register(t2);
-SamplerState pointSampler : register(s2);
-
-Texture2D aoMap : register(t3);
-SamplerState linearSampler : register(s3);
-
-Texture2D metalnessMap : register(t4);
-Texture2D roughnessMap : register(t5);
-
-TextureCube environmentMap : register(t6);
-
-TextureCubeArray pointShadowMaps : register(t7);
+SamplerState linearSampler : register(s3, space1); 
+SamplerState anisotropicSampler : register(s0, space1); 
+SamplerComparisonState shadowMapSampler : register(s1, space1); 
 
 #define MAX_POINT_LIGHTS 8
 
-cbuffer LightBuffer : register(b0)
+cbuffer LightBuffer : register(b0, space1)
 {
     DirectionalLight g_directionalLight;
     PointLight g_pointLights[MAX_POINT_LIGHTS];
     uint g_numPointLights;
 };
 
-cbuffer Constants : register(b1)
+cbuffer Constants : register(b1, space1)
 {
     float3 cameraPosition;
     float pad;
     float3 emissiveRadiance;
     float pad2;
     float4x4 shadowTransform; // TODO: put this into the light
-}
+};
 
 struct InputType
 {

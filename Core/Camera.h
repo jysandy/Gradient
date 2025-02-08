@@ -1,8 +1,8 @@
 #pragma once
 
 #include "StepTimer.h"
-#include <directxtk/SimpleMath.h>
-#include <directxtk/Mouse.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/Mouse.h>
 
 namespace Gradient
 {
