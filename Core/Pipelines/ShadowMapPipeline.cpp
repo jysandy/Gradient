@@ -10,14 +10,14 @@ namespace Gradient::Pipelines
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.Build(device);
 
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
         auto vsData = DX::ReadData(L"WVP_VS.cso");
 
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.InputLayout = VertexType::InputLayout;
-        psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
 
         auto rsDesc = CD3DX12_RASTERIZER_DESC1();
         rsDesc.FillMode = D3D12_FILL_MODE_SOLID;
@@ -31,17 +31,12 @@ namespace Gradient::Pipelines
         rsDesc.DepthBiasClamp = 0.f;
 
         psoDesc.RasterizerState = rsDesc;
-
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState = DirectX::CommonStates::DepthDefault;
-        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.SampleDesc.Count = 1;
         psoDesc.NumRenderTargets = 0;
+        for (int i = 0; i < 8; i++)
+            psoDesc.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
 
-        DX::ThrowIfFailed(
-            device->CreateGraphicsPipelineState(&psoDesc,
-                IID_PPV_ARGS(&m_pso)));
+        m_pso = std::make_unique<PipelineState>(psoDesc);
+        m_pso->Build(device);
     }
     
     void ShadowMapPipeline::SetWorld(DirectX::FXMMATRIX value)
@@ -68,7 +63,7 @@ namespace Gradient::Pipelines
 
     void ShadowMapPipeline::Apply(ID3D12GraphicsCommandList* cl, bool _multisampled)
     {
-        cl->SetPipelineState(m_pso.Get());
+        m_pso->Set(cl, false);
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;

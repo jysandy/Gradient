@@ -10,6 +10,7 @@
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/RootSignature.h"
+#include "Core/PipelineState.h"
 
 namespace Gradient::Pipelines
 {
@@ -21,7 +22,7 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
-        };    
+        };
 
         struct __declspec(align(16)) PixelCB
         {
@@ -50,9 +51,8 @@ namespace Gradient::Pipelines
         void SetAmbientIrradiance(float ambientIrradiance);
 
     private:
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
         RootSignature m_rootSignature;
+        std::unique_ptr<PipelineState> m_pso;
 
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;

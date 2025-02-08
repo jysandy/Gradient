@@ -4,6 +4,7 @@
 #include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/RootSignature.h"
+#include "Core/PipelineState.h"
 #include <directxtk12/Effects.h>
 #include <directxtk12/VertexTypes.h>
 #include <directxtk12/SimpleMath.h>
@@ -35,7 +36,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
     private:
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+        std::unique_ptr<PipelineState> m_pso;
         RootSignature m_rootSignature;
 
         DirectX::SimpleMath::Matrix m_world;

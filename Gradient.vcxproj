@@ -202,6 +202,7 @@
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
+    <ClInclude Include="Core\PipelineState.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="Core\BarrierResource.cpp" />
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
+    <ClCompile Include="Core\PipelineState.cpp" />
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\ShadowMapPipeline.cpp" />

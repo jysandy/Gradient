@@ -12,39 +12,19 @@ namespace Gradient::Pipelines
 
         m_rootSignature.Build(device);
 
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
         auto vsData = DX::ReadData(L"Skydome_VS.cso");
         auto psData = DX::ReadData(L"Skydome_PS.cso");
 
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState = DirectX::CommonStates::DepthDefault;
-        psoDesc.SampleMask = UINT_MAX;
 
-        // TODO: Get render target state from the render texture
-        psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        psoDesc.SampleDesc.Count = 1;
-        psoDesc.SampleDesc.Quality = 0;
-
-        DX::ThrowIfFailed(
-            device->CreateGraphicsPipelineState(&psoDesc,
-                IID_PPV_ARGS(&m_singleSampledPSO)));
-
-        psoDesc.RasterizerState.MultisampleEnable = TRUE;
-        psoDesc.SampleDesc.Count = 4;
-        psoDesc.SampleDesc.Quality = 0;
-        
-        DX::ThrowIfFailed(
-            device->CreateGraphicsPipelineState(&psoDesc,
-                IID_PPV_ARGS(&m_multisampledPSO)));
+        m_pso = std::make_unique<PipelineState>(psoDesc);
+        m_pso->Build(device);
     }
 
     void SkyDomePipeline::SetWorld(DirectX::FXMMATRIX _value)
@@ -74,10 +54,7 @@ namespace Gradient::Pipelines
 
     void SkyDomePipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
     {
-        if (multisampled)                                      
-            cl->SetPipelineState(m_multisampledPSO.Get());
-        else
-            cl->SetPipelineState(m_singleSampledPSO.Get());
+        m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;

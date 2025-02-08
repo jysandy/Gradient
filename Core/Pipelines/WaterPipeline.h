@@ -6,6 +6,7 @@
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Parameters.h"
 #include "Core/RootSignature.h"
+#include "Core/PipelineState.h"
 #include <directxtk12/Effects.h>
 #include <directxtk12/VertexTypes.h>
 #include <directxtk12/SimpleMath.h>
@@ -90,9 +91,8 @@ namespace Gradient::Pipelines
     private:
         void GenerateWaves();
 
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         RootSignature m_rootSignature;
+        std::unique_ptr<PipelineState> m_pso;
 
         GraphicsMemoryManager::DescriptorView m_shadowMap;
         GraphicsMemoryManager::DescriptorView m_environmentMap;
