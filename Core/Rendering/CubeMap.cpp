@@ -48,7 +48,17 @@ namespace Gradient::Rendering
             rtvDesc.Texture2DArray.FirstArraySlice = i;
             m_rtv[i] = gmm->CreateRTV(device, rtvDesc, m_texture.Get());
         }
-        m_srv = gmm->CreateSRV(device, m_texture.Get(), true);
+
+        auto srvDesc = D3D12_SHADER_RESOURCE_VIEW_DESC();
+        srvDesc.Format = format;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+        srvDesc.TextureCube.MostDetailedMip = 0;
+        srvDesc.TextureCube.MipLevels = 1;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+        m_srv = gmm->CreateSRV(device,
+            m_texture.Get(),
+            &srvDesc);
 
         auto depthTexDesc = CD3DX12_RESOURCE_DESC::Tex2D(
             DXGI_FORMAT_D32_FLOAT,
@@ -127,8 +137,8 @@ namespace Gradient::Rendering
             );
 
             cl->ClearDepthStencilView(dsvHandle,
-                D3D12_CLEAR_FLAG_DEPTH, 
-                1.0f, 
+                D3D12_CLEAR_FLAG_DEPTH,
+                1.0f,
                 0, 0, nullptr);
 
             cl->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
