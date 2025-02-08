@@ -17,7 +17,10 @@ namespace Gradient::Rendering
         s_rootSignature.AddSRV(0, 1); // our usable SRV
 
         s_rootSignature.AddStaticSampler(
-            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR),
+            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
             0, 0);
 
         s_rootSignature.Build(device);
@@ -97,27 +100,22 @@ namespace Gradient::Rendering
 
     void TextureDrawer::Draw(ID3D12GraphicsCommandList* cl,
         GraphicsMemoryManager::DescriptorView texSRV,
+        D3D12_VIEWPORT viewport,
         RECT inputSize,
         RECT outputSize)
     {
         auto gmm = GraphicsMemoryManager::Get();
 
-        D3D12_VIEWPORT viewport = {
-            0.0f,
-            0.0f,
-            outputSize.right,
-            outputSize.bottom,
-            0.f,
-            1.f
-        };
         m_spriteBatch->SetViewport(viewport);
         m_spriteBatch->Begin(cl);
+
         m_spriteBatch->Draw(texSRV->GetGPUHandle(),
-            { 
-                static_cast<uint32_t>(inputSize.right), 
+            {
+                static_cast<uint32_t>(inputSize.right),
                 static_cast<uint32_t>(inputSize.bottom)
             },
             outputSize);
+
         m_spriteBatch->End();
     }
 }

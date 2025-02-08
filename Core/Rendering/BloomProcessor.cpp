@@ -100,32 +100,38 @@ namespace Gradient::Rendering
     }
 
     RenderTexture* BloomProcessor::Process(ID3D12GraphicsCommandList* cl,
-        RenderTexture* input)
+        RenderTexture* input,
+        D3D12_VIEWPORT screenViewport)
     {
-        input->DrawTo(cl, m_downsampled1.get(), m_vanilla.get());
+        input->DrawTo(cl, m_downsampled1.get(), m_vanilla.get(), screenViewport);
 
-        m_downsampled1->DrawTo(cl, m_downsampled2.get(), m_vanilla.get());
-        m_downsampled2->DrawTo(cl, m_downsampled1.get(), m_vanilla.get());
+        m_downsampled1->DrawTo(cl, m_downsampled2.get(), m_vanilla.get(), screenViewport);
+        m_downsampled2->DrawTo(cl, m_downsampled1.get(), m_vanilla.get(), screenViewport);
 
         m_downsampled1->DrawTo(cl, m_downsampled3.get(),
-            m_gaussianHorizontal.get());
+            m_gaussianHorizontal.get(),
+            screenViewport);
 
         m_downsampled3->DrawTo(cl, m_downsampled1.get(),
-            m_gaussianVertical.get());
+            m_gaussianVertical.get(),
+            screenViewport);
 
         TextureDrawer::SetCBV(cl, BloomParams{ m_exposure, m_intensity });
 
         m_downsampled1->DrawTo(cl,
             m_downsampled3.get(),
-            m_brightnessFilter.get()
+            m_brightnessFilter.get(),
+            screenViewport
         );
 
         m_downsampled3->DrawTo(cl, m_downsampled1.get(),
-            m_gaussianHorizontal.get()
+            m_gaussianHorizontal.get(),
+            screenViewport
         );
 
         m_downsampled1->DrawTo(cl, m_downsampled3.get(),
-            m_gaussianVertical.get()
+            m_gaussianVertical.get(),
+            screenViewport
         );
 
         m_downsampled3
@@ -137,7 +143,8 @@ namespace Gradient::Rendering
         // TODO: This is broken somehow
         input->DrawTo(cl,
             m_screensizeRenderTexture.get(),
-            m_additiveBlend.get()
+            m_additiveBlend.get(),
+            screenViewport
         );
 
         return m_screensizeRenderTexture.get();

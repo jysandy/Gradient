@@ -248,7 +248,8 @@ namespace Gradient::Rendering
     void RenderTexture::DrawTo(
         ID3D12GraphicsCommandList* cl,
         Gradient::Rendering::RenderTexture* destination,
-        TextureDrawer* texDrawer)
+        TextureDrawer* texDrawer,
+        D3D12_VIEWPORT viewport)
     {
         destination->ClearAndSetAsTarget(cl);
         auto outputSize = destination->GetOutputSize();
@@ -265,6 +266,7 @@ namespace Gradient::Rendering
         }
 
         texDrawer->Draw(cl, m_srv,
+            viewport,
             m_size,
             outputSize);
     }

@@ -31,7 +31,8 @@ namespace Gradient::Rendering
         void SetAsTarget(ID3D12GraphicsCommandList* cl);
         void DrawTo(ID3D12GraphicsCommandList* cl,
             RenderTexture* destination,
-            TextureDrawer* texDrawer);
+            TextureDrawer* texDrawer,
+            D3D12_VIEWPORT viewport);
 
     private:
         bool m_multisamplingEnabled;

@@ -239,13 +239,15 @@ void Game::Render()
     // Post-process ----
     PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Bloom");
     auto bloomOutput = m_bloomProcessor->Process(cl,
-        m_multisampledRenderTexture.get());
+        m_multisampledRenderTexture.get(),
+        m_deviceResources->GetScreenViewport());
     PIXEndEvent(cl);
 
     // Tonemap and draw GUI
     bloomOutput->DrawTo(cl,
         m_tonemappedRenderTexture.get(),
-        m_tonemapper.get());
+        m_tonemapper.get(),
+        m_deviceResources->GetScreenViewport());
 
     m_tonemappedRenderTexture->SetAsTarget(cl);
     m_physicsWindow.Draw();
@@ -286,7 +288,7 @@ void Game::Clear()
     auto const viewport = m_deviceResources->GetScreenViewport();
     cl->RSSetViewports(1, &viewport);
 
-    PIXEndEvent();
+    PIXEndEvent(cl);
 }
 #pragma endregion
 

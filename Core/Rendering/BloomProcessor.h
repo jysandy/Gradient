@@ -20,7 +20,8 @@ namespace Gradient::Rendering
         );
 
         RenderTexture* Process(ID3D12GraphicsCommandList* cl,
-            RenderTexture* input);
+            RenderTexture* input,
+            D3D12_VIEWPORT screenViewport);
 
         float GetExposure();
         float GetIntensity();

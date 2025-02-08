@@ -27,6 +27,7 @@ namespace Gradient::Rendering
 
         void Draw(ID3D12GraphicsCommandList* cl,
             GraphicsMemoryManager::DescriptorView texSRV,
+            D3D12_VIEWPORT viewport,
             RECT inputSize,
             RECT outputSize);
 
