@@ -29,7 +29,7 @@ namespace Gradient::Rendering
             10 * sceneRadius
         );
 
-        const float shadowMapWidth = 2048.f;
+        const float shadowMapWidth = 8192.f;
 
         m_shadowMapViewport = {
             0.0f,
