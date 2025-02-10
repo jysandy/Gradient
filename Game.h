@@ -20,6 +20,7 @@
 #include "Core/Pipelines/ShadowMapPipeline.h"
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
+#include "Core/Pipelines/HeightmapPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/RenderTexture.h"
@@ -103,6 +104,7 @@ private:
     std::unique_ptr<Gradient::Pipelines::PBRPipeline> m_pbrPipeline;
     std::unique_ptr<Gradient::Pipelines::WaterPipeline> m_waterPipeline;
     std::unique_ptr<Gradient::Pipelines::ShadowMapPipeline> m_shadowMapPipeline;
+    std::unique_ptr<Gradient::Pipelines::HeightmapPipeline> m_heightmapPipeline;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;

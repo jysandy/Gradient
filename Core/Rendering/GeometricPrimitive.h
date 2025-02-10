@@ -47,7 +47,8 @@ namespace Gradient::Rendering
             ID3D12CommandQueue* cq,
             const float& width = 10,
             const float& height = 10,
-            const float& divisions = 10);
+            const float& divisions = 10,
+            bool tiled = true);
 
     private:
         GeometricPrimitive() = default;

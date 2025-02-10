@@ -222,6 +222,15 @@ void Game::Render()
     m_pbrPipeline->SetPointLights(PointLightParams());
     m_pbrPipeline->SetShadowCubeArray(m_shadowCubeArray->GetSRV());
 
+    m_heightmapPipeline->SetCameraPosition(m_camera.GetPosition());
+    m_heightmapPipeline->SetCameraDirection(m_camera.GetDirection());
+    m_heightmapPipeline->SetDirectionalLight(m_dLight.get());
+    m_heightmapPipeline->SetView(m_camera.GetViewMatrix());
+    m_heightmapPipeline->SetProjection(m_camera.GetProjectionMatrix());
+    m_heightmapPipeline->SetEnvironmentMap(m_environmentMap->GetSRV());
+    m_heightmapPipeline->SetPointLights(PointLightParams());
+    m_heightmapPipeline->SetShadowCubeArray(m_shadowCubeArray->GetSRV());
+
     m_waterPipeline->SetCameraPosition(m_camera.GetPosition());
     m_waterPipeline->SetCameraDirection(m_camera.GetDirection());
     m_waterPipeline->SetDirectionalLight(m_dLight.get());
@@ -465,6 +474,14 @@ void Game::CreateEntities()
     textureManager->LoadDDS(device, cq,
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.dds");
+
+    textureManager->LoadDDS(device, cq,
+        "heightMap",
+        L"Assets\\height.dds");
+    textureManager->LoadDDS(device, cq,
+        "heightNormalMap",
+        L"Assets\\heightNormal.dds");
+
 #pragma endregion
 
     JPH::BodyInterface& bodyInterface
@@ -603,7 +620,6 @@ void Game::CreateEntities()
     water.RenderPipeline = m_waterPipeline.get();
     water.ShadowPipeline = nullptr;
     water.CastsShadows = false;
-    //DEBUGGING
     entityManager->AddEntity(std::move(water));
 
     Entity ePointLight1;
@@ -667,6 +683,20 @@ void Game::CreateEntities()
         = bodyInterface.CreateAndAddBody(ePointLight2Settings,
             JPH::EActivation::Activate);
     entityManager->AddEntity(std::move(ePointLight2));
+
+    Entity terrain;
+    terrain.id = "terrain";
+    terrain.Drawable = Rendering::GeometricPrimitive::CreateGrid(device,
+        cq,
+        100,
+        100,
+        10,
+        false);
+    terrain.RenderPipeline = m_heightmapPipeline.get();
+    terrain.ShadowPipeline = nullptr;
+    terrain.CastsShadows = false;
+    terrain.SetTranslation(Vector3{ 50, -1, 0 });
+    entityManager->AddEntity(std::move(terrain));
 }
 
 #pragma region Direct3D Resources
@@ -716,6 +746,7 @@ void Game::CreateDeviceDependentResources()
     m_states = std::make_shared<DirectX::CommonStates>(device);
     m_pbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device);
     m_waterPipeline = std::make_unique<Pipelines::WaterPipeline>(device);
+    m_heightmapPipeline = std::make_unique<Pipelines::HeightmapPipeline>(device);
     m_tonemapper = std::make_unique<Rendering::TextureDrawer>(
         device,
         cq,
@@ -753,6 +784,11 @@ void Game::CreateDeviceDependentResources()
     m_renderingWindow.Water = waterParams;
 
     CreateEntities();
+
+    auto tm = TextureManager::Get();
+
+    m_heightmapPipeline->SetHeightmap(tm->GetTexture("heightMap"));
+    m_heightmapPipeline->SetHeightNormalMap(tm->GetTexture("heightNormalMap"));
 
     m_shadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device,
         256, m_pointLights.size());

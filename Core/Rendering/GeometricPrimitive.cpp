@@ -538,7 +538,8 @@ namespace Gradient::Rendering
         GeometricPrimitive::IndexCollection& indices,
         const float& width,
         const float& height,
-        const float& divisions)
+        const float& divisions,
+        bool tiled)
     {
         using namespace DirectX::SimpleMath;
 
@@ -552,7 +553,12 @@ namespace Gradient::Rendering
             GeometricPrimitive::VertexType vertex;
             vertex.position = Vector3{ topLeftX + i * xStep, 0, topLeftZ };
             vertex.normal = Vector3::UnitY;
-            vertex.textureCoordinate = Vector2{ (float)i, 0.f };
+
+            auto texcoord = Vector2{ (float)i, 0.f };
+            if (tiled)
+                vertex.textureCoordinate = texcoord;
+            else
+                vertex.textureCoordinate = texcoord * 1.f / (divisions + 1);
 
             vertices.push_back(vertex);
         }
@@ -569,7 +575,13 @@ namespace Gradient::Rendering
                     topLeftZ + zIndex * zStep
                 };
                 vertex.normal = Vector3::UnitY;
-                vertex.textureCoordinate = Vector2{ (float)i, (float)zIndex };
+                auto texcoord = Vector2{ (float)i, (float)zIndex };
+
+                if (tiled)
+                    vertex.textureCoordinate = texcoord;
+                else
+                    vertex.textureCoordinate = texcoord * 1.f / (divisions + 1);
+
 
                 vertices.push_back(vertex);
             }
@@ -712,11 +724,12 @@ namespace Gradient::Rendering
         ID3D12CommandQueue* cq,
         const float& width,
         const float& height,
-        const float& divisions)
+        const float& divisions,
+        bool tiled)
     {
         VertexCollection vertices;
         IndexCollection indices;
-        ComputeGrid(vertices, indices, width, height, divisions);
+        ComputeGrid(vertices, indices, width, height, divisions, tiled);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
         primitive->Initialize(device, cq, vertices, indices);

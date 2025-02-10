@@ -52,6 +52,8 @@
     <ClInclude Include="Core\RootSignature.h" />
     <ClInclude Include="Core\BarrierResource.h" />
     <ClInclude Include="Core\Rendering\TextureDrawer.h" />
+    <ClInclude Include="Core\PipelineState.h" />
+    <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -88,6 +90,8 @@
     <ClCompile Include="Core\RootSignature.cpp" />
     <ClCompile Include="Core\BarrierResource.cpp" />
     <ClCompile Include="Core\Rendering\TextureDrawer.cpp" />
+    <ClCompile Include="Core\PipelineState.cpp" />
+    <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -257,5 +261,9 @@
     <FxCompile Include="Core\Shaders\Passthrough_VS.hlsl" />
     <FxCompile Include="Core\Shaders\Water_PS.hlsl" />
     <FxCompile Include="Core\Shaders\Water_VS.hlsl" />
+    <FxCompile Include="Core\Shaders\Heightmap_VS.hlsl" />
+    <FxCompile Include="Core\Shaders\Heightmap_HS.hlsl" />
+    <FxCompile Include="Core\Shaders\Heightmap_DS.hlsl" />
+    <FxCompile Include="Core\Shaders\Heightmap_PS.hlsl" />
   </ItemGroup>
 </Project>
