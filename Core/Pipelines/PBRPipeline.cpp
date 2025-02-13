@@ -10,29 +10,12 @@ namespace Gradient::Pipelines
 {
     PBRPipeline::PBRPipeline(ID3D12Device* device)
     {
-        InitializeShadowRSandPSO(device);
-        InitializeRenderRSandPSO(device);
+        InitializeRootSignature(device);
+        InitializeShadowPSO(device);
+        InitializeRenderPSO(device);
     }
 
-    void PBRPipeline::InitializeShadowRSandPSO(ID3D12Device* device)
-    {
-        m_shadowRootSignature.AddCBV(0, 0);
-        m_shadowRootSignature.Build(device);
-
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
-
-        auto vsData = DX::ReadData(L"WVP_VS.cso");
-
-        psoDesc.pRootSignature = m_shadowRootSignature.Get();
-        psoDesc.InputLayout = VertexType::InputLayout;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.VS = { vsData.data(), vsData.size() };
-
-        m_shadowPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_shadowPipelineState->Build(device);
-    }
-
-    void PBRPipeline::InitializeRenderRSandPSO(ID3D12Device* device)
+    void PBRPipeline::InitializeRootSignature(ID3D12Device* device)
     {
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);
@@ -67,7 +50,25 @@ namespace Gradient::Pipelines
             3, 1);
 
         m_rootSignature.Build(device);
+    }
 
+    void PBRPipeline::InitializeShadowPSO(ID3D12Device* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
+
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+
+        m_shadowPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_shadowPipelineState->Build(device);
+    }
+
+    void PBRPipeline::InitializeRenderPSO(ID3D12Device* device)
+    {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
         auto vsData = DX::ReadData(L"WVP_VS.cso");
@@ -86,14 +87,14 @@ namespace Gradient::Pipelines
     void PBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
     {
         m_shadowPipelineState->Set(cl, false);
-        m_shadowRootSignature.SetOnCommandList(cl);
+        m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
-        m_shadowRootSignature.SetCBV(cl, 0, 0, vertexConstants);
+        m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }

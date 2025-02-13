@@ -71,12 +71,12 @@ namespace Gradient::Pipelines
         void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
 
     private:
-        void InitializeShadowRSandPSO(ID3D12Device* device);
-        void InitializeRenderRSandPSO(ID3D12Device* device);
+        void InitializeRootSignature(ID3D12Device* device);
+        void InitializeShadowPSO(ID3D12Device* device);
+        void InitializeRenderPSO(ID3D12Device* device);
         void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
 
         RootSignature m_rootSignature;
-        RootSignature m_shadowRootSignature;
         std::unique_ptr<PipelineState> m_pipelineState;
         std::unique_ptr<PipelineState> m_shadowPipelineState;
 
