@@ -159,9 +159,14 @@ void Game::Render()
 
     m_dLight->ClearAndSetDSV(cl);
 
-    // TODO: Set the other pipelines as well
+    m_heightmapPipeline->SetCameraPosition(m_camera.GetPosition());
+    m_heightmapPipeline->SetCameraDirection(m_camera.GetDirection());
+
     m_pbrPipeline->SetView(m_dLight->GetView());
     m_pbrPipeline->SetProjection(m_dLight->GetProjection());
+    m_heightmapPipeline->SetView(m_dLight->GetView());
+    m_heightmapPipeline->SetProjection(m_dLight->GetProjection());
+
 
     entityManager->DrawAll(cl, true);
 
@@ -176,8 +181,8 @@ void Game::Render()
             {
                 m_pbrPipeline->SetView(view);
                 m_pbrPipeline->SetProjection(proj);
-
-                // TODO: set the other pipelines as well
+                m_heightmapPipeline->SetView(view);
+                m_heightmapPipeline->SetProjection(proj);
 
                 entityManager->DrawAll(cl, true);
             });
@@ -690,7 +695,7 @@ void Game::CreateEntities()
         10,
         false);
     terrain.RenderPipeline = m_heightmapPipeline.get();
-    terrain.CastsShadows = false;
+    terrain.CastsShadows = true;
     terrain.SetTranslation(Vector3{ 50, -1, 0 });
     entityManager->AddEntity(std::move(terrain));
 }
@@ -756,7 +761,7 @@ void Game::CreateDeviceDependentResources()
     auto dlight = new Gradient::Rendering::DirectionalLight(
         device,
         { -0.7f, -0.3f, 0.7f },
-        200.f
+        100.f
     );
     m_dLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
     auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);

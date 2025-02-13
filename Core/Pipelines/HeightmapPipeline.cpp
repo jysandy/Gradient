@@ -6,6 +6,13 @@ namespace Gradient::Pipelines
 {
     HeightmapPipeline::HeightmapPipeline(ID3D12Device* device)
     {
+        InitializeRootSignature(device);
+        InitializeShadowPSO(device);
+        InitializeRenderPSO(device);
+    }
+
+    void HeightmapPipeline::InitializeRootSignature(ID3D12Device* device)
+    {
         m_rootSignature.AddCBV(0, 1);   // transforms
         m_rootSignature.AddCBV(1, 1);   // LOD settings
         m_rootSignature.AddCBV(0, 2);   // lights
@@ -35,7 +42,10 @@ namespace Gradient::Pipelines
             1, 2);
 
         m_rootSignature.Build(device);
+    }
 
+    void HeightmapPipeline::InitializeRenderPSO(ID3D12Device* device)
+    {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
         auto vsData = DX::ReadData(L"Heightmap_VS.cso");
@@ -62,12 +72,71 @@ namespace Gradient::Pipelines
         m_pso->Build(device);
     }
 
+    void HeightmapPipeline::InitializeShadowPSO(ID3D12Device* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
+
+        auto vsData = DX::ReadData(L"Heightmap_VS.cso");
+        auto hsData = DX::ReadData(L"Heightmap_HS.cso");
+        auto dsData = DX::ReadData(L"Heightmap_DS.cso");
+
+        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
+        std::copy(VertexType::InputLayout.pInputElementDescs,
+            VertexType::InputLayout.pInputElementDescs + 3,
+            inputElements.begin());
+        inputElements[0].SemanticName = "LOCALPOS";
+        inputElements[0].SemanticIndex = 0;
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = { inputElements.data(), 3 };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.HS = { hsData.data(), hsData.size() };
+        psoDesc.DS = { dsData.data(), dsData.size() };
+
+        // TODO: Look into biasing issues.
+        // Probably replace the shadow pipeline with EVSM
+
+        m_shadowPso = std::make_unique<PipelineState>(psoDesc);
+        m_shadowPso->Build(device);
+    }
+
+    void HeightmapPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
+    {
+        m_shadowPso->Set(cl, false);
+        m_rootSignature.SetOnCommandList(cl);
+
+        MatrixCB matrixConstants;
+        matrixConstants.world = DirectX::XMMatrixTranspose(m_world);
+        matrixConstants.view = DirectX::XMMatrixTranspose(m_view);
+        matrixConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+
+        m_rootSignature.SetCBV(cl, 0, 1, matrixConstants);
+
+        LodCB lodConstants;
+        lodConstants.cameraDirection = m_cameraDirection;
+        lodConstants.cameraPosition = m_cameraPosition;
+        lodConstants.minLodDistance = 100;
+        lodConstants.maxLodDistance = 400;
+        lodConstants.cullingEnabled = 0; // Can't cull when drawing shadows!
+
+        m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
+
+        m_rootSignature.SetSRV(cl, 0, 0, m_heightmap);
+        m_rootSignature.SetSRV(cl, 2, 2, m_heightNormalMap);
+
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+    }
+
     void HeightmapPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
         bool drawingShadows)
     {
-        // TODO: Actually draw the shadows
-        if (drawingShadows) return;
+        if (drawingShadows)
+        {
+            ApplyShadowPipeline(cl);
+            return;
+        }
 
         m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);
