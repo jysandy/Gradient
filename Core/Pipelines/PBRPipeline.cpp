@@ -10,6 +10,30 @@ namespace Gradient::Pipelines
 {
     PBRPipeline::PBRPipeline(ID3D12Device* device)
     {
+        InitializeShadowRSandPSO(device);
+        InitializeRenderRSandPSO(device);
+    }
+
+    void PBRPipeline::InitializeShadowRSandPSO(ID3D12Device* device)
+    {
+        m_shadowRootSignature.AddCBV(0, 0);
+        m_shadowRootSignature.Build(device);
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
+
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
+
+        psoDesc.pRootSignature = m_shadowRootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+
+        m_shadowPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_shadowPipelineState->Build(device);
+    }
+
+    void PBRPipeline::InitializeRenderRSandPSO(ID3D12Device* device)
+    {
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);
         m_rootSignature.AddCBV(1, 1);
@@ -59,8 +83,31 @@ namespace Gradient::Pipelines
         m_pipelineState->Build(device);
     }
 
-    void PBRPipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
+    void PBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
     {
+        m_shadowPipelineState->Set(cl, false);
+        m_shadowRootSignature.SetOnCommandList(cl);
+
+        VertexCB vertexConstants;
+        vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
+        vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
+        vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+
+        m_shadowRootSignature.SetCBV(cl, 0, 0, vertexConstants);
+
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
+
+    void PBRPipeline::Apply(ID3D12GraphicsCommandList* cl, 
+        bool multisampled,
+        bool drawingShadows)
+    {
+        if (drawingShadows)
+        {
+            ApplyShadowPipeline(cl);
+            return;
+        }
+
         m_pipelineState->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);
 

@@ -70,7 +70,9 @@ namespace Gradient::Pipelines
         explicit WaterPipeline(ID3D12Device* device);
         virtual ~WaterPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl,
+            bool multisampled = true,
+            bool drawingShadows = false) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;

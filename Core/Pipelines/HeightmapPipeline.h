@@ -57,7 +57,9 @@ namespace Gradient::Pipelines
         explicit HeightmapPipeline(ID3D12Device* device);
         virtual ~HeightmapPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, 
+            bool multisampled = true,
+            bool drawingShadows = false) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;

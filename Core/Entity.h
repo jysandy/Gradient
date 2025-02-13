@@ -23,7 +23,6 @@ namespace Gradient
         DirectX::SimpleMath::Matrix Translation;
         std::unique_ptr<Rendering::IDrawable> Drawable;
         Pipelines::IRenderPipeline* RenderPipeline;
-        Pipelines::IRenderPipeline* ShadowPipeline;
         bool CastsShadows = true;
 
         GraphicsMemoryManager::DescriptorView Texture = nullptr;

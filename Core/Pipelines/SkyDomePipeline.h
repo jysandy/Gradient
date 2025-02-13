@@ -39,7 +39,9 @@ namespace Gradient::Pipelines
         explicit SkyDomePipeline(ID3D12Device* device);
         virtual ~SkyDomePipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) override;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, 
+            bool multisampled = true,
+            bool drawingShadows = false) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;

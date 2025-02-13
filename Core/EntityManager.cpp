@@ -126,16 +126,12 @@ namespace Gradient
         auto outwardNormalMap = textureManager->GetTexture("defaultNormal");
         auto dielectricMetalnessMap = textureManager->GetTexture("defaultMetalness");
         auto smoothMap = dielectricMetalnessMap;
-        auto shadowPipeline = entity.ShadowPipeline;
 
         if (drawingShadows && !entity.CastsShadows) return;
 
         Pipelines::IRenderPipeline* pipeline;
 
-        if (drawingShadows)
-            pipeline = shadowPipeline;
-        else
-            pipeline = entity.RenderPipeline;
+        pipeline = entity.RenderPipeline;
 
         if (!drawingShadows)
         {
@@ -168,7 +164,10 @@ namespace Gradient
         }
 
         pipeline->SetWorld(entity.GetWorldMatrix());
-        pipeline->Apply(cl);
+        if (drawingShadows)
+            pipeline->Apply(cl, false, drawingShadows);
+        else
+            pipeline->Apply(cl, true, drawingShadows);
 
         entity.Drawable->Draw(cl);
     }

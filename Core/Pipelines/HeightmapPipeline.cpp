@@ -62,8 +62,13 @@ namespace Gradient::Pipelines
         m_pso->Build(device);
     }
 
-    void HeightmapPipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
+    void HeightmapPipeline::Apply(ID3D12GraphicsCommandList* cl,
+        bool multisampled,
+        bool drawingShadows)
     {
+        // TODO: Actually draw the shadows
+        if (drawingShadows) return;
+
         m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);
 

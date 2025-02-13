@@ -105,8 +105,12 @@ namespace Gradient::Pipelines
         }
     }
 
-    void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl, bool multisampled)
+    void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl,
+        bool multisampled,
+        bool drawingShadows)
     {
+        if (drawingShadows) return;
+
         m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);
 

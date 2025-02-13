@@ -47,6 +47,29 @@ namespace Gradient
         return psoDesc;
     }
 
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetDefaultShadowDesc()
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto rsDesc = CD3DX12_RASTERIZER_DESC1();
+        rsDesc.FillMode = D3D12_FILL_MODE_SOLID;
+        rsDesc.CullMode = D3D12_CULL_MODE_BACK;
+        rsDesc.FrontCounterClockwise = FALSE;
+        rsDesc.DepthClipEnable = TRUE;
+        rsDesc.MultisampleEnable = FALSE;
+        rsDesc.AntialiasedLineEnable = FALSE;
+        rsDesc.DepthBias = 10000;
+        rsDesc.SlopeScaledDepthBias = 1.f;
+        rsDesc.DepthBiasClamp = 0.f;
+
+        psoDesc.RasterizerState = rsDesc;
+        psoDesc.NumRenderTargets = 0;
+        for (int i = 0; i < 8; i++)
+            psoDesc.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
+
+        return psoDesc;
+    }
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetDesc()
     {
         return m_desc;

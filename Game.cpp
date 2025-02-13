@@ -158,8 +158,10 @@ void Game::Render()
     PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Shadow Pass");
 
     m_dLight->ClearAndSetDSV(cl);
-    m_shadowMapPipeline->SetView(m_dLight->GetView());
-    m_shadowMapPipeline->SetProjection(m_dLight->GetProjection());
+
+    // TODO: Set the other pipelines as well
+    m_pbrPipeline->SetView(m_dLight->GetView());
+    m_pbrPipeline->SetProjection(m_dLight->GetProjection());
 
     entityManager->DrawAll(cl, true);
 
@@ -172,8 +174,11 @@ void Game::Render()
             pointLight.MaxRange,
             [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
             {
-                m_shadowMapPipeline->SetView(view);
-                m_shadowMapPipeline->SetProjection(proj);
+                m_pbrPipeline->SetView(view);
+                m_pbrPipeline->SetProjection(proj);
+
+                // TODO: set the other pipelines as well
+
                 entityManager->DrawAll(cl, true);
             });
     }
@@ -477,7 +482,7 @@ void Game::CreateEntities()
 
     textureManager->LoadDDS(device, cq,
         "heightMap",
-        L"Assets\\height.dds");
+        L"Assets\\heightBlurred.dds");
     textureManager->LoadDDS(device, cq,
         "heightNormalMap",
         L"Assets\\heightNormal.dds");
@@ -494,7 +499,6 @@ void Game::CreateEntities()
     sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
         cq, 2.f);
     sphere1.RenderPipeline = m_pbrPipeline.get();
-    sphere1.ShadowPipeline = m_shadowMapPipeline.get();
     sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
     sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
     sphere1.AOMap = textureManager->GetTexture("metalSAO");
@@ -519,7 +523,6 @@ void Game::CreateEntities()
     sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
         cq, 2.f);
     sphere2.RenderPipeline = m_pbrPipeline.get();
-    sphere2.ShadowPipeline = m_shadowMapPipeline.get();
     sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
     sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
     sphere2.AOMap = textureManager->GetTexture("ornamentAO");
@@ -542,7 +545,6 @@ void Game::CreateEntities()
     floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 20.f, 0.5f, 20.f });
     floor.RenderPipeline = m_pbrPipeline.get();
-    floor.ShadowPipeline = m_shadowMapPipeline.get();
     floor.Texture = textureManager->GetTexture("tiles06Albedo");
     floor.NormalMap = textureManager->GetTexture("tiles06Normal");
     floor.AOMap = textureManager->GetTexture("tiles06AO");
@@ -568,7 +570,6 @@ void Game::CreateEntities()
     box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 3.f, 3.f, 3.f });
     box1.RenderPipeline = m_pbrPipeline.get();
-    box1.ShadowPipeline = m_shadowMapPipeline.get();
     box1.Texture = textureManager->GetTexture("metal01Albedo");
     box1.NormalMap = textureManager->GetTexture("metal01Normal");
     box1.AOMap = textureManager->GetTexture("metal01AO");
@@ -592,7 +593,6 @@ void Game::CreateEntities()
     box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 3.f, 3.f, 3.f });
     box2.RenderPipeline = m_pbrPipeline.get();
-    box2.ShadowPipeline = m_shadowMapPipeline.get();
     box2.Texture = textureManager->GetTexture("crate");
     box2.NormalMap = textureManager->GetTexture("crateNormal");
     box2.AOMap = textureManager->GetTexture("crateAO");
@@ -618,7 +618,6 @@ void Game::CreateEntities()
         800,
         100);
     water.RenderPipeline = m_waterPipeline.get();
-    water.ShadowPipeline = nullptr;
     water.CastsShadows = false;
     entityManager->AddEntity(std::move(water));
 
@@ -628,7 +627,6 @@ void Game::CreateEntities()
         cq,
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
-    ePointLight1.ShadowPipeline = m_shadowMapPipeline.get();
     // Black
     ePointLight1.Texture = textureManager->GetTexture("defaultMetalness");
     ePointLight1.CastsShadows = true;
@@ -659,7 +657,6 @@ void Game::CreateEntities()
         cq,
         0.5f);
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
-    ePointLight2.ShadowPipeline = m_shadowMapPipeline.get();
     ePointLight2.CastsShadows = true;
     ePointLight2.EmissiveRadiance = 7 * Vector3{ 1, 0.3, 0 };
     // Black
@@ -693,7 +690,6 @@ void Game::CreateEntities()
         10,
         false);
     terrain.RenderPipeline = m_heightmapPipeline.get();
-    terrain.ShadowPipeline = nullptr;
     terrain.CastsShadows = false;
     terrain.SetTranslation(Vector3{ 50, -1, 0 });
     entityManager->AddEntity(std::move(terrain));
@@ -767,7 +763,6 @@ void Game::CreateDeviceDependentResources()
     m_dLight->SetColour(lightColor);
     m_dLight->SetIrradiance(7.f);
 
-    m_shadowMapPipeline = std::make_unique<Gradient::Pipelines::ShadowMapPipeline>(device);
     m_skyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device);
     m_skyDomePipeline->SetAmbientIrradiance(1.f);
     m_sky = Rendering::GeometricPrimitive::CreateGeoSphere(device,

@@ -22,7 +22,7 @@ namespace Gradient::Pipelines
         IRenderPipeline(const IRenderPipeline&) = delete;
         IRenderPipeline& operator=(const IRenderPipeline&) = delete;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true) = 0;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true, bool drawingShadows = false) = 0;
 
         virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index);
         virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index);

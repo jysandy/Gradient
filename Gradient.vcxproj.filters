@@ -29,7 +29,6 @@
     <ClInclude Include="GUI\PhysicsWindow.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="Core\ReadData.h" />
-    <ClInclude Include="Core\Pipelines\ShadowMapPipeline.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
     <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
@@ -71,7 +70,6 @@
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
-    <ClCompile Include="Core\Pipelines\ShadowMapPipeline.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
