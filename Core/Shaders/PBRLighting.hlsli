@@ -33,7 +33,7 @@ float3 fresnelSchlick(
     F0 = lerp(F0, albedo, metallic);
     float cosTheta = max(dot(H, V), 0);
     
-    return F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f);
+    return F0 + (1.f - F0) * pow(saturate(1.f - cosTheta), 5.f);
 }
 
 float distributionGGX(float3 N, float3 H, float roughness)
