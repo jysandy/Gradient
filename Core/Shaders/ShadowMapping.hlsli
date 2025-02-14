@@ -11,6 +11,11 @@ float calculateShadowFactor(
     
     shadowUV.xyz /= shadowUV.w;
     
+    // DEBUG: Disabling PCF
+    //return saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
+    //        shadowUV.xy,
+    //        shadowUV.z));
+    
     // Large kernel PCF. Partial derivatives are needed to 
     // estimate the depths of the adjacent samples.
     
