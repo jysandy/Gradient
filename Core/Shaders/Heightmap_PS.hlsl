@@ -76,7 +76,8 @@ float4 main(InputType input) : SV_TARGET
         N, V, albedo, ao, metalness, roughness
     );
     
-    float shadowFactor = calculateShadowFactor(
+    // Large kernel PCF causes ugly artifacts on the terrain.
+    float shadowFactor = calculateShadowFactorNoLargeKernel(
         shadowMap,
         shadowMapSampler,
         shadowTransform,

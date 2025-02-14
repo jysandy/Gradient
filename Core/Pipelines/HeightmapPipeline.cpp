@@ -98,6 +98,9 @@ namespace Gradient::Pipelines
         // TODO: Look into biasing issues.
         // Probably replace the shadow pipeline with EVSM
 
+        psoDesc.RasterizerState.DepthBias = 10000;
+        psoDesc.RasterizerState.SlopeScaledDepthBias = 10.f;
+
         m_shadowPso = std::make_unique<PipelineState>(psoDesc);
         m_shadowPso->Build(device);
     }

@@ -53,6 +53,22 @@ float calculateShadowFactor(
     return shadowFactor / 9.f;
 }
 
+float calculateShadowFactorNoLargeKernel(
+    Texture2D shadowMap,
+    SamplerComparisonState shadowMapSampler,
+    float4x4 shadowTransform,
+    float3 worldPosition)
+{
+    // TODO: Move this multiplication to the vertex shader
+    float4 shadowUV = mul(float4(worldPosition, 1.f), shadowTransform);
+    
+    shadowUV.xyz /= shadowUV.w;
+    
+    return saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
+            shadowUV.xy,
+            shadowUV.z));
+}
+
 float cubeShadowFactor(TextureCubeArray shadowMaps,
     SamplerComparisonState shadowMapSampler,
     float3 lightPosition,
