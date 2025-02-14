@@ -563,7 +563,8 @@ namespace Gradient::Rendering
             vertices.push_back(vertex);
         }
 
-        bool topRightToBottomLeft = false;
+        bool invertAlongX = false;
+        bool invertAlongZ = true;
         for (int zIndex = 1; zIndex < divisions + 1; zIndex++)
         {
             for (int i = 0; i < divisions + 1; i++)
@@ -586,31 +587,56 @@ namespace Gradient::Rendering
                 vertices.push_back(vertex);
             }
 
+            invertAlongX = false;
             for (int i = 0; i < divisions; i++)
             {
                 auto baseIndex = zIndex * (divisions + 1) + i;
 
-                if (topRightToBottomLeft)
+                if (invertAlongZ)
                 {
-                    indices.push_back(baseIndex);
-                    indices.push_back(baseIndex - divisions - 1);
-                    indices.push_back(baseIndex + 1);
-                    indices.push_back(baseIndex + 1);
-                    indices.push_back(baseIndex - divisions - 1);
-                    indices.push_back(baseIndex - divisions);
+                    if (invertAlongX)
+                    {
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex - divisions);
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions);
+                        indices.push_back(baseIndex + 1);
+                    }
+                    else
+                    {
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex + 1);
+                        indices.push_back(baseIndex + 1);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex - divisions);
+                    }
                 }
                 else
                 {
-                    indices.push_back(baseIndex);
-                    indices.push_back(baseIndex - divisions - 1);
-                    indices.push_back(baseIndex - divisions);
-                    indices.push_back(baseIndex);
-                    indices.push_back(baseIndex - divisions);
-                    indices.push_back(baseIndex + 1);
+                    if (invertAlongX)
+                    {
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex + 1);
+                        indices.push_back(baseIndex + 1);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex - divisions);
+                    }
+                    else
+                    {
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions - 1);
+                        indices.push_back(baseIndex - divisions);
+                        indices.push_back(baseIndex);
+                        indices.push_back(baseIndex - divisions);
+                        indices.push_back(baseIndex + 1);
+                    }
                 }
-
-                topRightToBottomLeft = !topRightToBottomLeft;
+                invertAlongX = !invertAlongX;
             }
+            invertAlongZ = !invertAlongZ;
         }
     }
 
@@ -642,16 +668,16 @@ namespace Gradient::Rendering
                 vertices,
                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
                 m_vertexBuffer.ReleaseAndGetAddressOf()));
-        
+
         DX::ThrowIfFailed(
             DirectX::CreateStaticBuffer(device,
                 uploadBatch,
                 indices,
-                D3D12_RESOURCE_STATE_INDEX_BUFFER, 
+                D3D12_RESOURCE_STATE_INDEX_BUFFER,
                 m_indexBuffer.ReleaseAndGetAddressOf()));
 
         auto uploadFinished = uploadBatch.End(cq);
-        
+
         uploadFinished.wait();
 
         m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();

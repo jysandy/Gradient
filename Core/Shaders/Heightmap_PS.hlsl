@@ -41,6 +41,7 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
+    //return float4(1, 1, 1, 1);
     input.normal = normalize(input.normal);
     
     float3 N = input.normal;

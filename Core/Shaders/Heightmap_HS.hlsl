@@ -65,6 +65,15 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	uint PatchID : SV_PrimitiveID)
 {
     HS_CONSTANT_DATA_OUTPUT Output;
+    
+    // DEBUG: REMOVEME
+    //Output.EdgeTessFactor[0] =
+    //    Output.EdgeTessFactor[1] =
+    //    Output.EdgeTessFactor[2] =
+    //    Output.InsideTessFactor = 1;
+    
+    //return Output;
+    // END DEBUG
 
     float3 e0 = toWorld(0.5 * (ip[0].vPosition + ip[1].vPosition));
     float3 e1 = toWorld(0.5 * (ip[1].vPosition + ip[2].vPosition));

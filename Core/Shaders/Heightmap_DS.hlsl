@@ -94,6 +94,9 @@ DS_OUTPUT main(
         Output.normal = float3(0, 1, 0);
     else
         Output.normal = normalize(normal);
+    
+    // DEBUG: REMOVEME
+    //interpolatedLocalPosition.y = 0;
 
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
     Output.worldPosition = Output.vPosition.xyz;

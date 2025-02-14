@@ -67,6 +67,7 @@ namespace Gradient::Pipelines
         psoDesc.HS = { hsData.data(), hsData.size() };
         psoDesc.DS = { dsData.data(), dsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
+        //psoDesc.RasterizerState = DirectX::CommonStates::Wireframe;
 
         m_pso = std::make_unique<PipelineState>(psoDesc);
         m_pso->Build(device);
