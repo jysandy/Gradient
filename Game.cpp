@@ -775,7 +775,7 @@ void Game::CreateDeviceDependentResources()
         false);
     m_environmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
         256,
-        DXGI_FORMAT_R32G32B32A32_FLOAT);
+        DXGI_FORMAT_R16G16B16A16_FLOAT);
 
     auto waterParams = Params::Water{
         50.f, 400.f
@@ -815,7 +815,7 @@ void Game::CreateWindowSizeDependentResources()
         device,
         width,
         height,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
+        DXGI_FORMAT_R16G16B16A16_FLOAT,
         true
     );
 
@@ -832,7 +832,7 @@ void Game::CreateWindowSizeDependentResources()
         cq,
         width,
         height,
-        DXGI_FORMAT_R32G32B32A32_FLOAT
+        DXGI_FORMAT_R16G16B16A16_FLOAT
     );
 
     m_bloomProcessor->SetExposure(18.f);

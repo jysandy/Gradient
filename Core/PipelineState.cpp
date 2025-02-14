@@ -40,7 +40,7 @@ namespace Gradient
         psoDesc.RasterizerState = DirectX::CommonStates::CullCounterClockwise;
         psoDesc.NumRenderTargets = 1;
         psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleDesc.Quality = 0;
 
