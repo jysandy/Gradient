@@ -52,12 +52,7 @@ namespace Gradient::Pipelines
             bool multisampled = true, 
             bool drawingShadows = false) override;
 
-        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index) override;
-        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index) override;
-        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index) override;
-        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index) override;
-        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index) override;
-        virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance) override;
+        virtual void SetMaterial(Rendering::PBRMaterial material);
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
@@ -80,12 +75,9 @@ namespace Gradient::Pipelines
         std::unique_ptr<PipelineState> m_pipelineState;
         std::unique_ptr<PipelineState> m_shadowPipelineState;
 
-        GraphicsMemoryManager::DescriptorView m_texture;
+        Rendering::PBRMaterial m_material;
+        
         GraphicsMemoryManager::DescriptorView m_shadowMap;
-        GraphicsMemoryManager::DescriptorView m_normalMap;
-        GraphicsMemoryManager::DescriptorView m_aoMap;
-        GraphicsMemoryManager::DescriptorView m_metalnessMap;
-        GraphicsMemoryManager::DescriptorView m_roughnessMap;
         GraphicsMemoryManager::DescriptorView m_environmentMap;
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
@@ -95,7 +87,6 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
-        DirectX::SimpleMath::Vector3 m_emissiveRadiance = { 0, 0, 0 };
         
         // TODO: Get rid of this and store Params::DirectionalLight
         // instead

@@ -135,32 +135,7 @@ namespace Gradient
 
         if (!drawingShadows)
         {
-            if (entity.Texture)
-                pipeline->SetAlbedo(entity.Texture);
-            else
-                pipeline->SetAlbedo(blankTexture);
-
-            if (entity.NormalMap)
-                pipeline->SetNormalMap(entity.NormalMap);
-            else
-                pipeline->SetNormalMap(outwardNormalMap);
-
-            if (entity.AOMap)
-                pipeline->SetAOMap(entity.AOMap);
-            else
-                pipeline->SetAOMap(blankTexture);
-
-            if (entity.MetalnessMap)
-                pipeline->SetMetalnessMap(entity.MetalnessMap);
-            else
-                pipeline->SetMetalnessMap(dielectricMetalnessMap);
-
-            if (entity.RoughnessMap)
-                pipeline->SetRoughnessMap(entity.RoughnessMap);
-            else
-                pipeline->SetRoughnessMap(blankTexture);
-
-            pipeline->SetEmissiveRadiance(entity.EmissiveRadiance);
+            pipeline->SetMaterial(entity.Material);
         }
 
         pipeline->SetWorld(entity.GetWorldMatrix());

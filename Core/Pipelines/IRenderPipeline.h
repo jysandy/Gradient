@@ -4,6 +4,7 @@
 
 #include "Core/Rendering/IDrawable.h"
 #include "Core/GraphicsMemoryManager.h"
+#include "Core/Rendering/PBRMaterial.h"
 #include <optional>
 #include <directxtk12/Effects.h>
 #include <directxtk12/SimpleMath.h>
@@ -24,12 +25,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true, bool drawingShadows = false) = 0;
 
-        virtual void SetAlbedo(GraphicsMemoryManager::DescriptorView index);
-        virtual void SetNormalMap(GraphicsMemoryManager::DescriptorView index);
-        virtual void SetAOMap(GraphicsMemoryManager::DescriptorView index);
-        virtual void SetMetalnessMap(GraphicsMemoryManager::DescriptorView index);
-        virtual void SetRoughnessMap(GraphicsMemoryManager::DescriptorView index);
-        virtual void SetEmissiveRadiance(DirectX::SimpleMath::Vector3 radiance);
+        virtual void SetMaterial(Rendering::PBRMaterial material);
 
     protected:
         IRenderPipeline() = default;

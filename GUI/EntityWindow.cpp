@@ -56,7 +56,7 @@ namespace Gradient::GUI
             ));
 
             e.SetRotation(m_rotationYawPitchRoll[0], m_rotationYawPitchRoll[1], m_rotationYawPitchRoll[2]);
-            e.EmissiveRadiance = m_emissiveRadiance;
+            e.Material.EmissiveRadiance = m_emissiveRadiance;
             e.CastsShadows = m_castsShadows;
             };
     }
@@ -89,7 +89,7 @@ namespace Gradient::GUI
         m_rotationYawPitchRoll[1] = r.x;
         m_rotationYawPitchRoll[2] = r.z;
 
-        m_emissiveRadiance = e->EmissiveRadiance;
+        m_emissiveRadiance = e->Material.EmissiveRadiance;
         m_castsShadows = e->CastsShadows;
     }
 

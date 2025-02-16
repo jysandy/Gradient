@@ -504,12 +504,13 @@ void Game::CreateEntities()
     sphere1.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
         cq, 2.f);
     sphere1.RenderPipeline = m_pbrPipeline.get();
-    sphere1.Texture = textureManager->GetTexture("metalSAlbedo");
-    sphere1.NormalMap = textureManager->GetTexture("metalSNormal");
-    sphere1.AOMap = textureManager->GetTexture("metalSAO");
-    sphere1.MetalnessMap = textureManager->GetTexture("metalSMetalness");
-    sphere1.RoughnessMap = textureManager->GetTexture("metalSRoughness");
-    sphere1.Translation = Matrix::CreateTranslation(Vector3{ -3.f, 3.f, 0.f });
+    sphere1.Material = Rendering::PBRMaterial(
+        "metalSAlbedo",
+        "metalSNormal",
+        "metalSAO",
+        "metalSMetalness",
+        "metalSRoughness"
+    );
     JPH::BodyCreationSettings sphere1Settings(
         new JPH::SphereShape(1.f),
         JPH::RVec3(-3.f, 3.f + 10.f, 0.f),
@@ -528,11 +529,13 @@ void Game::CreateEntities()
     sphere2.Drawable = Rendering::GeometricPrimitive::CreateSphere(device,
         cq, 2.f);
     sphere2.RenderPipeline = m_pbrPipeline.get();
-    sphere2.Texture = textureManager->GetTexture("ornamentAlbedo");
-    sphere2.NormalMap = textureManager->GetTexture("ornamentNormal");
-    sphere2.AOMap = textureManager->GetTexture("ornamentAO");
-    sphere2.MetalnessMap = textureManager->GetTexture("ornamentMetalness");
-    sphere2.RoughnessMap = textureManager->GetTexture("ornamentRoughness");
+    sphere2.Material = Rendering::PBRMaterial(
+        "ornamentAlbedo",
+        "ornamentNormal",
+        "ornamentAO",
+        "ornamentMetalness",
+        "ornamentRoughness"
+    );
     sphere2.Translation = Matrix::CreateTranslation(Vector3{ 3.f, 5.f, 0.f });
     JPH::BodyCreationSettings sphere2Settings(
         new JPH::SphereShape(1.f),
@@ -550,11 +553,13 @@ void Game::CreateEntities()
     floor.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 20.f, 0.5f, 20.f });
     floor.RenderPipeline = m_pbrPipeline.get();
-    floor.Texture = textureManager->GetTexture("tiles06Albedo");
-    floor.NormalMap = textureManager->GetTexture("tiles06Normal");
-    floor.AOMap = textureManager->GetTexture("tiles06AO");
-    floor.MetalnessMap = textureManager->GetTexture("tiles06Metalness");
-    floor.RoughnessMap = textureManager->GetTexture("tiles06Roughness");
+    floor.Material = Rendering::PBRMaterial(
+        "tiles06Albedo",
+        "tiles06Normal",
+        "tiles06AO",
+        "tiles06Metalness",
+        "tiles06Roughness"
+    );
     floor.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f + 10.f, 0.f });
 
     JPH::BoxShape* floorShape = new JPH::BoxShape(JPH::Vec3(10.f, 0.25f, 10.f));
@@ -575,11 +580,13 @@ void Game::CreateEntities()
     box1.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 3.f, 3.f, 3.f });
     box1.RenderPipeline = m_pbrPipeline.get();
-    box1.Texture = textureManager->GetTexture("metal01Albedo");
-    box1.NormalMap = textureManager->GetTexture("metal01Normal");
-    box1.AOMap = textureManager->GetTexture("metal01AO");
-    box1.RoughnessMap = textureManager->GetTexture("metal01Roughness");
-    box1.MetalnessMap = textureManager->GetTexture("metal01Metalness");
+    box1.Material = Rendering::PBRMaterial(
+        "metal01Albedo",
+        "metal01Normal",
+        "metal01AO",
+        "metal01Roughness",
+        "metal01Metalness"
+    );
     box1.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box1Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box1Settings(
@@ -598,10 +605,11 @@ void Game::CreateEntities()
     box2.Drawable = Rendering::GeometricPrimitive::CreateBox(device,
         cq, Vector3{ 3.f, 3.f, 3.f });
     box2.RenderPipeline = m_pbrPipeline.get();
-    box2.Texture = textureManager->GetTexture("crate");
-    box2.NormalMap = textureManager->GetTexture("crateNormal");
-    box2.AOMap = textureManager->GetTexture("crateAO");
-    box2.RoughnessMap = textureManager->GetTexture("crateRoughness");
+    box2.Material = Rendering::PBRMaterial::DefaultPBRMaterial();
+    box2.Material.Texture = textureManager->GetTexture("crate");
+    box2.Material.NormalMap = textureManager->GetTexture("crateNormal");
+    box2.Material.AOMap = textureManager->GetTexture("crateAO");
+    box2.Material.RoughnessMap = textureManager->GetTexture("crateRoughness");
     box2.Translation = Matrix::CreateTranslation(Vector3{ -5.f, 1.5f, -4.f });
     JPH::BoxShape* box2Shape = new JPH::BoxShape(JPH::Vec3(1.5f, 1.5f, 1.5f));
     JPH::BodyCreationSettings box2Settings(
@@ -633,9 +641,10 @@ void Game::CreateEntities()
         0.5f);
     ePointLight1.RenderPipeline = m_pbrPipeline.get();
     // Black
-    ePointLight1.Texture = textureManager->GetTexture("defaultMetalness");
+    ePointLight1.Material = Rendering::PBRMaterial::DefaultPBRMaterial();
+    ePointLight1.Material.Texture = textureManager->GetTexture("defaultMetalness");
     ePointLight1.CastsShadows = true;
-    ePointLight1.EmissiveRadiance = 7 * Vector3{ 0.9, 0.8, 0.5 };
+    ePointLight1.Material.EmissiveRadiance = 7 * Vector3{ 0.9, 0.8, 0.5 };
     Rendering::PointLight pointLight1;
     pointLight1.EntityId = ePointLight1.id;
     pointLight1.Colour = Color(Vector3{ 0.9, 0.8, 0.5 });
@@ -663,9 +672,10 @@ void Game::CreateEntities()
         0.5f);
     ePointLight2.RenderPipeline = m_pbrPipeline.get();
     ePointLight2.CastsShadows = true;
-    ePointLight2.EmissiveRadiance = 7 * Vector3{ 1, 0.3, 0 };
+    ePointLight2.Material = Rendering::PBRMaterial::DefaultPBRMaterial();
+    ePointLight2.Material.EmissiveRadiance = 7 * Vector3{ 1, 0.3, 0 };
     // Black
-    ePointLight2.Texture = textureManager->GetTexture("defaultMetalness");
+    ePointLight2.Material.Texture = textureManager->GetTexture("defaultMetalness");
     Rendering::PointLight pointLight2;
     pointLight2.EntityId = ePointLight2.id;
     pointLight2.Colour = Color(Vector3{ 1, 0.3, 0 });

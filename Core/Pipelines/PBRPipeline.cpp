@@ -144,45 +144,25 @@ namespace Gradient::Pipelines
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
-        pixelConstants.emissiveRadiance = m_emissiveRadiance;
+        pixelConstants.emissiveRadiance = m_material.EmissiveRadiance;
 
         m_rootSignature.SetCBV(cl, 1, 1, pixelConstants);
 
-        m_rootSignature.SetSRV(cl, 0, 1, m_texture);
+        m_rootSignature.SetSRV(cl, 0, 1, m_material.Texture);
         m_rootSignature.SetSRV(cl, 1, 1, m_shadowMap);
-        m_rootSignature.SetSRV(cl, 2, 1, m_normalMap);
-        m_rootSignature.SetSRV(cl, 3, 1, m_aoMap);
-        m_rootSignature.SetSRV(cl, 4, 1, m_metalnessMap);
-        m_rootSignature.SetSRV(cl, 5, 1, m_roughnessMap);
+        m_rootSignature.SetSRV(cl, 2, 1, m_material.NormalMap);
+        m_rootSignature.SetSRV(cl, 3, 1, m_material.AOMap);
+        m_rootSignature.SetSRV(cl, 4, 1, m_material.MetalnessMap);
+        m_rootSignature.SetSRV(cl, 5, 1, m_material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void PBRPipeline::SetAlbedo(GraphicsMemoryManager::DescriptorView index)
+    void PBRPipeline::SetMaterial(Rendering::PBRMaterial material)
     {
-        m_texture = index;
-    }
-
-    void PBRPipeline::SetNormalMap(GraphicsMemoryManager::DescriptorView index)
-    {
-        m_normalMap = index;
-    }
-
-    void PBRPipeline::SetAOMap(GraphicsMemoryManager::DescriptorView index)
-    {
-        m_aoMap = index;
-    }
-
-    void PBRPipeline::SetMetalnessMap(GraphicsMemoryManager::DescriptorView index)
-    {
-        m_metalnessMap = index;
-    }
-
-    void PBRPipeline::SetRoughnessMap(GraphicsMemoryManager::DescriptorView index)
-    {
-        m_roughnessMap = index;
+        m_material = material;
     }
 
     void PBRPipeline::SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index)
@@ -235,10 +215,5 @@ namespace Gradient::Pipelines
     void PBRPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
-    }
-
-    void PBRPipeline::SetEmissiveRadiance(DirectX::SimpleMath::Vector3 emissiveRadiance)
-    {
-        m_emissiveRadiance = emissiveRadiance;
     }
 }

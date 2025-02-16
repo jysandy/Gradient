@@ -53,6 +53,7 @@
     <ClInclude Include="Core\Rendering\TextureDrawer.h" />
     <ClInclude Include="Core\PipelineState.h" />
     <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
+    <ClInclude Include="Core\Rendering\PBRMaterial.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -90,6 +91,7 @@
     <ClCompile Include="Core\Rendering\TextureDrawer.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />
     <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
+    <ClCompile Include="Core\Rendering\PBRMaterial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

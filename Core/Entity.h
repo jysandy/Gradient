@@ -9,6 +9,7 @@
 #include "Core/GraphicsMemoryManager.h"
 #include "Core/Rendering/IDrawable.h"
 #include "Core/Pipelines/IRenderPipeline.h"
+#include "Core/Rendering/PBRMaterial.h"
 
 namespace Gradient
 {
@@ -25,12 +26,7 @@ namespace Gradient
         Pipelines::IRenderPipeline* RenderPipeline;
         bool CastsShadows = true;
 
-        GraphicsMemoryManager::DescriptorView Texture = nullptr;
-        GraphicsMemoryManager::DescriptorView NormalMap = nullptr;
-        GraphicsMemoryManager::DescriptorView AOMap = nullptr;
-        GraphicsMemoryManager::DescriptorView MetalnessMap = nullptr;
-        GraphicsMemoryManager::DescriptorView RoughnessMap = nullptr;
-        DirectX::SimpleMath::Vector3 EmissiveRadiance = { 0, 0, 0 };
+        Rendering::PBRMaterial Material;
 
         Entity();
         DirectX::SimpleMath::Matrix GetWorldMatrix() const;
