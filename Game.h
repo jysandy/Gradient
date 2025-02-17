@@ -16,10 +16,6 @@
 #include "Core/Entity.h"
 #include "Core/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
-#include "Core/Pipelines/PBRPipeline.h"
-#include "Core/Pipelines/SkyDomePipeline.h"
-#include "Core/Pipelines/WaterPipeline.h"
-#include "Core/Pipelines/HeightmapPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/RenderTexture.h"
@@ -31,6 +27,8 @@
 #include "GUI/EntityWindow.h"
 #include "GUI/RenderingWindow.h"
 #include "GUI/PerformanceWindow.h"
+
+#include "Core/Rendering/Renderer.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -76,46 +74,27 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
-    void Clear();
-
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
     void CreateEntities();
-    std::vector<Gradient::Params::PointLight> PointLightParams();
+
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>        m_deviceResources;
     // Rendering loop timer.
     DX::StepTimer                               m_timer;
 
-    std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
-
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_multisampledRenderTexture;
-    std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
-    std::unique_ptr<Gradient::Rendering::BloomProcessor> m_bloomProcessor;
-
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
-    std::shared_ptr<DirectX::CommonStates> m_states;
 
+    // TODO: camera needs to be an entity
     Gradient::Camera m_camera;
-    
-    std::unique_ptr<Gradient::Pipelines::PBRPipeline> m_pbrPipeline;
-    std::unique_ptr<Gradient::Pipelines::WaterPipeline> m_waterPipeline;
-    std::unique_ptr<Gradient::Pipelines::HeightmapPipeline> m_heightmapPipeline;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
     Gradient::GUI::PerformanceWindow m_perfWindow;
-
-    std::unique_ptr<Gradient::Rendering::DirectionalLight> m_dLight;
-    std::vector<Gradient::Rendering::PointLight> m_pointLights;
-    std::unique_ptr<Gradient::Rendering::DepthCubeArray> m_shadowCubeArray;
-
-    std::unique_ptr<Gradient::Rendering::GeometricPrimitive> m_sky;
-    std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> m_skyDomePipeline;
-    std::unique_ptr<Gradient::Rendering::CubeMap> m_environmentMap;
-    
-    std::unique_ptr<Gradient::Rendering::TextureDrawer> m_tonemapper;
+                                                              
+    std::unique_ptr<Gradient::Rendering::Renderer> m_renderer;
+    std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
 };
