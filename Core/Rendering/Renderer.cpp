@@ -2,7 +2,11 @@
 
 #include "Core/Rendering/Renderer.h"
 #include "Core/GraphicsMemoryManager.h"
-#include "Core/EntityManager.h"
+#include "Core/ECS/EntityManager.h"
+#include "Core/ECS/Components/DrawableComponent.h"
+#include "Core/ECS/Components/MaterialComponent.h"
+#include "Core/ECS/Components/TransformComponent.h"
+#include "Core/ECS/Components/PointLightComponent.h"
 #include "Core/TextureManager.h"
 
 #include <imgui.h>
@@ -96,10 +100,20 @@ namespace Gradient::Rendering
 
     std::vector<Gradient::Params::PointLight> Renderer::PointLightParams()
     {
+        using namespace Gradient::ECS::Components;
+
         std::vector<Gradient::Params::PointLight> out;
-        for (const auto& light : PointLights)
+        auto em = Gradient::EntityManager::Get();
+        auto view = em->Registry.view<TransformComponent, PointLightComponent>();
+
+        for (auto entity : view)
         {
-            out.push_back(light.AsParams());
+            auto [transform, light] = view.get(entity);
+
+            auto params = light.PointLight.AsParams();
+            params.Position = transform.GetTranslation();
+
+            out.push_back(params);
         }
 
         return out;
@@ -122,6 +136,7 @@ namespace Gradient::Rendering
         RenderTexture* finalRenderTarget)
     {
         using namespace DirectX;
+        using namespace Gradient::ECS::Components;
 
         auto entityManager = Gradient::EntityManager::Get();
         auto gmm = Gradient::GraphicsMemoryManager::Get();
@@ -150,15 +165,17 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
 
-        entityManager->DrawAll(cl, true);
+        DrawAllEntities(cl, true);
 
-        for (auto& pointLight : PointLights)
+        auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
+        for (auto& entity : pointLightsView)
         {
+            auto [transform, light] = pointLightsView.get(entity);
             ShadowCubeArray->Render(cl,
-                pointLight.ShadowCubeIndex,
-                pointLight.AsParams().Position,
-                pointLight.MinRange,
-                pointLight.MaxRange,
+                light.PointLight.ShadowCubeIndex,
+                transform.GetTranslation(),
+                light.PointLight.MinRange,
+                light.PointLight.MaxRange,
                 [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
                 {
                     PbrPipeline->SetView(view);
@@ -166,7 +183,7 @@ namespace Gradient::Rendering
                     HeightmapPipeline->SetView(view);
                     HeightmapPipeline->SetProjection(proj);
 
-                    entityManager->DrawAll(cl, true);
+                    DrawAllEntities(cl, true);
                 });
         }
 
@@ -228,7 +245,7 @@ namespace Gradient::Rendering
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        entityManager->DrawAll(cl);
+        DrawAllEntities(cl);
 
         MultisampledRT->CopyToSingleSampled(cl);
         PIXEndEvent(cl);
@@ -245,5 +262,78 @@ namespace Gradient::Rendering
             finalRenderTarget,
             Tonemapper.get(),
             screenViewport);
+    }
+
+    void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
+        bool drawingShadows)
+    {
+        using namespace ECS::Components;
+        auto em = EntityManager::Get();
+
+        // Default shading model
+        auto defaultView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            MaterialComponent>();
+        for (auto entity : defaultView)
+        {
+            auto [drawable, transform, material]
+                = defaultView.get(entity);
+
+            if (drawable.Drawable == nullptr) continue;
+
+            if (drawingShadows && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Default)
+                continue;
+
+            if (!drawingShadows)
+                PbrPipeline->SetMaterial(material.Material);
+
+            PbrPipeline->SetWorld(transform.GetWorldMatrix());
+            PbrPipeline->Apply(cl, true, drawingShadows);
+
+            drawable.Drawable->Draw(cl);
+        }
+
+        // Water shading model
+        auto waterView = em->Registry.view<DrawableComponent,
+            TransformComponent>();
+        for (auto entity : waterView)
+        {
+            auto [drawable, transform] = waterView.get(entity);
+
+            if (drawable.Drawable == nullptr) continue;
+            if (drawingShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Water)
+                continue;
+
+            WaterPipeline->SetWorld(transform.GetWorldMatrix());
+            WaterPipeline->Apply(cl, true, drawingShadows);
+
+            drawable.Drawable->Draw(cl);
+        }
+
+        // Heightmap shading model
+        auto heightmapView = em->Registry.view<DrawableComponent,
+            TransformComponent>();
+        for (auto entity : heightmapView)
+        {
+            auto [drawable, transform] = heightmapView.get(entity);
+
+            if (drawable.Drawable == nullptr) continue;
+            if (drawingShadows && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Heightmap)
+                continue;
+
+            HeightmapPipeline->SetWorld(transform.GetWorldMatrix());
+            HeightmapPipeline->Apply(cl, true, drawingShadows);
+
+            drawable.Drawable->Draw(cl);
+        }
     }
 }

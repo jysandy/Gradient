@@ -13,8 +13,7 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 #include "Core/Camera.h"
-#include "Core/Entity.h"
-#include "Core/EntityManager.h"
+#include "Core/ECS/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
@@ -24,7 +23,6 @@
 #include "Core/Rendering/GeometricPrimitive.h"
 #include "Core/Parameters.h"
 #include "GUI/PhysicsWindow.h"
-#include "GUI/EntityWindow.h"
 #include "GUI/RenderingWindow.h"
 #include "GUI/PerformanceWindow.h"
 
@@ -91,7 +89,6 @@ private:
     Gradient::Camera m_camera;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
-    Gradient::GUI::EntityWindow m_entityWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
     Gradient::GUI::PerformanceWindow m_perfWindow;
                                                               

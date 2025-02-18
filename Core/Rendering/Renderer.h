@@ -35,6 +35,9 @@ namespace Gradient::Rendering
             Camera* camera,
             RenderTexture* finalRenderTarget);
 
+        void DrawAllEntities(ID3D12GraphicsCommandList* cl,
+            bool drawingShadows = false);
+
         std::unique_ptr<DirectX::CommonStates> m_states;
 
         std::unique_ptr<Gradient::Pipelines::PBRPipeline> PbrPipeline;
@@ -50,7 +53,6 @@ namespace Gradient::Rendering
         std::unique_ptr<Gradient::Rendering::TextureDrawer> Tonemapper;
 
         std::unique_ptr<Gradient::Rendering::DirectionalLight> DirectionalLight;
-        std::vector<Gradient::Rendering::PointLight> PointLights;
         std::unique_ptr<Gradient::Rendering::DepthCubeArray> ShadowCubeArray;
     };
 }

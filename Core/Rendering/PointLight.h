@@ -17,7 +17,6 @@ namespace Gradient::Rendering
         // from a linked Entity.
         // The linked Entity can be moved in the 
         // editor, controlled by physics, etc.
-        std::string EntityId;
         DirectX::SimpleMath::Color Colour = { 1.f, 1.f, 1.f, 1.f };
         float Irradiance = 3.f;
         float MinRange = 0.1f;
