@@ -237,6 +237,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="GUI\imgui_impl_dx12.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PerformanceWindow.h" />
@@ -274,6 +275,7 @@
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GUI\EntityWindow.cpp" />
     <ClCompile Include="GUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PerformanceWindow.cpp" />

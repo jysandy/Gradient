@@ -148,6 +148,7 @@ void Game::Render()
     m_physicsWindow.Draw();
     m_renderingWindow.Draw();
     m_perfWindow.Draw();
+    m_entityWindow.Draw();
 
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(),

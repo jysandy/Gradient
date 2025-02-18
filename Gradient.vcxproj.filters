@@ -60,6 +60,7 @@
     <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
     <ClInclude Include="Core\Physics\Conversions.h" />
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
+    <ClInclude Include="GUI\EntityWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -99,6 +100,7 @@
     <ClCompile Include="Core\Rendering\Renderer.cpp" />
     <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
     <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
+    <ClCompile Include="GUI\EntityWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
