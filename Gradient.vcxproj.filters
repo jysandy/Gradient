@@ -19,15 +19,13 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Core\Camera.h" />
-    <ClInclude Include="Core\Entity.h" />
-    <ClInclude Include="Core\EntityManager.h" />
+    <ClInclude Include="Core\ECS\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="GUI\imgui_impl_win32.h" />
     <ClInclude Include="GUI\PhysicsWindow.h" />
-    <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
@@ -54,6 +52,15 @@
     <ClInclude Include="Core\PipelineState.h" />
     <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
     <ClInclude Include="Core\Rendering\PBRMaterial.h" />
+    <ClInclude Include="Core\Rendering\Renderer.h" />
+    <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Core\ECS\Components\DrawableComponent.h" />
+    <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
+    <ClInclude Include="Core\ECS\Components\MaterialComponent.h" />
+    <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
+    <ClInclude Include="Core\Physics\Conversions.h" />
+    <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
+    <ClInclude Include="GUI\EntityWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -63,14 +70,12 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Core\Camera.cpp" />
-    <ClCompile Include="Core\Entity.cpp" />
-    <ClCompile Include="Core\EntityManager.cpp" />
+    <ClCompile Include="Core\ECS\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\TextureManager.cpp" />
     <ClCompile Include="GUI\imgui_impl_win32.cpp" />
     <ClCompile Include="GUI\PhysicsWindow.cpp" />
-    <ClCompile Include="GUI\EntityWindow.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
@@ -92,6 +97,10 @@
     <ClCompile Include="Core\PipelineState.cpp" />
     <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
     <ClCompile Include="Core\Rendering\PBRMaterial.cpp" />
+    <ClCompile Include="Core\Rendering\Renderer.cpp" />
+    <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
+    <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
+    <ClCompile Include="GUI\EntityWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

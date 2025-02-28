@@ -1,85 +1,126 @@
 #include "pch.h"
 
 #include "GUI/EntityWindow.h"
+#include "Core/ECS/EntityManager.h"
+#include "Core/Physics/PhysicsEngine.h"
+#include "Core/ECS/Components/NameTagComponent.h"
+#include "Core/ECS/Components/DrawableComponent.h"
+#include "Core/ECS/Components/TransformComponent.h"
+#include "Core/ECS/Components/MaterialComponent.h"
+#include "Core/ECS/Components/RigidBodyComponent.h"
+#include "Core/ECS/Components/PointLightComponent.h"
 #include <imgui.h>
 
 namespace Gradient::GUI
 {
     void EntityWindow::Draw()
     {
-        if (!m_enabled) return;
+        using namespace Gradient::ECS::Components;
+        using DirectX::SimpleMath::Vector3;
 
-        auto entityManager = EntityManager::Get();
+        auto em = Gradient::EntityManager::Get();
 
-        ImGui::Begin("Entity");
-        
-        const auto& idSet = entityManager->GetIDs();
-        std::vector<const char*> cstrings;
-        for (const auto& id : idSet)
+        ImGui::Begin("Entities");
+
+        std::string preview;
+
+        if (m_selectedEntity)
+            preview = em->Registry.get<NameTagComponent>(m_selectedEntity.value()).Name;
+        else
+            preview = "Choose an Entity";
+
+        if (ImGui::BeginCombo("##", preview.c_str(), 0))
         {
-            cstrings.push_back(id.c_str());
+            auto view = em->Registry.view<NameTagComponent>();
+            for (auto entity : view)
+            {
+                auto [nameTag] = view.get(entity);
+
+                const bool isSelected = (entity == m_selectedEntity);
+
+                if (ImGui::Selectable(nameTag.Name.c_str(), isSelected)
+                    && m_selectedEntity != entity)
+                {
+                    m_selectedEntity = entity;
+                    SyncTransformState();
+                }
+
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
         }
 
-        ImGui::Combo("Entity ID", 
-            &m_currentEntityIdx, 
-            cstrings.data(), 
-            cstrings.size());
-
-        if (m_currentEntityIdx != m_oldEntityIdx)
+        if (m_selectedEntity)
         {
-            SyncEntityState();
-            m_oldEntityIdx = m_currentEntityIdx;
+            // TODO: Render the GUI here.
+
+            auto [nameTag, transform, rigidBody]
+                = em->Registry.get<NameTagComponent,
+                TransformComponent,
+                RigidBodyComponent>(m_selectedEntity.value());
+
+            auto name = nameTag.Name;
+
+            if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::BeginDisabled(!m_transformEditingEnabled);
+
+                if (!m_transformEditingEnabled)
+                {
+                    ImGui::Text("Out of date! Disable physics to edit transform");
+                }
+
+                if (ImGui::DragFloat3(("Translation##" + name).c_str(),
+                    m_translation,
+                    0.1f))
+                {
+                    em->SetTranslation(m_selectedEntity.value(),
+                        Vector3{ m_translation[0],
+                       m_translation[1],
+                       m_translation[2]
+                        });
+                }
+
+                if (ImGui::DragFloat3(("Rotation yaw/pitch/roll##" + name).c_str(),
+                    m_rotationYawPitchRoll, 0.1f,
+                    -DirectX::XM_2PI, DirectX::XM_2PI))
+                {
+                    em->SetRotation(m_selectedEntity.value(),
+                        m_rotationYawPitchRoll[0],
+                        m_rotationYawPitchRoll[1],
+                        m_rotationYawPitchRoll[2]);
+                }
+
+                ImGui::EndDisabled();
+
+                ImGui::TreePop();
+            }
         }
 
-        ImGui::DragFloat3(("Translation##" + GetCurrentEntityID()).c_str(), 
-            m_translation, 
-            0.1f);
-        ImGui::DragFloat3(("Rotation yaw/pitch/roll##" + GetCurrentEntityID()).c_str(),
-            m_rotationYawPitchRoll, 0.1f, -DirectX::XM_2PI, DirectX::XM_2PI);
-        ImGui::DragFloat3(("Emissive Radiance##" + GetCurrentEntityID()).c_str(),
-            &m_emissiveRadiance.x,
-            0.1f, 0.f, 50.f);
-        ImGui::Checkbox(("Casts Shadows##" + GetCurrentEntityID()).c_str(),
-            &m_castsShadows);
+        if (Gradient::Physics::PhysicsEngine::Get()->IsPaused())
+        {
+            EnableTransformEditing();
+        }
+        else
+        {
+            // We could sync state here every frame so the disabled values 
+            // update, but that has a heavy impact on performance.
+            // TODO: sync at a low tickrate instead?
+            DisableTransformEditing();
+        }
+
         ImGui::End();
     }
 
-    EntityWindow::EntityWindow() : 
-        m_translation{0.f, 0.f, 0.f},
-        m_rotationYawPitchRoll{0.f, 0.f, 0.f}
+    void EntityWindow::SyncTransformState()
     {
-        m_mutator = [this](Entity& e) {
-            e.SetTranslation(DirectX::SimpleMath::Vector3(
-                m_translation[0],
-                m_translation[1],
-                m_translation[2]
-            ));
+        if (!m_selectedEntity) return;
 
-            e.SetRotation(m_rotationYawPitchRoll[0], m_rotationYawPitchRoll[1], m_rotationYawPitchRoll[2]);
-            e.Material.EmissiveRadiance = m_emissiveRadiance;
-            e.CastsShadows = m_castsShadows;
-            };
-    }
+        auto em = Gradient::EntityManager::Get();
 
-    void EntityWindow::Update()
-    {
-        if (!m_enabled) return;
-
-        auto entityManager = EntityManager::Get();
-        entityManager->MutateEntity(GetCurrentEntityID(), m_mutator);
-    }
-
-    void EntityWindow::Disable()
-    {
-        m_enabled = false;
-    }
-
-    void EntityWindow::SyncEntityState()
-    {
-        auto entityManager = EntityManager::Get();
-        auto e = entityManager->LookupEntity(GetCurrentEntityID());
-        auto t = e->GetTranslation();
-        auto r = e->GetRotationYawPitchRoll();
+        auto t = em->GetTranslation(m_selectedEntity.value());
+        auto r = em->GetRotationYawPitchRoll(m_selectedEntity.value());
 
         m_translation[0] = t.x;
         m_translation[1] = t.y;
@@ -88,26 +129,18 @@ namespace Gradient::GUI
         m_rotationYawPitchRoll[0] = r.y;
         m_rotationYawPitchRoll[1] = r.x;
         m_rotationYawPitchRoll[2] = r.z;
-
-        m_emissiveRadiance = e->Material.EmissiveRadiance;
-        m_castsShadows = e->CastsShadows;
     }
 
-    std::string EntityWindow::GetCurrentEntityID()
+    void EntityWindow::EnableTransformEditing()
     {
-        auto entityManager = EntityManager::Get();
-        const auto& idSet = entityManager->GetIDs();
+        if (m_transformEditingEnabled) return;
 
-        auto it = idSet.begin();
-        std::advance(it, m_currentEntityIdx);
-        return *it;
+        SyncTransformState();
+        m_transformEditingEnabled = true;
     }
 
-    void EntityWindow::Enable()
+    void EntityWindow::DisableTransformEditing()
     {
-        if (m_enabled) return;
-
-        SyncEntityState();
-        m_enabled = true;
+        m_transformEditingEnabled = false;
     }
 }

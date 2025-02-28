@@ -1,33 +1,27 @@
 #pragma once
 
-#include "Core/EntityManager.h"
+#include "pch.h"
+
+#include <entt/entt.hpp>
+#include <optional>
 
 namespace Gradient::GUI
 {
     class EntityWindow
     {
     public:
-        EntityWindow();
-
-        void Update();
         void Draw();
 
-        void Enable();
-        void Disable();
-
     private:
-        void SyncEntityState();
-        std::string GetCurrentEntityID();
+        void SyncTransformState();
+        void EnableTransformEditing();
+        void DisableTransformEditing();
 
-        bool m_enabled = false;
+        std::optional<entt::entity> m_selectedEntity;
+
         float m_translation[3];
         float m_rotationYawPitchRoll[3];
-        DirectX::XMFLOAT3 m_emissiveRadiance = { 0, 0, 0 };
-        bool m_castsShadows;
 
-        int m_oldEntityIdx = 0;
-        int m_currentEntityIdx = 0;
-
-        std::function<void(Entity&)> m_mutator;
+        bool m_transformEditingEnabled = false;
     };
 }

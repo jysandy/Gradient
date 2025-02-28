@@ -200,8 +200,15 @@
   <ItemGroup>
     <ClInclude Include="Core\BarrierResource.h" />
     <ClInclude Include="Core\Camera.h" />
+    <ClInclude Include="Core\ECS\Components\DrawableComponent.h" />
+    <ClInclude Include="Core\ECS\Components\MaterialComponent.h" />
+    <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
+    <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
+    <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
+    <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
+    <ClInclude Include="Core\Physics\Conversions.h" />
     <ClInclude Include="Core\PipelineState.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
@@ -209,8 +216,7 @@
     <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
     <ClInclude Include="Core\Pipelines\SkyDomePipeline.h" />
     <ClInclude Include="Core\Pipelines\WaterPipeline.h" />
-    <ClInclude Include="Core\Entity.h" />
-    <ClInclude Include="Core\EntityManager.h" />
+    <ClInclude Include="Core\ECS\EntityManager.h" />
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
@@ -223,6 +229,7 @@
     <ClInclude Include="Core\Rendering\IDrawable.h" />
     <ClInclude Include="Core\Rendering\PBRMaterial.h" />
     <ClInclude Include="Core\Rendering\PointLight.h" />
+    <ClInclude Include="Core\Rendering\Renderer.h" />
     <ClInclude Include="Core\Rendering\RenderTexture.h" />
     <ClInclude Include="Core\Rendering\TextureDrawer.h" />
     <ClInclude Include="Core\RootSignature.h" />
@@ -242,6 +249,8 @@
   <ItemGroup>
     <ClCompile Include="Core\BarrierResource.cpp" />
     <ClCompile Include="Core\Camera.cpp" />
+    <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
+    <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />
     <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
@@ -249,8 +258,7 @@
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\SkyDomePipeline.cpp" />
     <ClCompile Include="Core\Pipelines\WaterPipeline.cpp" />
-    <ClCompile Include="Core\Entity.cpp" />
-    <ClCompile Include="Core\EntityManager.cpp" />
+    <ClCompile Include="Core\ECS\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
@@ -260,6 +268,7 @@
     <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
     <ClCompile Include="Core\Rendering\PBRMaterial.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
+    <ClCompile Include="Core\Rendering\Renderer.cpp" />
     <ClCompile Include="Core\Rendering\RenderTexture.cpp" />
     <ClCompile Include="Core\Rendering\TextureDrawer.cpp" />
     <ClCompile Include="Core\RootSignature.cpp" />

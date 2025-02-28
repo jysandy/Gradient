@@ -15,11 +15,11 @@ namespace Gradient
         m_rtvDescriptors = std::make_unique<DirectX::DescriptorPile>(device,
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
             D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-            32);
+            64);
         m_dsvDescriptors = std::make_unique<DirectX::DescriptorPile>(device,
             D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
             D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-            32);
+            64);
     }
 
     void GraphicsMemoryManager::Commit(ID3D12CommandQueue* cq)
