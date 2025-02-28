@@ -547,11 +547,12 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<DrawableComponent>(terrain,
         Rendering::GeometricPrimitive::CreateGrid(device,
             cq,
-            100,
-            100,
-            10,
+            500,
+            500,
+            50,
             false),
-        DrawableComponent::ShadingModel::Heightmap);
+        DrawableComponent::ShadingModel::Heightmap,
+        false);
 }
 
 #pragma region Direct3D Resources

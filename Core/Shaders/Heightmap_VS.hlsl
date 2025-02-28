@@ -12,7 +12,7 @@ struct InputType
 InputType main(InputType input)
 {
     float displacement = heightmap.SampleLevel(linearSampler, input.tex, 0).r
-        * 50.f;
+        * 10.f;
     
     input.position.y += displacement;
     

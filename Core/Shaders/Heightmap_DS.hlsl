@@ -61,12 +61,15 @@ DS_OUTPUT main(
 		+ patch[1].tex * domain.y
 		+ patch[2].tex * domain.z;
     
+    float height = 10.f;
+    float gridWidth = 500.f;
+    
     float displacement = heightmap.SampleLevel(linearSampler, Output.tex, 0).r
-        * 50.f;
+        * height;
     interpolatedLocalPosition.y = displacement;
     
     // TODO: REPLACEME
-    float gridWidth = 100.f;
+
     float du = 0.01;
     float dx = du * gridWidth;
     
@@ -76,7 +79,7 @@ DS_OUTPUT main(
     fooPosition.y = heightmap.SampleLevel(linearSampler, 
             Output.tex + float2(du, 0), 
             0).r
-        * 50.f;
+        * height;
     float3 tangent = fooPosition - interpolatedLocalPosition;
     
     //+z
@@ -85,7 +88,7 @@ DS_OUTPUT main(
     fooPosition.y = heightmap.SampleLevel(linearSampler,
             Output.tex + float2(0, du),
             0).r
-        * 50.f;
+        * height;
     float3 bitangent = fooPosition - interpolatedLocalPosition;
     
     float3 normal = cross(bitangent, tangent);

@@ -55,10 +55,9 @@ namespace Gradient::GUI
         {
             // TODO: Render the GUI here.
 
-            auto [nameTag, transform, rigidBody]
+            auto [nameTag, transform]
                 = em->Registry.get<NameTagComponent,
-                TransformComponent,
-                RigidBodyComponent>(m_selectedEntity.value());
+                TransformComponent>(m_selectedEntity.value());
 
             auto name = nameTag.Name;
 

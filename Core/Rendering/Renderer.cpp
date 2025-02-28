@@ -58,7 +58,7 @@ namespace Gradient::Rendering
 
         tm->LoadDDS(device, cq,
             "heightMap",
-            L"Assets\\heightBlurred.dds");
+            L"Assets\\island_height.dds");
         tm->LoadDDS(device, cq,
             "heightNormalMap",
             L"Assets\\heightNormal.dds");
@@ -296,26 +296,6 @@ namespace Gradient::Rendering
             drawable.Drawable->Draw(cl);
         }
 
-        // Water shading model
-        auto waterView = em->Registry.view<DrawableComponent,
-            TransformComponent>();
-        for (auto entity : waterView)
-        {
-            auto [drawable, transform] = waterView.get(entity);
-
-            if (drawable.Drawable == nullptr) continue;
-            if (drawingShadows) continue;
-
-            if (drawable.ShadingModel
-                != DrawableComponent::ShadingModel::Water)
-                continue;
-
-            WaterPipeline->SetWorld(transform.GetWorldMatrix());
-            WaterPipeline->Apply(cl, true, drawingShadows);
-
-            drawable.Drawable->Draw(cl);
-        }
-
         // Heightmap shading model
         auto heightmapView = em->Registry.view<DrawableComponent,
             TransformComponent>();
@@ -332,6 +312,26 @@ namespace Gradient::Rendering
 
             HeightmapPipeline->SetWorld(transform.GetWorldMatrix());
             HeightmapPipeline->Apply(cl, true, drawingShadows);
+
+            drawable.Drawable->Draw(cl);
+        }
+
+        // Water shading model
+        auto waterView = em->Registry.view<DrawableComponent,
+            TransformComponent>();
+        for (auto entity : waterView)
+        {
+            auto [drawable, transform] = waterView.get(entity);
+
+            if (drawable.Drawable == nullptr) continue;
+            if (drawingShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Water)
+                continue;
+
+            WaterPipeline->SetWorld(transform.GetWorldMatrix());
+            WaterPipeline->Apply(cl, true, drawingShadows);
 
             drawable.Drawable->Draw(cl);
         }

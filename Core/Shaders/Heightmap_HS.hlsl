@@ -42,7 +42,10 @@ float3 toWorld(float3 local)
 
 float cameraDot(float3 worldP)
 {
-    return dot(normalize(worldP - g_cameraPosition), g_cameraDirection);
+    float3 camToWorldPos = normalize(worldP - g_cameraPosition);
+    if (isnan(camToWorldPos.y))
+        return 1;
+    return dot(camToWorldPos, g_cameraDirection);
 }
 
 float3 tessFactor(float3 worldP)
@@ -85,14 +88,16 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     Output.EdgeTessFactor[2] = tessFactor(e0);
     Output.InsideTessFactor = tessFactor(c);
 
+    float3 v0 = toWorld(ip[0].vPosition);
+    float3 v1 = toWorld(ip[1].vPosition);
+    float3 v2 = toWorld(ip[2].vPosition);
+    
     // Cull patches that are behind the camera.
     // Culling is disabled when drawing shadows.
-    float maxCameraDot = max(cameraDot(e0),
-                   max(cameraDot(e1),
-                   max(cameraDot(e2),
-                       cameraDot(c))));
+    float maxCameraDot = max(cameraDot(v0),
+                             max(cameraDot(v1), cameraDot(v2)));
     
-    if (g_cullingEnabled && maxCameraDot < -0.1)
+    if (g_cullingEnabled && maxCameraDot < -0.3)
     {
         Output.EdgeTessFactor[0] =
         Output.EdgeTessFactor[1] =
