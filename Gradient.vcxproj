@@ -201,6 +201,7 @@
     <ClInclude Include="Core\BarrierResource.h" />
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\ECS\Components\DrawableComponent.h" />
+    <ClInclude Include="Core\ECS\Components\HeightMapComponent.h" />
     <ClInclude Include="Core\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />

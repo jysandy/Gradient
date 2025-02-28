@@ -61,6 +61,7 @@
     <ClInclude Include="Core\Physics\Conversions.h" />
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
     <ClInclude Include="GUI\EntityWindow.h" />
+    <ClInclude Include="Core\ECS\Components\HeightMapComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

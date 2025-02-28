@@ -54,18 +54,6 @@ namespace Gradient::Rendering
         };
         WaterPipeline->SetWaterParams(waterParams);
 
-        auto tm = TextureManager::Get();
-
-        tm->LoadDDS(device, cq,
-            "heightMap",
-            L"Assets\\island_height.dds");
-        tm->LoadDDS(device, cq,
-            "heightNormalMap",
-            L"Assets\\heightNormal.dds");
-
-        HeightmapPipeline->SetHeightmap(tm->GetTexture("heightMap"));
-        HeightmapPipeline->SetHeightNormalMap(tm->GetTexture("heightNormalMap"));
-
         // TODO: Don't hardcode the size
         ShadowCubeArray = std::make_unique<Rendering::DepthCubeArray>(device,
             256, 8);
@@ -298,10 +286,11 @@ namespace Gradient::Rendering
 
         // Heightmap shading model
         auto heightmapView = em->Registry.view<DrawableComponent,
-            TransformComponent>();
+            TransformComponent,
+            HeightMapComponent>();
         for (auto entity : heightmapView)
         {
-            auto [drawable, transform] = heightmapView.get(entity);
+            auto [drawable, transform, heightMap] = heightmapView.get(entity);
 
             if (drawable.Drawable == nullptr) continue;
             if (drawingShadows && !drawable.CastsShadows) continue;
@@ -310,6 +299,7 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Heightmap)
                 continue;
 
+            HeightmapPipeline->SetHeightMapComponent(heightMap);
             HeightmapPipeline->SetWorld(transform.GetWorldMatrix());
             HeightmapPipeline->Apply(cl, true, drawingShadows);
 

@@ -15,11 +15,11 @@ namespace Gradient::Pipelines
     {
         m_rootSignature.AddCBV(0, 1);   // transforms
         m_rootSignature.AddCBV(1, 1);   // LOD settings
+        m_rootSignature.AddCBV(2, 1);   // heightmap params
         m_rootSignature.AddCBV(0, 2);   // lights
         m_rootSignature.AddCBV(1, 2);   // camera and shadow transform
         m_rootSignature.AddSRV(0, 0);   // heightmap
         m_rootSignature.AddSRV(1, 2);   // shadow map
-        m_rootSignature.AddSRV(2, 2);   // normal map
         m_rootSignature.AddSRV(6, 2);   // environment map
         m_rootSignature.AddSRV(7, 2);   // point shadow maps
 
@@ -126,8 +126,13 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
 
-        m_rootSignature.SetSRV(cl, 0, 0, m_heightmap);
-        m_rootSignature.SetSRV(cl, 2, 2, m_heightNormalMap);
+        HeightMapParamsCB heightConstants;
+        heightConstants.height = m_heightMapComponent.Height;
+        heightConstants.gridWidth = m_heightMapComponent.GridWidth;
+
+        m_rootSignature.SetCBV(cl, 2, 1, heightConstants);
+
+        m_rootSignature.SetSRV(cl, 0, 0, m_heightMapComponent.HeightMapTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
@@ -160,6 +165,12 @@ namespace Gradient::Pipelines
         lodConstants.cullingEnabled = 1;
 
         m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
+
+        HeightMapParamsCB heightConstants;
+        heightConstants.height = m_heightMapComponent.Height;
+        heightConstants.gridWidth = m_heightMapComponent.GridWidth;
+
+        m_rootSignature.SetCBV(cl, 2, 1, heightConstants);
 
         LightCB lightConstants;
 
@@ -195,23 +206,18 @@ namespace Gradient::Pipelines
         m_rootSignature.SetCBV(cl, 1, 2, pixelConstants);
 
 
-        m_rootSignature.SetSRV(cl, 0, 0, m_heightmap);
+        m_rootSignature.SetSRV(cl, 0, 0, 
+            m_heightMapComponent.HeightMapTexture);
         m_rootSignature.SetSRV(cl, 1, 2, m_shadowMap);
-        m_rootSignature.SetSRV(cl, 2, 2, m_heightNormalMap);
         m_rootSignature.SetSRV(cl, 6, 2, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 2, m_shadowCubeArray);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
 
-    void HeightmapPipeline::SetHeightmap(GraphicsMemoryManager::DescriptorView heightmap)
+    void HeightmapPipeline::SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent)
     {
-        m_heightmap = heightmap;
-    }
-
-    void HeightmapPipeline::SetHeightNormalMap(GraphicsMemoryManager::DescriptorView heightNormalMap)
-    {
-        m_heightNormalMap = heightNormalMap;
+        m_heightMapComponent = hmComponent;
     }
 
     void XM_CALLCONV HeightmapPipeline::SetWorld(DirectX::FXMMATRIX value)

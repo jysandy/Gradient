@@ -21,6 +21,13 @@ cbuffer LodBuffer : register(b1, space1)
     float g_pad1[3];
 }
 
+// Shared with the vertex shader
+cbuffer HeightMapParamsBuffer : register(b2, space1)
+{
+    float g_hmHeight;
+    float g_hmGridWidth;
+}
+
 struct DS_OUTPUT
 {
     float4 vPosition : SV_POSITION;
@@ -61,15 +68,13 @@ DS_OUTPUT main(
 		+ patch[1].tex * domain.y
 		+ patch[2].tex * domain.z;
     
-    float height = 10.f;
-    float gridWidth = 500.f;
+    float height = g_hmHeight;
+    float gridWidth = g_hmGridWidth;
     
     float displacement = heightmap.SampleLevel(linearSampler, Output.tex, 0).r
         * height;
     interpolatedLocalPosition.y = displacement;
     
-    // TODO: REPLACEME
-
     float du = 0.01;
     float dx = du * gridWidth;
     

@@ -7,6 +7,7 @@
 #include "Core/Parameters.h"
 #include "Core/RootSignature.h"
 #include "Core/PipelineState.h"
+#include "Core/ECS/Components/HeightMapComponent.h"
 #include <directxtk12/Effects.h>
 #include <directxtk12/VertexTypes.h>
 #include <directxtk12/SimpleMath.h>
@@ -38,6 +39,13 @@ namespace Gradient::Pipelines
             float pad[3];
         };
 
+        struct __declspec(align(16)) HeightMapParamsCB
+        {
+            float height;
+            float gridWidth;
+            float pad[2];
+        };
+
         struct __declspec(align(16)) LightCB
         {
             AlignedDirectionalLight directionalLight;
@@ -66,8 +74,8 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
-        void SetHeightmap(GraphicsMemoryManager::DescriptorView heightmap);
-        void SetHeightNormalMap(GraphicsMemoryManager::DescriptorView normalMap);
+        void SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent);
+
 
         // TODO: Extract all of this junk into a single struct
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
@@ -91,9 +99,6 @@ namespace Gradient::Pipelines
         GraphicsMemoryManager::DescriptorView m_environmentMap;
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
         
-        GraphicsMemoryManager::DescriptorView m_heightmap;
-        GraphicsMemoryManager::DescriptorView m_heightNormalMap;
-
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;
@@ -108,5 +113,7 @@ namespace Gradient::Pipelines
         float m_lightIrradiance;
 
         std::vector<Params::PointLight> m_pointLights;
+
+        ECS::Components::HeightMapComponent m_heightMapComponent;
     };
 }

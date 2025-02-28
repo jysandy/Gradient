@@ -540,6 +540,10 @@ void Game::CreateEntities()
                 return settings;
             }));
 
+    textureManager->LoadDDS(device, cq,
+        "islandHeightMap",
+        L"Assets\\island_height.dds");
+
     auto terrain = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(terrain, "terrain");
     auto& terrainTransform = entityManager->Registry.emplace<TransformComponent>(terrain);
@@ -553,6 +557,10 @@ void Game::CreateEntities()
             false),
         DrawableComponent::ShadingModel::Heightmap,
         false);
+    entityManager->Registry.emplace<HeightMapComponent>(terrain,
+        textureManager->GetTexture("islandHeightMap"),
+        10.f,
+        500.f);
 }
 
 #pragma region Direct3D Resources

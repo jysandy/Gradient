@@ -8,7 +8,6 @@ Texture2D heightmap : register(t0, space0);
 SamplerState linearSampler : register(s0, space0);
 
 Texture2D shadowMap : register(t1, space2);
-Texture2D normalMap : register(t2, space2);
 TextureCube environmentMap : register(t6, space2);
 TextureCubeArray pointShadowMaps : register(t7, space2);
 
