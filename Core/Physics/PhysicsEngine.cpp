@@ -123,6 +123,15 @@ namespace Gradient::Physics
         );
     }
 
+    void PhysicsEngine::InitializeDebugRenderer(
+        ID3D12Device* device,
+        DXGI_FORMAT renderTargetFormat
+    )
+    {
+        if (m_debugRenderer.get() != nullptr) return;
+        m_debugRenderer = std::make_unique<DebugRenderer>(device, renderTargetFormat);
+    }
+
     void PhysicsEngine::Shutdown()
     {
         if (s_engine != nullptr)
@@ -227,5 +236,19 @@ namespace Gradient::Physics
         {
             m_timeScale = timeScale;
         }
+    }
+
+    void PhysicsEngine::DebugDrawBodies(ID3D12GraphicsCommandList* cl,
+        DirectX::SimpleMath::Matrix view,
+        DirectX::SimpleMath::Matrix proj,
+        DirectX::SimpleMath::Vector3 cameraPos)
+    {
+        m_debugRenderer->SetFrameVariables(cl,
+            view,
+            proj,
+            cameraPos);
+
+        m_physicsSystem->DrawBodies(JPH::BodyManager::DrawSettings(),
+            m_debugRenderer.get());
     }
 }

@@ -6,7 +6,12 @@
       "name": "imgui",
       "version>=": "1.91.7"
     },
-    "joltphysics",
+    {
+      "name": "joltphysics",
+      "features": [
+        "debugrenderer"
+      ]
+    },
     "spdlog",
     "directxtex"
   ]

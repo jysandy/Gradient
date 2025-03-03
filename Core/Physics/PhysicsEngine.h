@@ -5,6 +5,7 @@
 #include <atomic>
 
 #include "Core/Physics/Layers.h"
+#include "Core/Physics/DebugRenderer.h"
 #include "StepTimer.h"
 
 #include <Jolt/RegisterTypes.h>
@@ -34,12 +35,19 @@ namespace Gradient::Physics
         static void Initialize();
         static void Shutdown();
 
+        void InitializeDebugRenderer(ID3D12Device* device,
+            DXGI_FORMAT renderTargetFormat);
         void StartSimulation();
         void StopSimulation();
         void PauseSimulation();
         void UnpauseSimulation();
         bool IsPaused();
         void SetTimeScale(float timeScale);
+        void DebugDrawBodies(ID3D12GraphicsCommandList* cl,
+            DirectX::SimpleMath::Matrix view,
+            DirectX::SimpleMath::Matrix proj,
+            DirectX::SimpleMath::Vector3 cameraPos
+        );
 
         JPH::BodyInterface& GetBodyInterface();
 
@@ -59,6 +67,7 @@ namespace Gradient::Physics
         std::unique_ptr<JPH::PhysicsSystem> m_physicsSystem;
         std::unique_ptr<std::thread> m_simulationWorker;
         DX::StepTimer m_stepTimer;
+        std::unique_ptr<DebugRenderer> m_debugRenderer;
 
 #pragma region Callback classes
 

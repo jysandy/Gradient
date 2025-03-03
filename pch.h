@@ -41,7 +41,6 @@
 
 #include <dxgi1_6.h>
 
-#include <DirectXMath.h>
 #include <DirectXColors.h>
 
 #include <algorithm>
@@ -69,6 +68,7 @@
 #define JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
 #define JPH_OBJECT_STREAM
 
+#define JPH_DEBUG_RENDERER
 #include <Jolt/Jolt.h>
 
 namespace DX

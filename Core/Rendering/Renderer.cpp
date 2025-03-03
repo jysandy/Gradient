@@ -8,6 +8,7 @@
 #include "Core/ECS/Components/TransformComponent.h"
 #include "Core/ECS/Components/PointLightComponent.h"
 #include "Core/TextureManager.h"
+#include "Core/Physics/PhysicsEngine.h"
 
 #include <imgui.h>
 #include "GUI/imgui_impl_win32.h"
@@ -84,6 +85,9 @@ namespace Gradient::Rendering
 
         BloomProcessor->SetExposure(18.f);
         BloomProcessor->SetIntensity(0.3f);
+
+        auto physicsEngine = Physics::PhysicsEngine::Get();
+        physicsEngine->InitializeDebugRenderer(device, DXGI_FORMAT_R16G16B16A16_FLOAT);
     }
 
     std::vector<Gradient::Params::PointLight> Renderer::PointLightParams()
@@ -234,6 +238,13 @@ namespace Gradient::Rendering
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
         DrawAllEntities(cl);
+
+        auto physicsEngine = Physics::PhysicsEngine::Get();
+        // This is too slow for now and is hence commented out
+        //physicsEngine->DebugDrawBodies(cl,
+        //    camera->GetViewMatrix(),
+        //    camera->GetProjectionMatrix(),
+        //    camera->GetPosition());
 
         MultisampledRT->CopyToSingleSampled(cl);
         PIXEndEvent(cl);
