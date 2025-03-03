@@ -254,7 +254,6 @@
     <None Include="Core\Shaders\PBRLighting.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
-    <None Include="TODO.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />

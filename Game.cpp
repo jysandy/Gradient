@@ -561,6 +561,11 @@ void Game::CreateEntities()
         textureManager->GetTexture("islandHeightMap"),
         10.f,
         500.f);
+    entityManager->Registry.emplace<RigidBodyComponent>(terrain,
+        RigidBodyComponent::CreateHeightField(L"Assets\\island_height.dds",
+            500.f, 
+            10.f,
+            Vector3{ 50, -1, 0 }));
 }
 
 #pragma region Direct3D Resources
