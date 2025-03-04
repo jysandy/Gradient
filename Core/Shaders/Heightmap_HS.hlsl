@@ -53,7 +53,7 @@ float3 tessFactor(float3 worldP)
     const float d0 = g_minLodDistance; // Highest LOD
     const float d1 = g_maxLodDistance; // Lowest LOD
     const float minTess = 1;
-    const float maxTess = 5; // different from water!
+    const float maxTess = 3; // different from water!
 		
     float d = distance(worldP, g_cameraPosition);
     float s = saturate((d - d0) / (d1 - d0));

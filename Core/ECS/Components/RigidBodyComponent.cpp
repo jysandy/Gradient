@@ -6,6 +6,7 @@
 
 #include <DirectXTex.h>
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
+#include <wincodec.h>
 
 namespace Gradient::ECS::Components
 {
@@ -82,42 +83,92 @@ namespace Gradient::ECS::Components
                 *image));
 
         // Read all the height information.
-        float scaleFactor = gridWidth / (float)info.width;
+        size_t sampleOffset = 1;
+        assert((info.width - 1) % sampleOffset == 0);
+        size_t sampleCount = ((info.width - 1) / sampleOffset) + 1;
+        float scaleFactor = gridWidth / ((float)sampleCount - 1.f);
         JPH::RVec3 offset = { -gridWidth / 2.f, 0, -gridWidth / 2.f };
-        JPH::RVec3 scale = { scaleFactor, 1 ,scaleFactor };
+        JPH::RVec3 scale = { scaleFactor, height ,scaleFactor };
         DirectX::EvaluateImage(*image->GetImage(0, 0, 0),
             [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y)
             {
-                UNREFERENCED_PARAMETER(y);
+                if (y % sampleOffset != 0) return;
 
-                for (size_t j = 0; j < width; j++)
+                for (size_t j = 0; j < width; j += sampleOffset)
                 {
                     Vector4 color = pixels[j];
-                    heightData.push_back(color.x * height);
+                    heightData.push_back(color.x);
                 }
             });
+
 
         // Create the body.
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
-        JPH::Ref<JPH::Shape> shape;
         auto shapeSettings = JPH::HeightFieldShapeSettings(heightData.data(),
             offset,
             scale,
-            info.width);
+            sampleCount);
+        shapeSettings.mBlockSize = 2;
+        auto bitsPerSample = shapeSettings.CalculateBitsPerSampleForError(0.001);
 
-        JPH::Shape::ShapeResult result = shapeSettings.Create();
+        shapeSettings.mBitsPerSample = 8;
+
+        JPH::Shape::ShapeResult result;
+        auto heightFieldShape = new JPH::HeightFieldShape(shapeSettings, result);
 
         if (!result.IsValid())
         {
             throw std::runtime_error(result.GetError().c_str());
         }
 
-        shape = result.Get();
+        //float* joltHeights = new float[2048 * 2048];
+        //heightFieldShape->GetHeights(0, 0, sampleCount, sampleCount,
+        //    joltHeights,
+        //    2048);
+        //DirectX::ScratchImage newHeightmap;
+        //DX::ThrowIfFailed(
+        //    newHeightmap.Initialize(info));
+
+        //auto hr = DirectX::TransformImage(*image->GetImage(0, 0, 0),
+        //    [=](DirectX::XMVECTOR* outPixels,
+        //        const DirectX::XMVECTOR* inPixels,
+        //        size_t width, size_t y)
+        //    {
+        //        for (size_t j = 0; j < width; ++j)
+        //        {
+        //            Vector4 out = { 0, 0, 0, 0 };
+        //            out.x = joltHeights[y * sampleCount + j] / height;
+
+        //            outPixels[j] = out;
+        //        }
+        //    }, newHeightmap);
+
+        //delete[] joltHeights;
+        //DX::ThrowIfFailed(hr);
+
+        //DX::ThrowIfFailed(
+        //    DirectX::SaveToWICFile(*newHeightmap.GetImage(0, 0, 0),
+        //        DirectX::WIC_FLAGS_NONE,
+        //        DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
+        //        L"island_height_jolt.png"
+        //    //    &GUID_WICPixelFormat32bppGrayFloat
+        //    ));
+        //DX::ThrowIfFailed(
+        //  DirectX::SaveToDDSFile(*newHeightmap.GetImage(0, 0, 0),
+        //      DirectX::DDS_FLAGS_NONE,
+        //      L"island_height_jolt.dds"));
+
+        //float mse = 0.f;
+        //DirectX::ComputeMSE(*image->GetImage(0, 0, 0),
+        //    *newHeightmap.GetImage(0, 0, 0),
+        //    mse,
+        //    nullptr,
+        //    DirectX::CMSE_IGNORE_GREEN | DirectX::CMSE_IGNORE_BLUE | DirectX::CMSE_IGNORE_ALPHA);
 
         JPH::BodyCreationSettings settings(
-            shape,
+            heightFieldShape,
             Physics::ToJolt(origin),
             JPH::Quat::sIdentity(),
             JPH::EMotionType::Static,

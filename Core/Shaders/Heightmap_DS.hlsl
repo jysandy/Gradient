@@ -107,7 +107,7 @@ DS_OUTPUT main(
     //interpolatedLocalPosition.y = 0;
 
     Output.vPosition = mul(float4(interpolatedLocalPosition, 1.f), worldMatrix);
-    Output.worldPosition = Output.vPosition.xyz;
+    Output.worldPosition = Output.vPosition.xyz / Output.vPosition.w;
     Output.vPosition = mul(Output.vPosition, viewMatrix);
     Output.vPosition = mul(Output.vPosition, projectionMatrix);
     Output.normal = mul(Output.normal, (float3x3) worldMatrix);

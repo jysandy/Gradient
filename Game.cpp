@@ -542,7 +542,7 @@ void Game::CreateEntities()
 
     textureManager->LoadDDS(device, cq,
         "islandHeightMap",
-        L"Assets\\island_height_32bit.dds");
+        L"Assets\\island_height_32bit_blurred.dds");
 
     auto terrain = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(terrain, "terrain");
@@ -551,8 +551,8 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<DrawableComponent>(terrain,
         Rendering::GeometricPrimitive::CreateGrid(device,
             cq,
-            500,
-            500,
+            512,
+            512,
             50,
             false),
         DrawableComponent::ShadingModel::Heightmap,
@@ -560,10 +560,10 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<HeightMapComponent>(terrain,
         textureManager->GetTexture("islandHeightMap"),
         10.f,
-        500.f);
+        512.f);
     entityManager->Registry.emplace<RigidBodyComponent>(terrain,
-        RigidBodyComponent::CreateHeightField(L"Assets\\island_height_32bit.dds",
-            500.f, 
+        RigidBodyComponent::CreateHeightField(L"Assets\\island_height_32bit_blurred.dds",
+            512.f, 
             10.f,
             Vector3{ 50, -1, 0 }));
 }

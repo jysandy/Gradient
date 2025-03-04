@@ -36,7 +36,9 @@ OutputType main(InputType input)
     output.normal = mul(input.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 	
-    output.worldPosition = mul(float4(input.position, 1), worldMatrix).xyz;
+    float4 worldPosHomo = mul(float4(input.position, 1), worldMatrix);
+    
+    output.worldPosition = worldPosHomo.xyz / worldPosHomo.w;
 
     return output;
 }
