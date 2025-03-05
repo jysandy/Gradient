@@ -12,7 +12,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
-#include "Core/Camera.h"
+#include "Core/FreeMoveCamera.h"
 #include "Core/ECS/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Rendering/DirectionalLight.h"
@@ -86,8 +86,7 @@ private:
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
 
-    // TODO: camera needs to be an entity
-    Gradient::Camera m_camera;
+    Gradient::FreeMoveCamera m_camera;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;

@@ -135,9 +135,11 @@ void Game::Render()
 
     auto cl = m_deviceResources->GetCommandList();
 
+    auto frameCamera = m_camera.GetCamera();
+
     m_renderer->Render(cl,
         m_deviceResources->GetScreenViewport(),
-        &m_camera,
+        &frameCamera,
         m_tonemappedRenderTexture.get());
 
     ImGui_ImplDX12_NewFrame();

@@ -207,6 +207,7 @@
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
     <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
     <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Physics\Conversions.h" />
@@ -253,6 +254,7 @@
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
     <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
+    <ClCompile Include="Core\FreeMoveCamera.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />

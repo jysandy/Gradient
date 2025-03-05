@@ -63,6 +63,7 @@
     <ClInclude Include="GUI\EntityWindow.h" />
     <ClInclude Include="Core\ECS\Components\HeightMapComponent.h" />
     <ClInclude Include="Core\Physics\DebugRenderer.h" />
+    <ClInclude Include="Core\FreeMoveCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -104,6 +105,7 @@
     <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
     <ClCompile Include="GUI\EntityWindow.cpp" />
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
+    <ClCompile Include="Core\FreeMoveCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
