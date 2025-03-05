@@ -558,7 +558,7 @@ namespace Gradient::Rendering
             if (tiled)
                 vertex.textureCoordinate = texcoord;
             else
-                vertex.textureCoordinate = texcoord * 1.f / (divisions + 1);
+                vertex.textureCoordinate = texcoord * 1.f / divisions;
 
             vertices.push_back(vertex);
         }
@@ -581,7 +581,7 @@ namespace Gradient::Rendering
                 if (tiled)
                     vertex.textureCoordinate = texcoord;
                 else
-                    vertex.textureCoordinate = texcoord * 1.f / (divisions + 1);
+                    vertex.textureCoordinate = texcoord * 1.f / divisions;
 
 
                 vertices.push_back(vertex);
