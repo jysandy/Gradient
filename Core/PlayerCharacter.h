@@ -25,7 +25,7 @@ namespace Gradient
         const Camera& GetCamera() const;
 
     private:
-        DirectX::SimpleMath::Vector3 GetMovementInput(
+        std::tuple<DirectX::SimpleMath::Vector3, bool> GetMovementInput(
             DirectX::SimpleMath::Vector3 right,
             DirectX::SimpleMath::Vector3 forward);
 

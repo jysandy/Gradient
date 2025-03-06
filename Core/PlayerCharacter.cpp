@@ -38,7 +38,7 @@ namespace Gradient
             });
     }
 
-    Vector3 PlayerCharacter::GetMovementInput(
+    std::tuple<Vector3, bool> PlayerCharacter::GetMovementInput(
         Vector3 right,
         Vector3 forward)
     {
@@ -53,6 +53,8 @@ namespace Gradient
 
         auto translation = Vector3::Zero;
         auto kb = DirectX::Keyboard::Get().GetState();
+
+        auto jumped = false;
 
         if (kb.W)
         {
@@ -70,10 +72,14 @@ namespace Gradient
         {
             translation += right;
         }
+        if (kb.Space)
+        {
+            jumped = true;
+        }
 
         translation.Normalize();
 
-        return translation;
+        return std::make_tuple(translation, jumped);
     }
 
     void PlayerCharacter::Update(const DX::StepTimer& timer)
@@ -93,9 +99,10 @@ namespace Gradient
         // TODO: Make this thread safe
         auto [right, up, forward] = m_camera.GetBasisVectors();
 
-        auto input = GetMovementInput(right, forward);
+        auto [input, jumped] = GetMovementInput(right, forward);
 
         const float speed = 5.f;
+        const float jumpSpeed = 10.f;
         JPH::Vec3 newVelocity = JPH::Vec3::sZero();
 
         auto currentVelocity = character->GetLinearVelocity();
@@ -104,7 +111,10 @@ namespace Gradient
 
         if (character->IsSupported())
         {
-            // Don't add gravity    
+            if (jumped)
+            {
+                newVelocity += {0, jumpSpeed, 0};
+            }
         }
         else
         {
