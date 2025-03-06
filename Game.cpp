@@ -48,6 +48,9 @@ void Game::Initialize(HWND window, int width, int height)
     Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
+    m_character = std::make_unique<Gradient::PlayerCharacter>();
+    m_character->SetPosition(Vector3{ 0, 30, 25 });
+
     m_renderer = std::make_unique<Gradient::Rendering::Renderer>();
 
     m_deviceResources->CreateDeviceResources();
@@ -64,7 +67,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse = std::make_unique<Mouse>();
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
-    m_camera.SetPosition(Vector3{ 0, 30, 25 });
+    //m_camera.SetPosition(Vector3{ 0, 30, 25 });
 
     auto cq = m_deviceResources->GetCommandQueue();
 
@@ -86,7 +89,8 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    m_camera.Update(timer);
+    //m_camera.Update(timer);
+    m_character->Update(timer);
 
     auto entityManager = Gradient::EntityManager::Get();
 
@@ -135,7 +139,8 @@ void Game::Render()
 
     auto cl = m_deviceResources->GetCommandList();
 
-    auto frameCamera = m_camera.GetCamera();
+    //auto frameCamera = m_camera.GetCamera();
+    auto frameCamera = m_character->GetCamera();
 
     m_renderer->Render(cl,
         m_deviceResources->GetScreenViewport(),
@@ -640,7 +645,8 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     auto windowSize = m_deviceResources->GetOutputSize();
-    m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
+    //m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
+    m_character->SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
 
     auto device = m_deviceResources->GetD3DDevice();
     auto cl = m_deviceResources->GetCommandList();

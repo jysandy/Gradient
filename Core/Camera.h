@@ -37,7 +37,6 @@ namespace Gradient
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);
         void SetPosition(DirectX::SimpleMath::Vector3 const&);
-        // Rotates relative to the camera's current up vector
         void RotateYawPitch(float yaw, float pitch);
         DirectX::SimpleMath::Vector3 GetPosition() const;
         DirectX::SimpleMath::Vector3 GetDirection() const;

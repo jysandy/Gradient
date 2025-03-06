@@ -13,6 +13,7 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 #include "Core/FreeMoveCamera.h"
+#include "Core/PlayerCharacter.h"
 #include "Core/ECS/EntityManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 #include "Core/Rendering/DirectionalLight.h"
@@ -86,7 +87,9 @@ private:
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
 
-    Gradient::FreeMoveCamera m_camera;
+    //Gradient::FreeMoveCamera m_camera;
+
+    std::unique_ptr<Gradient::PlayerCharacter> m_character;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;
