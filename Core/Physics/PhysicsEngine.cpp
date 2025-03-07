@@ -167,10 +167,17 @@ namespace Gradient::Physics
                         float deltaTime = m_stepTimer.GetElapsedSeconds()
                             * m_timeScale;
 
+                        for (auto& lockedCharacter : m_characters)
+                        {
+                            UpdateCharacter(lockedCharacter, deltaTime);
+                        }
+
                         while (deltaTime > 0.f)
                         {
+                            auto subStepTime = std::min(deltaTime, 1.f / 60.f);
+
                             m_physicsSystem->Update(
-                                std::min(deltaTime, 1.f / 60.f),
+                                subStepTime,
                                 2,
                                 m_tempAllocator.get(),
                                 m_jobSystem.get());
@@ -250,5 +257,71 @@ namespace Gradient::Physics
 
         m_physicsSystem->DrawBodies(JPH::BodyManager::DrawSettings(),
             m_debugRenderer.get());
+    }
+
+    const JPH::RVec3& PhysicsEngine::GetGravity() const
+    {
+        return m_physicsSystem->GetGravity();
+    }
+
+    PhysicsEngine::CharacterID PhysicsEngine::CreateCharacter(
+        JPH::Ref<JPH::CharacterVirtualSettings> settings,
+        CharacterUpdateFn updateFn
+    )
+    {
+        m_characters.push_back({
+            std::move(std::make_unique<std::shared_mutex>()),
+            new JPH::CharacterVirtual(settings,
+                JPH::RVec3::sZero(),
+                JPH::Quat::sIdentity(),
+                m_physicsSystem.get()),
+            updateFn
+            });
+
+        return m_characters.size() - 1;
+    }
+
+    void PhysicsEngine::UpdateCharacter(LockedCharacter& lockedCharacter,
+        float deltaTime)
+    {
+        std::unique_lock lock(*lockedCharacter.Mutex);
+
+        JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
+
+        lockedCharacter.Character->UpdateGroundVelocity();
+
+        if (lockedCharacter.updateFn)
+        {
+            lockedCharacter.updateFn(deltaTime,
+                lockedCharacter.Character,
+                m_physicsSystem.get());
+        }
+
+        lockedCharacter.Character->ExtendedUpdate(deltaTime,
+            m_physicsSystem->GetGravity(),
+            updateSettings,
+            m_physicsSystem->GetDefaultBroadPhaseLayerFilter(ObjectLayers::MOVING),
+            m_physicsSystem->GetDefaultLayerFilter(ObjectLayers::MOVING),
+            {},
+            {},
+            *m_tempAllocator
+        );
+    }
+
+    void PhysicsEngine::MutateCharacter(CharacterID id,
+        std::function<void(JPH::Ref<JPH::CharacterVirtual>)> mutatorFn)
+    {
+        auto& character = m_characters[id];
+
+        std::unique_lock lock(*character.Mutex);
+        mutatorFn(character.Character);
+    }
+
+    const JPH::RVec3& PhysicsEngine::GetCharacterPosition(CharacterID id)
+    {
+        auto& character = m_characters[id];
+
+        std::shared_lock lock(*character.Mutex);
+        return character.Character->GetPosition();
     }
 }

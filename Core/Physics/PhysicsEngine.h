@@ -18,6 +18,7 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 
 namespace Gradient::Physics
 {
@@ -50,9 +51,30 @@ namespace Gradient::Physics
         );
 
         JPH::BodyInterface& GetBodyInterface();
+        const JPH::RVec3& GetGravity() const;
+
+
+        using CharacterID = size_t;
+        using CharacterUpdateFn = std::function<void(const float&, JPH::Ref<JPH::CharacterVirtual>, JPH::PhysicsSystem*)>;
+
+        struct LockedCharacter
+        {
+            std::unique_ptr<std::shared_mutex> Mutex;
+            JPH::Ref<JPH::CharacterVirtual> Character;
+            CharacterUpdateFn updateFn = nullptr;
+        };
+
+        CharacterID CreateCharacter(JPH::Ref<JPH::CharacterVirtualSettings> settings,
+            CharacterUpdateFn updateFn);
+        void MutateCharacter(CharacterID id,
+            std::function<void(JPH::Ref<JPH::CharacterVirtual>)> mutatorFn);
+        const JPH::RVec3& GetCharacterPosition(CharacterID id);
 
     private:
         PhysicsEngine();
+
+        void UpdateCharacter(LockedCharacter& lockedCharacter, float deltaTime);
+
         static std::unique_ptr<PhysicsEngine> s_engine;
 
         bool m_isShutDown;
@@ -68,6 +90,8 @@ namespace Gradient::Physics
         std::unique_ptr<std::thread> m_simulationWorker;
         DX::StepTimer m_stepTimer;
         std::unique_ptr<DebugRenderer> m_debugRenderer;
+
+        std::vector<LockedCharacter> m_characters;
 
 #pragma region Callback classes
 

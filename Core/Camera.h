@@ -2,7 +2,7 @@
 
 #include "StepTimer.h"
 #include <directxtk12/SimpleMath.h>
-#include <directxtk12/Mouse.h>
+#include <tuple>
 
 namespace Gradient
 {
@@ -17,7 +17,7 @@ namespace Gradient
         DirectX::SimpleMath::Vector3 m_direction;
 
         DirectX::SimpleMath::Matrix m_projectionMatrix;
-        DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;
+        
         void CreateProjectionMatrix();
 
     public:
@@ -31,15 +31,18 @@ namespace Gradient
 
         virtual ~Camera() {}
 
-        void Update(DX::StepTimer const& timer);
-
-        DirectX::SimpleMath::Matrix GetViewMatrix();
-        DirectX::SimpleMath::Matrix GetProjectionMatrix();
+        DirectX::SimpleMath::Matrix GetViewMatrix() const;
+        DirectX::SimpleMath::Matrix GetProjectionMatrix() const;
 
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);
         void SetPosition(DirectX::SimpleMath::Vector3 const&);
-        DirectX::SimpleMath::Vector3 GetPosition();
-        DirectX::SimpleMath::Vector3 GetDirection();
+        void RotateYawPitch(float yaw, float pitch);
+        DirectX::SimpleMath::Vector3 GetPosition() const;
+        DirectX::SimpleMath::Vector3 GetDirection() const;
+
+        // right, up, forward
+        std::tuple<DirectX::SimpleMath::Vector3, DirectX::SimpleMath::Vector3, DirectX::SimpleMath::Vector3>
+            GetBasisVectors() const;
     };
 }

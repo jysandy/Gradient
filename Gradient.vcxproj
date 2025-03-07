@@ -207,6 +207,7 @@
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
     <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
     <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Physics\Conversions.h" />
@@ -222,6 +223,7 @@
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Physics\Layers.h" />
     <ClInclude Include="Core\Physics\PhysicsEngine.h" />
+    <ClInclude Include="Core\PlayerCharacter.h" />
     <ClInclude Include="Core\ReadData.h" />
     <ClInclude Include="Core\Rendering\BloomProcessor.h" />
     <ClInclude Include="Core\Rendering\CubeMap.h" />
@@ -253,6 +255,7 @@
     <ClCompile Include="Core\Camera.cpp" />
     <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
     <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
+    <ClCompile Include="Core\FreeMoveCamera.cpp" />
     <ClCompile Include="Core\GraphicsMemoryManager.cpp" />
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />
@@ -264,6 +267,7 @@
     <ClCompile Include="Core\ECS\EntityManager.cpp" />
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Physics\PhysicsEngine.cpp" />
+    <ClCompile Include="Core\PlayerCharacter.cpp" />
     <ClCompile Include="Core\Rendering\BloomProcessor.cpp" />
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
