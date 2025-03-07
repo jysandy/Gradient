@@ -26,4 +26,18 @@ namespace Gradient::GUI
         ImGui::SliderFloat("Time scale", &m_timeScale, 0.1f, 1.f);
         ImGui::End();
     }
+
+    void PhysicsWindow::PauseSimulation()
+    {
+        m_physicsPaused = true;
+        auto physicsEngine = Gradient::Physics::PhysicsEngine::Get();
+        physicsEngine->PauseSimulation();
+    }
+
+    void PhysicsWindow::UnpauseSimulation()
+    {
+        m_physicsPaused = false;
+        auto physicsEngine = Gradient::Physics::PhysicsEngine::Get();
+        physicsEngine->UnpauseSimulation();
+    }
 }

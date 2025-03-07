@@ -42,36 +42,83 @@ Game::Game() noexcept(false)
     m_deviceResources->RegisterDeviceNotify(this);
 }
 
-// Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
+    m_keyboard = std::make_unique<Keyboard>();
+    m_mouse = std::make_unique<Mouse>();
+    m_mouse->SetWindow(window);
+    m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+
     Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
     m_character = std::make_unique<Gradient::PlayerCharacter>();
     m_character->SetPosition(Vector3{ 0, 30, 25 });
+    m_camera.SetPosition(Vector3{ 0, 30, 25 });
+
+    StartEditing();
 
     m_renderer = std::make_unique<Gradient::Rendering::Renderer>();
 
     m_deviceResources->CreateDeviceResources();
-    //m_deviceResources->Prepare(D3D12_RESOURCE_STATE_PRESENT,
-    //    D3D12_RESOURCE_STATE_COPY_DEST);
 
     CreateDeviceDependentResources();
 
     m_deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
-    //m_deviceResources->Present(D3D12_RESOURCE_STATE_COPY_DEST);
-
-    m_keyboard = std::make_unique<Keyboard>();
-    m_mouse = std::make_unique<Mouse>();
-    m_mouse->SetWindow(window);
-    m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
-    //m_camera.SetPosition(Vector3{ 0, 30, 25 });
 
     auto cq = m_deviceResources->GetCommandQueue();
 
     Gradient::Physics::PhysicsEngine::Get()->StartSimulation();
+}
+
+bool Game::IsPlayingGame()
+{
+    return !m_camera.IsActive();
+}
+
+void Game::StartPlaying()
+{
+    m_camera.Deactivate();
+    m_character->Activate();
+    m_physicsWindow.UnpauseSimulation();
+}
+
+void Game::StartEditing()
+{
+    m_character->Deactivate();
+    m_camera.Activate();
+    m_physicsWindow.PauseSimulation();
+}
+
+void Game::TogglePlaying(float currentTime)
+{
+    if (currentTime < m_timeWhenToggleEnabled) return;
+
+    DirectX::Keyboard::Get().Reset();
+
+    if (IsPlayingGame())
+    {
+        StartEditing();
+    }
+    else
+    {
+        StartPlaying();
+    }
+
+    m_timeWhenToggleEnabled = currentTime + 0.5;
+}
+
+Gradient::Camera Game::GetFrameCamera()
+{
+    if (!IsPlayingGame())
+    {
+        return m_camera.GetCamera();
+    }
+    else
+    {
+        return m_character->GetCamera();
+    }
 }
 
 #pragma region Frame Update
@@ -89,8 +136,15 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    //m_camera.Update(timer);
-    m_character->Update(timer);
+    if (IsPlayingGame())
+    {
+        m_character->Update(timer);
+
+    }
+    else
+    {
+        m_camera.Update(timer);
+    }
 
     auto entityManager = Gradient::EntityManager::Get();
 
@@ -121,6 +175,12 @@ void Game::Update(DX::StepTimer const& timer)
     m_renderer->WaterPipeline->SetWaterParams(m_renderingWindow.Water);
     m_renderer->BloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_renderer->BloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
+
+    auto kb = DirectX::Keyboard::Get().GetState();
+    if (kb.OemTilde)
+    {
+        TogglePlaying(timer.GetTotalSeconds());
+    }
 }
 #pragma endregion
 
@@ -139,8 +199,7 @@ void Game::Render()
 
     auto cl = m_deviceResources->GetCommandList();
 
-    //auto frameCamera = m_camera.GetCamera();
-    auto frameCamera = m_character->GetCamera();
+    auto frameCamera = GetFrameCamera();
 
     m_renderer->Render(cl,
         m_deviceResources->GetScreenViewport(),
@@ -152,10 +211,15 @@ void Game::Render()
     ImGui::NewFrame();
 
     m_tonemappedRenderTexture->SetAsTarget(cl);
-    m_physicsWindow.Draw();
-    m_renderingWindow.Draw();
+
     m_perfWindow.Draw();
-    m_entityWindow.Draw();
+
+    if (!IsPlayingGame())
+    {
+        m_physicsWindow.Draw();
+        m_renderingWindow.Draw();
+        m_entityWindow.Draw();
+    }
 
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(),
@@ -645,7 +709,7 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     auto windowSize = m_deviceResources->GetOutputSize();
-    //m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
+    m_camera.SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
     m_character->SetAspectRatio((float)windowSize.right / (float)windowSize.bottom);
 
     auto device = m_deviceResources->GetD3DDevice();

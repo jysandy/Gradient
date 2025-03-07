@@ -7,6 +7,8 @@ namespace Gradient::GUI
     public:
         void Update();
         void Draw();
+        void PauseSimulation();
+        void UnpauseSimulation();
 
     private:
         float m_timeScale = 1.f;

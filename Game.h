@@ -78,6 +78,13 @@ private:
     void CreateWindowSizeDependentResources();
     void CreateEntities();
 
+    bool IsPlayingGame();
+    void StartPlaying();
+    void StartEditing();
+    void TogglePlaying(float currentTime);
+    Gradient::Camera GetFrameCamera();
+
+    float m_timeWhenToggleEnabled = 0.f;
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>        m_deviceResources;
@@ -87,8 +94,7 @@ private:
     std::unique_ptr<DirectX::Keyboard> m_keyboard;
     std::unique_ptr<DirectX::Mouse> m_mouse;
 
-    //Gradient::FreeMoveCamera m_camera;
-
+    Gradient::FreeMoveCamera m_camera;
     std::unique_ptr<Gradient::PlayerCharacter> m_character;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;

@@ -12,6 +12,8 @@ namespace Gradient
 {
     void FreeMoveCamera::Update(DX::StepTimer const& timer)
     {
+        if (!m_isActive) return;
+
         const float elapsedSeconds = timer.GetElapsedSeconds();
         const float sensitivity = 0.001f;
 
@@ -91,5 +93,23 @@ namespace Gradient
     void FreeMoveCamera::SetAspectRatio(const float& aspectRatio)
     {
         m_camera.SetAspectRatio(aspectRatio);
+    }
+
+    void FreeMoveCamera::Activate()
+    {
+        m_isActive = true;
+        auto& mouse = DirectX::Mouse::Get();
+        mouse.SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+        m_mouseButtonTracker.Reset();
+    }
+
+    void FreeMoveCamera::Deactivate()
+    {
+        m_isActive = false;
+    }
+
+    bool FreeMoveCamera::IsActive()
+    {
+        return m_isActive;
     }
 }

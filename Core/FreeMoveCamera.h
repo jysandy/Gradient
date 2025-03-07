@@ -17,7 +17,14 @@ namespace Gradient
         void SetAspectRatio(const float& aspectRatio);
         const Camera& GetCamera() const;
 
+        void Activate();
+        void Deactivate();
+
+        bool IsActive();
+
     private:
+        bool m_isActive;
+
         Camera m_camera;
 
         DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;

@@ -2,6 +2,7 @@
 
 #include "pch.h"
 
+#include <atomic>
 #include <directxtk12/SimpleMath.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h> 
 #include <directxtk12/Mouse.h>
@@ -24,6 +25,10 @@ namespace Gradient
         void SetAspectRatio(const float& aspectRatio);
         const Camera& GetCamera() const;
 
+        void Activate();
+        void Deactivate();
+        bool IsActive();
+
     private:
         std::tuple<DirectX::SimpleMath::Vector3, bool> GetMovementInput(
             DirectX::SimpleMath::Vector3 right,
@@ -31,6 +36,7 @@ namespace Gradient
 
         void UpdateCamera(DirectX::SimpleMath::Vector3 characterPosition);
 
+        std::atomic_flag m_isActive;
         Camera m_camera;
         DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;
         Physics::PhysicsEngine::CharacterID m_character;

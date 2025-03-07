@@ -84,6 +84,8 @@ namespace Gradient
 
     void PlayerCharacter::Update(const DX::StepTimer& timer)
     {
+        if (!m_isActive.test()) return;
+
         auto physics = Physics::PhysicsEngine::Get();
 
         Vector3 characterPosition = Physics::FromJolt(
@@ -96,6 +98,8 @@ namespace Gradient
         JPH::Ref<JPH::CharacterVirtual> character,
         JPH::PhysicsSystem* system)
     {
+        if (!m_isActive.test()) return;
+
         // TODO: Make this thread safe
         auto [right, up, forward] = m_camera.GetBasisVectors();
 
@@ -142,16 +146,6 @@ namespace Gradient
         }
 
         m_mouseButtonTracker.Update(mouseState);
-
-        auto& mouse = DirectX::Mouse::Get();
-        if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::PRESSED)
-        {
-            mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
-        }
-        else if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::RELEASED)
-        {
-            mouse.SetMode(DirectX::Mouse::MODE_ABSOLUTE);
-        }
     }
 
     void PlayerCharacter::SetPosition(const Vector3& position)
@@ -174,5 +168,25 @@ namespace Gradient
     const Camera& PlayerCharacter::GetCamera() const
     {
         return m_camera;
+    }
+
+    void PlayerCharacter::Activate()
+    {
+        m_isActive.test_and_set();
+        auto& mouse = DirectX::Mouse::Get();
+        mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
+        m_mouseButtonTracker.Reset();
+    }
+
+    void PlayerCharacter::Deactivate()
+    {
+        m_isActive.clear();
+        auto& mouse = DirectX::Mouse::Get();
+        mouse.SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+    }
+
+    bool PlayerCharacter::IsActive()
+    {
+        return m_isActive.test();
     }
 }
