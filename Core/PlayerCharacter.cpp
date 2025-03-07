@@ -100,8 +100,7 @@ namespace Gradient
     {
         if (!m_isActive.test()) return;
 
-        // TODO: Make this thread safe
-        auto [right, up, forward] = m_camera.GetBasisVectors();
+        auto [right, up, forward] = GetBasisVectorsThreadSafe();
 
         auto [input, jumped] = GetMovementInput(right, forward);
 
@@ -131,18 +130,21 @@ namespace Gradient
 
     void PlayerCharacter::UpdateCamera(Vector3 characterPosition)
     {
-        m_camera.SetPosition(characterPosition + Vector3::UnitY);
-
         const float sensitivity = 0.001f;
 
         auto mouseState = DirectX::Mouse::Get().GetState();
 
-        if (mouseState.positionMode == DirectX::Mouse::MODE_RELATIVE)
         {
-            // Mouse movement
-            auto yaw = -mouseState.x * sensitivity;
-            auto pitch = -mouseState.y * sensitivity;
-            m_camera.RotateYawPitch(yaw, pitch);
+            std::unique_lock lock(m_cameraMutex);
+
+            if (mouseState.positionMode == DirectX::Mouse::MODE_RELATIVE)
+            {
+                // Mouse movement
+                auto yaw = -mouseState.x * sensitivity;
+                auto pitch = -mouseState.y * sensitivity;
+                m_camera.RotateYawPitch(yaw, pitch);
+            }
+            m_camera.SetPosition(characterPosition + Vector3::UnitY);
         }
 
         m_mouseButtonTracker.Update(mouseState);
@@ -188,5 +190,14 @@ namespace Gradient
     bool PlayerCharacter::IsActive()
     {
         return m_isActive.test();
+    }
+
+    std::tuple<Vector3,
+        Vector3,
+        Vector3> PlayerCharacter::GetBasisVectorsThreadSafe()
+    {
+        std::shared_lock lock(m_cameraMutex);
+
+        return m_camera.GetBasisVectors();
     }
 }

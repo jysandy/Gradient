@@ -34,9 +34,14 @@ namespace Gradient
             DirectX::SimpleMath::Vector3 right,
             DirectX::SimpleMath::Vector3 forward);
 
+        std::tuple<DirectX::SimpleMath::Vector3,
+            DirectX::SimpleMath::Vector3,
+            DirectX::SimpleMath::Vector3> GetBasisVectorsThreadSafe();
+
         void UpdateCamera(DirectX::SimpleMath::Vector3 characterPosition);
 
         std::atomic_flag m_isActive;
+        std::shared_mutex m_cameraMutex;
         Camera m_camera;
         DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;
         Physics::PhysicsEngine::CharacterID m_character;
