@@ -640,6 +640,155 @@ namespace Gradient::Rendering
         }
     }
 
+    void ComputeFrustum(
+        GeometricPrimitive::VertexCollection& vertices,
+        GeometricPrimitive::IndexCollection& indices,
+        float topRadius, 
+        float bottomRadius, 
+        int numStacks, 
+        int numVerticalSections, 
+        float height)
+    {
+        using namespace DirectX;
+
+        int numSlices = numStacks + 1;
+        int verticesPerSlice = numVerticalSections + 1;
+        int numVertices = verticesPerSlice * numSlices;
+        int numIndices = 6 * numVerticalSections * numStacks;
+
+        float dh = height / numStacks;
+
+        //Vertex generation
+        for (int i = 0; i < numSlices; i++)
+        {
+            float y = i * dh;
+            //Radius of slice
+            float r = bottomRadius - (y * (bottomRadius - topRadius)) / height;
+
+            float dTheta = XM_2PI / numVerticalSections;
+
+            //The first and last vertices in each ring are duplicated,
+            //because they have different texture coordinates.
+            for (int j = 0; j <= numVerticalSections; j++)
+            {
+                float x = r * cosf(j * dTheta);
+                float z = r * sinf(j * dTheta);
+
+                GeometricPrimitive::VertexType vertex;
+                vertex.position = XMFLOAT3(x, y, z);
+                vertex.textureCoordinate.x = static_cast<float>(j) / numVerticalSections;
+                vertex.textureCoordinate.y = 1.0f - static_cast<float>(i) / numStacks;
+
+                XMFLOAT4 temp = XMFLOAT4(x, 0, z, 1.0f);
+                XMVECTOR vertexXZ = XMLoadFloat4(&temp);
+                vertexXZ = XMVector3Normalize(vertexXZ);
+                XMVECTOR radiusTopXZ = topRadius * vertexXZ;
+                XMVECTOR radiusBottomXZ = bottomRadius * vertexXZ;
+                temp = XMFLOAT4(0, height, 0, 1.0f);
+                XMVECTOR axis = XMLoadFloat4(&temp);
+                XMVECTOR hue = radiusTopXZ + axis;
+                XMVECTOR tangent1 = hue - radiusBottomXZ;
+                XMVECTOR tangent2 = XMVector3Cross(radiusBottomXZ, axis);
+                XMVECTOR normal = XMVector3Cross(tangent1, tangent2);
+                normal = XMVector3Normalize(normal);
+                XMStoreFloat3(&vertex.normal, normal);
+
+                vertices.push_back(vertex);
+            }
+        }
+
+        //Index generation
+        for (int i = 0; i < (numSlices - 1) * (numVerticalSections + 1); i++)
+        {
+
+            indices.push_back(i);
+            indices.push_back(i + (numVerticalSections + 1));
+            indices.push_back(i + 1);
+            indices.push_back(i + 1);
+            indices.push_back(i + (numVerticalSections + 1));
+            indices.push_back((i + 1) + numVerticalSections + 1);
+        }
+
+        //Vertex and index generation for the caps (top and bottom)
+
+        int lastVertex = vertices.size() - 1;
+        //Bottom cap
+
+        //Center vertex.
+        GeometricPrimitive::VertexType center;
+        center.position = XMFLOAT3(0, 0, 0);
+        center.normal = XMFLOAT3(0, -1, 0);
+        center.textureCoordinate = XMFLOAT2(0.5, 0.5);
+
+        vertices.push_back(center);
+
+        int centerIndex = vertices.size() - 1;
+
+        //Copy the bottom ring of vertices.
+        GeometricPrimitive::VertexCollection bottomVertices;
+        for (int i = 0; i < verticesPerSlice; i++)
+        {
+            bottomVertices.push_back(vertices[i]);
+        }
+
+        for (auto& x : bottomVertices)
+        {
+            XMFLOAT3 normal = XMFLOAT3(0, -1, 0);
+            x.normal = normal;
+            float u = x.position.x / height + 0.5;
+            float v = x.position.z / height + 0.5;
+            x.textureCoordinate = XMFLOAT2(u, v);
+        }
+
+        vertices.insert(vertices.end(), bottomVertices.begin(), bottomVertices.end());
+
+        for (int i = centerIndex + 1; i < centerIndex + verticesPerSlice; i++)
+        {
+            indices.push_back(i + 1);
+            indices.push_back(centerIndex);
+            indices.push_back(i);
+        }
+
+        //Top cap
+
+        //Center vertex
+        center.position = XMFLOAT3(0, height, 0);
+        center.normal = XMFLOAT3(0, 1, 0);
+        center.textureCoordinate = XMFLOAT2(0.5, 0.5);
+
+        vertices.push_back(center);
+        centerIndex = vertices.size() - 1;
+
+        //Copy the top ring of vertices.
+        GeometricPrimitive::VertexCollection topVertices;
+        int base = lastVertex - verticesPerSlice + 1;
+
+        for (int i = base; i < base + verticesPerSlice; i++)
+        {
+            topVertices.push_back(vertices[i]);
+        }
+
+        for (auto& x : topVertices)
+        {
+            XMFLOAT3 normal = XMFLOAT3(0, 1, 0);
+            x.normal = normal;
+            float u = x.position.x / height + 0.5;
+            float v = x.position.z / height + 0.5;
+            x.textureCoordinate = XMFLOAT2(u, v);
+        }
+
+        vertices.insert(vertices.end(), topVertices.begin(), topVertices.end());
+
+        for (int i = centerIndex + 1; i < centerIndex + verticesPerSlice; i++)
+        {
+            indices.push_back(i);
+            indices.push_back(centerIndex);
+            indices.push_back(i + 1);
+        }
+
+        ReverseWinding(indices, vertices);
+    }
+
     void GeometricPrimitive::Draw(ID3D12GraphicsCommandList* cl)
     {
         cl->IASetVertexBuffers(0,
@@ -756,6 +905,28 @@ namespace Gradient::Rendering
         VertexCollection vertices;
         IndexCollection indices;
         ComputeGrid(vertices, indices, width, height, divisions, tiled);
+
+        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
+        primitive->Initialize(device, cq, vertices, indices);
+
+        return primitive;
+    }
+
+    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateFrustum(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const float& topRadius,
+        const float& bottomRadius,
+        const float& height)
+    {
+        VertexCollection vertices;
+        IndexCollection indices;
+
+        ComputeFrustum(vertices, indices,
+            topRadius, bottomRadius,
+            static_cast<int>(height) * 2,
+            18,
+            height);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
         primitive->Initialize(device, cq, vertices, indices);

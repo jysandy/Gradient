@@ -50,6 +50,13 @@ namespace Gradient::Rendering
             const float& divisions = 10,
             bool tiled = true);
 
+        static std::unique_ptr<GeometricPrimitive> CreateFrustum(
+            ID3D12Device* device,
+            ID3D12CommandQueue* cq,
+            const float& topRadius = 1,
+            const float& bottomRadius = 1,
+            const float& height = 3);
+
     private:
         GeometricPrimitive() = default;
 

@@ -475,6 +475,23 @@ void Game::CreateEntities()
             }
         ));
 
+    auto frustum = entityManager->AddEntity();
+    entityManager->Registry.emplace<NameTagComponent>(frustum, "frustum");
+    auto& frustumTransform 
+        = entityManager->Registry.emplace<TransformComponent>(frustum);
+    frustumTransform.Translation = Matrix::CreateTranslation({0.f, 20.f, 0.f});
+    entityManager->Registry.emplace<DrawableComponent>(frustum,
+        Rendering::GeometricPrimitive::CreateFrustum(device,
+            cq, 1.f, 2.f));
+    entityManager->Registry.emplace<MaterialComponent>(frustum,
+        Rendering::PBRMaterial(
+            "ornamentAlbedo",
+            "ornamentNormal",
+            "ornamentAO",
+            "ornamentMetalness",
+            "ornamentRoughness"
+        ));
+
     auto floor = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(floor, "floor");
     auto& floorTransform =
