@@ -57,6 +57,14 @@ namespace Gradient::Rendering
             const float& bottomRadius = 1,
             const float& height = 3);
 
+        static std::unique_ptr<GeometricPrimitive> CreateAngledFrustum(
+            ID3D12Device* device,
+            ID3D12CommandQueue* cq,
+            const float& bottomRadius = 1,
+            const float& topRadius = 1,
+            const DirectX::SimpleMath::Vector3& topCentre = {0, 3, 0},
+            const DirectX::SimpleMath::Vector3& topNormal = {0, 1, 0});
+
     private:
         GeometricPrimitive() = default;
 

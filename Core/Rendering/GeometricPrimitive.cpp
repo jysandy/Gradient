@@ -4,6 +4,8 @@
 #include <directxtk12/ResourceUploadBatch.h>
 #include <map>
 
+using namespace DirectX::SimpleMath;
+
 namespace Gradient::Rendering
 {
 
@@ -789,6 +791,84 @@ namespace Gradient::Rendering
         ReverseWinding(indices, vertices);
     }
 
+    void ComputeAngledFrustum(
+        GeometricPrimitive::VertexCollection& vertices,
+        GeometricPrimitive::IndexCollection& indices,
+        float bottomRadius,
+        float topRadius,
+        Vector3 topCentre,
+        Vector3 topNormal,
+        int numVerticalSections)
+    {
+        int numSlices = 2;
+        int verticesPerSlice = numVerticalSections + 1;
+        int numVertices = verticesPerSlice * numSlices;
+        int numIndices = 6 * numVerticalSections;
+
+        float dTheta = DirectX::XM_2PI / numVerticalSections;
+
+        // Bottom ring
+        // The first and last vertex are duplicated because 
+        // they have different texcoords.
+        {
+            Vector3 r = Vector3::UnitX;
+            r *= bottomRadius;
+
+            for (int j = 0; j <= numVerticalSections; j++)
+            {
+                float theta = dTheta * j;
+                auto rotationMatrix = Matrix::CreateFromAxisAngle(Vector3::UnitY, theta);
+                auto centreOffset = Vector3::Transform(r, rotationMatrix);
+
+                GeometricPrimitive::VertexType vertex;
+                vertex.position = centreOffset;
+                auto normal = centreOffset;
+                normal.Normalize();
+                vertex.normal = normal;
+                vertex.textureCoordinate.x = static_cast<float>(j) / numVerticalSections;
+                vertex.textureCoordinate.y = 1.f;
+
+                vertices.push_back(vertex);
+            }
+        }
+
+        // Top ring
+        {
+            Vector3 r = topNormal.Cross(Vector3::UnitZ);
+            r.Normalize();
+            r *= topRadius;
+
+            for (int j = 0; j <= numVerticalSections; j++)
+            {
+                float theta = dTheta * j;
+                auto rotationMatrix = Matrix::CreateFromAxisAngle(topNormal, theta);
+                auto centreOffset = Vector3::Transform(r, rotationMatrix);
+
+                GeometricPrimitive::VertexType vertex;
+                vertex.position = topCentre + centreOffset;
+                auto normal = centreOffset;
+                normal.Normalize();
+                vertex.normal = normal;
+                vertex.textureCoordinate.x = static_cast<float>(j) / numVerticalSections;
+                vertex.textureCoordinate.y = 0.f;
+
+                vertices.push_back(vertex);
+            }
+        }
+
+        //Index generation
+        for (int i = 0; i < numVerticalSections; i++)
+        {
+            indices.push_back(i);
+            indices.push_back(i + numVerticalSections + 1);
+            indices.push_back(i + 1);
+
+            indices.push_back(i + 1);
+            indices.push_back(i + numVerticalSections + 1);
+            indices.push_back(i + 1 + numVerticalSections + 1);
+        }
+    }
+
     void GeometricPrimitive::Draw(ID3D12GraphicsCommandList* cl)
     {
         cl->IASetVertexBuffers(0,
@@ -927,6 +1007,29 @@ namespace Gradient::Rendering
             static_cast<int>(height) * 2,
             18,
             height);
+
+        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
+        primitive->Initialize(device, cq, vertices, indices);
+
+        return primitive;
+    }
+
+    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateAngledFrustum(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const float& bottomRadius,
+        const float& topRadius,
+        const DirectX::SimpleMath::Vector3& topCentre,
+        const DirectX::SimpleMath::Vector3& topNormal)
+    {
+        VertexCollection vertices;
+        IndexCollection indices;
+
+        ComputeAngledFrustum(vertices, indices,
+            bottomRadius, topRadius,
+            topCentre,
+            topNormal,
+            18);
 
         std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
         primitive->Initialize(device, cq, vertices, indices);

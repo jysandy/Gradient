@@ -480,9 +480,11 @@ void Game::CreateEntities()
     auto& frustumTransform 
         = entityManager->Registry.emplace<TransformComponent>(frustum);
     frustumTransform.Translation = Matrix::CreateTranslation({0.f, 20.f, 0.f});
+    Vector3 topNormal = { 1, 1, 0 };
+    topNormal.Normalize();
     entityManager->Registry.emplace<DrawableComponent>(frustum,
-        Rendering::GeometricPrimitive::CreateFrustum(device,
-            cq, 1.f, 2.f));
+        Rendering::GeometricPrimitive::CreateAngledFrustum(device,
+            cq, 2.f, 1.f, {2, 8, 0}, topNormal));
     entityManager->Registry.emplace<MaterialComponent>(frustum,
         Rendering::PBRMaterial(
             "ornamentAlbedo",
