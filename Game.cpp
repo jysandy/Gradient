@@ -417,6 +417,19 @@ void Game::CreateEntities()
     textureManager->LoadDDS(device, cq,
         "ornamentRoughness",
         L"Assets\\Metal_Ornament_01_roughness.dds");
+
+    textureManager->LoadDDS(device, cq,
+        "bark_albedo",
+        L"Assets\\Tree_Bark_sb0jlop0_1K_BaseColor.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark_normal",
+        L"Assets\\Tree_Bark_sb0jlop0_1K_Normal.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark_roughness",
+        L"Assets\\Tree_Bark_sb0jlop0_1K_Roughness.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark_ao",
+        L"Assets\\Tree_Bark_sb0jlop0_1K_AO.dds");
 #pragma endregion
 
     JPH::BodyInterface& bodyInterface
@@ -487,11 +500,11 @@ void Game::CreateEntities()
             cq, 2.f, 1.f, {2, 8, 0}, topNormal));
     entityManager->Registry.emplace<MaterialComponent>(frustum,
         Rendering::PBRMaterial(
-            "ornamentAlbedo",
-            "ornamentNormal",
-            "ornamentAO",
-            "ornamentMetalness",
-            "ornamentRoughness"
+            "bark_albedo",
+            "bark_normal",
+            "bark_ao",
+            "defaultMetalness",
+            "bark_roughness"
         ));
 
     auto floor = entityManager->AddEntity();

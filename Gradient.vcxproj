@@ -349,6 +349,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="CompressTex.ps1" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
     <None Include="Core\Shaders\LightStructs.hlsli" />
     <None Include="Core\Shaders\NormalMapping.hlsli" />
