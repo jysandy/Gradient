@@ -645,10 +645,10 @@ namespace Gradient::Rendering
     void ComputeFrustum(
         GeometricPrimitive::VertexCollection& vertices,
         GeometricPrimitive::IndexCollection& indices,
-        float topRadius, 
-        float bottomRadius, 
-        int numStacks, 
-        int numVerticalSections, 
+        float topRadius,
+        float bottomRadius,
+        int numStacks,
+        int numVerticalSections,
         float height)
     {
         using namespace DirectX;
@@ -866,6 +866,108 @@ namespace Gradient::Rendering
             indices.push_back(i + 1);
             indices.push_back(i + numVerticalSections + 1);
             indices.push_back(i + 1 + numVerticalSections + 1);
+        }
+
+        int lastVertex = vertices.size() - 1;
+
+        {
+            //Bottom cap
+
+            //Center vertex.
+            GeometricPrimitive::VertexType center;
+            center.position = { 0, 0, 0 };
+            center.normal = { 0, -1, 0 };
+            center.textureCoordinate = { 0.5, 0.5 };
+
+            vertices.push_back(center);
+
+            int centerIndex = vertices.size() - 1;
+
+            //Copy the bottom ring of vertices.
+            GeometricPrimitive::VertexCollection bottomVertices;
+            for (int i = 0; i < verticesPerSlice; i++)
+            {
+                bottomVertices.push_back(vertices[i]);
+            }
+
+            for (auto& x : bottomVertices)
+            {
+                x.normal = { 0, -1, 0 };
+
+                // x and z belong to [-bottomRadius, bottomRadius].
+                // Map this to [0, 1]
+                float u = ((x.position.x / bottomRadius) + 1) / 2.f;
+                float v = ((x.position.z / bottomRadius) + 1) / 2.f;
+                x.textureCoordinate = { u, v };
+            }
+
+            vertices.insert(vertices.end(), bottomVertices.begin(), bottomVertices.end());
+
+            for (int i = centerIndex + 1; i < centerIndex + verticesPerSlice; i++)
+            {
+                indices.push_back(i + 1);
+                indices.push_back(centerIndex);
+                indices.push_back(i);
+            }
+        }
+
+        {
+            // Top cap
+
+            //Center vertex
+            GeometricPrimitive::VertexType center;
+            center.position = topCentre;
+            center.normal = topNormal;
+            center.textureCoordinate = { 0.5, 0.5 };
+
+            vertices.push_back(center);
+            auto centerIndex = vertices.size() - 1;
+
+            //Copy the top ring of vertices.
+            GeometricPrimitive::VertexCollection topVertices;
+            int base = lastVertex - verticesPerSlice + 1;
+
+            for (int i = base; i < base + verticesPerSlice; i++)
+            {
+                topVertices.push_back(vertices[i]);
+            }
+
+            // To construct UVs, we map into a space 
+            // with the top normal as the Y axis.
+            Vector3 basisY = topNormal;
+            basisY.Normalize();
+            Vector3 basisX = basisY.Cross(Vector3::UnitZ);
+            basisX.Normalize();
+            Vector3 basisZ = basisX.Cross(basisY);
+            basisZ.Normalize();
+
+            auto fromNewBasis = Matrix(basisX, basisY, basisZ);
+            fromNewBasis.Translation(topCentre);
+            fromNewBasis.Transpose();
+            Matrix toNewBasis;
+            fromNewBasis.Invert(toNewBasis);
+
+            for (auto& x : topVertices)
+            {
+                x.normal = topNormal;
+
+                Vector3 transformedPosition =
+                    Vector3::Transform(x.position,
+                        toNewBasis);
+
+                float u = ((transformedPosition.x / topRadius) + 1) / 2.f;
+                float v = ((transformedPosition.z / topRadius) + 1) / 2.f;
+                x.textureCoordinate = { u, v };
+            }
+
+            vertices.insert(vertices.end(), topVertices.begin(), topVertices.end());
+
+            for (int i = centerIndex + 1; i < centerIndex + verticesPerSlice; i++)
+            {
+                indices.push_back(i);
+                indices.push_back(centerIndex);
+                indices.push_back(i + 1);
+            }
         }
     }
 
