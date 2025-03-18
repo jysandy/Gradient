@@ -493,11 +493,10 @@ void Game::CreateEntities()
     auto& frustumTransform 
         = entityManager->Registry.emplace<TransformComponent>(frustum);
     frustumTransform.Translation = Matrix::CreateTranslation({0.f, 20.f, 0.f});
-    Vector3 topNormal = { 1, 1, 0 };
-    topNormal.Normalize();
+    Quaternion topRotation = Quaternion::CreateFromYawPitchRoll({0, 0, -XM_PIDIV4});
     entityManager->Registry.emplace<DrawableComponent>(frustum,
         Rendering::ProceduralMesh::CreateAngledFrustum(device,
-            cq, 2.f, 1.f, {2, 8, 0}, topNormal));
+            cq, 2.f, 1.f, {2, 8, 0}, topRotation));
     entityManager->Registry.emplace<MaterialComponent>(frustum,
         Rendering::PBRMaterial(
             "bark_albedo",

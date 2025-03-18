@@ -797,7 +797,7 @@ namespace Gradient::Rendering
         float bottomRadius,
         float topRadius,
         Vector3 topCentre,
-        Vector3 topNormal,
+        const DirectX::SimpleMath::Quaternion& topRotation,
         int numVerticalSections)
     {
         int numSlices = 2;
@@ -834,15 +834,14 @@ namespace Gradient::Rendering
 
         // Top ring
         {
-            Vector3 r = topNormal.Cross(Vector3::UnitZ);
-            r.Normalize();
-            r *= topRadius;
+            Vector3 r = {topRadius, 0, 0};
 
             for (int j = 0; j <= numVerticalSections; j++)
             {
                 float theta = dTheta * j;
-                auto rotationMatrix = Matrix::CreateFromAxisAngle(topNormal, theta);
+                auto rotationMatrix = Matrix::CreateFromAxisAngle(Vector3::UnitY, theta);
                 auto centreOffset = Vector3::Transform(r, rotationMatrix);
+                centreOffset = Vector3::Transform(centreOffset, topRotation);
 
                 ProceduralMesh::VertexType vertex;
                 vertex.position = topCentre + centreOffset;
@@ -911,6 +910,8 @@ namespace Gradient::Rendering
             }
         }
 
+        Vector3 topNormal = Vector3::Transform({ 0, 1, 0 }, topRotation);
+
         {
             // Top cap
 
@@ -934,18 +935,11 @@ namespace Gradient::Rendering
 
             // To construct UVs, we map into a space 
             // with the top normal as the Y axis.
-            Vector3 basisY = topNormal;
-            basisY.Normalize();
-            Vector3 basisX = basisY.Cross(Vector3::UnitZ);
-            basisX.Normalize();
-            Vector3 basisZ = basisX.Cross(basisY);
-            basisZ.Normalize();
-
-            auto fromNewBasis = Matrix(basisX, basisY, basisZ);
-            fromNewBasis.Translation(topCentre);
-            fromNewBasis.Transpose();
-            Matrix toNewBasis;
-            fromNewBasis.Invert(toNewBasis);
+            Quaternion unRotate;
+            topRotation.Inverse(unRotate);
+            Matrix toNewBasis 
+                = Matrix::CreateTranslation(-topCentre) 
+                * Matrix::CreateFromQuaternion(unRotate);
 
             for (auto& x : topVertices)
             {
@@ -1099,13 +1093,32 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
+    ProceduralMesh::MeshPart ProceduralMesh::CreateAngledFrustumPart(
+        float bottomRadius,
+        float topRadius,
+        Vector3 topCentre,
+        DirectX::SimpleMath::Quaternion topRotation,
+        int numVerticalSections
+    )
+    {
+        MeshPart part;
+
+        ComputeAngledFrustum(part.Vertices, part.Indices,
+            bottomRadius, topRadius,
+            topCentre,
+            topRotation,
+            numVerticalSections);
+
+        return part;
+    }
+
     std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateAngledFrustum(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& bottomRadius,
         const float& topRadius,
         const DirectX::SimpleMath::Vector3& topCentre,
-        const DirectX::SimpleMath::Vector3& topNormal)
+        const DirectX::SimpleMath::Quaternion& topRotation)
     {
         VertexCollection vertices;
         IndexCollection indices;
@@ -1113,7 +1126,7 @@ namespace Gradient::Rendering
         ComputeAngledFrustum(vertices, indices,
             bottomRadius, topRadius,
             topCentre,
-            topNormal,
+            topRotation,
             18);
 
         return CreateFromVertices(device, cq, vertices, indices);

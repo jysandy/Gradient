@@ -20,6 +20,12 @@ namespace Gradient::Rendering
 
         virtual void Draw(ID3D12GraphicsCommandList* cl) override;
 
+        struct MeshPart
+        {
+            VertexCollection Vertices;
+            IndexCollection Indices;
+        };
+
         static std::unique_ptr<ProceduralMesh> CreateBox(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
@@ -57,13 +63,21 @@ namespace Gradient::Rendering
             const float& bottomRadius = 1,
             const float& height = 3);
 
+        static MeshPart CreateAngledFrustumPart(
+            float bottomRadius,
+            float topRadius,
+            DirectX::SimpleMath::Vector3 topCentre,
+            DirectX::SimpleMath::Quaternion topRotation,
+            int numVerticalSections
+        );
+
         static std::unique_ptr<ProceduralMesh> CreateAngledFrustum(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const float& bottomRadius = 1,
             const float& topRadius = 1,
             const DirectX::SimpleMath::Vector3& topCentre = {0, 3, 0},
-            const DirectX::SimpleMath::Vector3& topNormal = {0, 1, 0});
+            const DirectX::SimpleMath::Quaternion& topRotation = DirectX::SimpleMath::Quaternion::Identity);
 
         static std::unique_ptr<ProceduralMesh> CreateFromVertices(
             ID3D12Device* device,
