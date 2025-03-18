@@ -9,6 +9,7 @@
 #include "Core/TextureManager.h"
 #include "Core/Rendering/TextureDrawer.h"
 #include "Core/Rendering/ProceduralMesh.h"
+#include "Core/Rendering/LSystem.h"
 #include "Core/Parameters.h"
 #include "Core/ECS/Components/NameTagComponent.h"
 #include "Core/ECS/Components/DrawableComponent.h"
@@ -488,16 +489,17 @@ void Game::CreateEntities()
             }
         ));
 
-    auto frustum = entityManager->AddEntity();
-    entityManager->Registry.emplace<NameTagComponent>(frustum, "frustum");
+    auto tree = entityManager->AddEntity();
+    entityManager->Registry.emplace<NameTagComponent>(tree, "tree");
     auto& frustumTransform 
-        = entityManager->Registry.emplace<TransformComponent>(frustum);
+        = entityManager->Registry.emplace<TransformComponent>(tree);
     frustumTransform.Translation = Matrix::CreateTranslation({0.f, 20.f, 0.f});
-    Quaternion topRotation = Quaternion::CreateFromYawPitchRoll({0, 0, -XM_PIDIV4});
-    entityManager->Registry.emplace<DrawableComponent>(frustum,
-        Rendering::ProceduralMesh::CreateAngledFrustum(device,
-            cq, 2.f, 1.f, {2, 8, 0}, topRotation));
-    entityManager->Registry.emplace<MaterialComponent>(frustum,
+
+    Rendering::LSystem lsystem;
+    entityManager->Registry.emplace<DrawableComponent>(tree,
+        lsystem.Build(device, cq));
+
+    entityManager->Registry.emplace<MaterialComponent>(tree,
         Rendering::PBRMaterial(
             "bark_albedo",
             "bark_normal",

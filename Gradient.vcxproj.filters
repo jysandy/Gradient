@@ -65,6 +65,7 @@
     <ClInclude Include="Core\Physics\DebugRenderer.h" />
     <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\PlayerCharacter.h" />
+    <ClInclude Include="Core\Rendering\LSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -108,6 +109,7 @@
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
     <ClCompile Include="Core\FreeMoveCamera.cpp" />
     <ClCompile Include="Core\PlayerCharacter.cpp" />
+    <ClCompile Include="Core\Rendering\LSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

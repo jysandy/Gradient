@@ -24,6 +24,10 @@ namespace Gradient::Rendering
         {
             VertexCollection Vertices;
             IndexCollection Indices;
+
+            MeshPart Append(MeshPart appendage,
+                DirectX::SimpleMath::Vector3 translation,
+                DirectX::SimpleMath::Quaternion rotation);
         };
 
         static std::unique_ptr<ProceduralMesh> CreateBox(
@@ -84,6 +88,12 @@ namespace Gradient::Rendering
             ID3D12CommandQueue* cq,
             const VertexCollection& vertices,
             const IndexCollection& indices
+        );
+
+        static std::unique_ptr<ProceduralMesh> CreateFromPart(
+            ID3D12Device* device,
+            ID3D12CommandQueue* cq,
+            const MeshPart& part
         );
 
     private:

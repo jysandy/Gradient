@@ -1144,4 +1144,46 @@ namespace Gradient::Rendering
 
         return primitive;
     }
+
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFromPart(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const MeshPart& part
+    )
+    {
+        return ProceduralMesh::CreateFromVertices(
+            device,
+            cq,
+            part.Vertices,
+            part.Indices
+        );
+    }
+
+    ProceduralMesh::MeshPart ProceduralMesh::MeshPart::Append(
+        ProceduralMesh::MeshPart appendage,
+        Vector3 translation,
+        Quaternion rotation
+    )
+    {
+        Matrix transform = Matrix::CreateFromQuaternion(rotation)
+            * Matrix::CreateTranslation(translation);
+
+        ProceduralMesh::MeshPart out(*this);
+
+        auto baseIndex = out.Vertices.size();
+
+        for (const auto& vertex : appendage.Vertices)
+        {
+            auto newVertex = vertex;
+            newVertex.position = Vector3::Transform(vertex.position, transform);
+            out.Vertices.push_back(newVertex);
+        }
+
+        for (const auto& index : appendage.Indices)
+        {
+            out.Indices.push_back(index + baseIndex);
+        }
+
+        return out;
+    }
 }
