@@ -229,7 +229,7 @@
     <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\DepthCubeArray.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
-    <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
+    <ClInclude Include="Core\Rendering\ProceduralMesh.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
     <ClInclude Include="Core\Rendering\PBRMaterial.h" />
     <ClInclude Include="Core\Rendering\PointLight.h" />
@@ -272,7 +272,7 @@
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
-    <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
+    <ClCompile Include="Core\Rendering\ProceduralMesh.cpp" />
     <ClCompile Include="Core\Rendering\PBRMaterial.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
     <ClCompile Include="Core\Rendering\Renderer.cpp" />

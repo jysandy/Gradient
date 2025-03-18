@@ -21,7 +21,7 @@
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Rendering/BloomProcessor.h"
 #include "Core/Rendering/CubeMap.h"
-#include "Core/Rendering/GeometricPrimitive.h"
+#include "Core/Rendering/ProceduralMesh.h"
 #include "Core/Parameters.h"
 #include "GUI/PhysicsWindow.h"
 #include "GUI/RenderingWindow.h"

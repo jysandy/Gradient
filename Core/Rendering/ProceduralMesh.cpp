@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Core/Rendering/GeometricPrimitive.h"
+#include "Core/Rendering/ProceduralMesh.h"
 #include <directxtk12/BufferHelpers.h>
 #include <directxtk12/ResourceUploadBatch.h>
 #include <map>
@@ -24,7 +24,7 @@ namespace Gradient::Rendering
 
 
     // Collection types used when generating the geometry.
-    inline void index_push_back(GeometricPrimitive::IndexCollection& indices, size_t value)
+    inline void index_push_back(ProceduralMesh::IndexCollection& indices, size_t value)
     {
         CheckIndexOverflow(value);
         indices.push_back(static_cast<uint16_t>(value));
@@ -32,8 +32,8 @@ namespace Gradient::Rendering
 
 
     // Helper for flipping winding of geometric primitives for LH vs. RH coords
-    inline void ReverseWinding(GeometricPrimitive::IndexCollection& indices,
-        GeometricPrimitive::VertexCollection& vertices)
+    inline void ReverseWinding(ProceduralMesh::IndexCollection& indices,
+        ProceduralMesh::VertexCollection& vertices)
     {
         assert((indices.size() % 3) == 0);
         for (auto it = indices.begin(); it != indices.end(); it += 3)
@@ -49,7 +49,7 @@ namespace Gradient::Rendering
 
 
     // Helper for inverting normals of geometric primitives for 'inside' vs. 'outside' viewing
-    inline void InvertNormals(GeometricPrimitive::VertexCollection& vertices)
+    inline void InvertNormals(ProceduralMesh::VertexCollection& vertices)
     {
         for (auto& it : vertices)
         {
@@ -59,8 +59,8 @@ namespace Gradient::Rendering
         }
     }
 
-    void ComputeBox(GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+    void ComputeBox(ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         const DirectX::XMFLOAT3& size,
         bool rhcoords,
         bool invertn)
@@ -136,8 +136,8 @@ namespace Gradient::Rendering
             InvertNormals(vertices);
     }
 
-    void ComputeSphere(GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+    void ComputeSphere(ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         float diameter,
         size_t tessellation,
         bool rhcoords,
@@ -213,8 +213,8 @@ namespace Gradient::Rendering
             InvertNormals(vertices);
     }
 
-    void ComputeGeoSphere(GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+    void ComputeGeoSphere(ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         float diameter,
         size_t tessellation,
         bool rhcoords)
@@ -284,7 +284,7 @@ namespace Gradient::Rendering
             EdgeSubdivisionMap subdividedEdges;
 
             // The new index collection after subdivision.
-            GeometricPrimitive::IndexCollection newIndices;
+            ProceduralMesh::IndexCollection newIndices;
 
             const size_t triangleCount = indices.size() / 3;
             for (size_t iTriangle = 0; iTriangle < triangleCount; ++iTriangle)
@@ -536,8 +536,8 @@ namespace Gradient::Rendering
 
     //  End copied geometry building code -----------------------------------------------------------------------
 
-    void ComputeGrid(GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+    void ComputeGrid(ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         const float& width,
         const float& height,
         const float& divisions,
@@ -552,7 +552,7 @@ namespace Gradient::Rendering
 
         for (int i = 0; i < divisions + 1; i++)
         {
-            GeometricPrimitive::VertexType vertex;
+            ProceduralMesh::VertexType vertex;
             vertex.position = Vector3{ topLeftX + i * xStep, 0, topLeftZ };
             vertex.normal = Vector3::UnitY;
 
@@ -571,7 +571,7 @@ namespace Gradient::Rendering
         {
             for (int i = 0; i < divisions + 1; i++)
             {
-                GeometricPrimitive::VertexType vertex;
+                ProceduralMesh::VertexType vertex;
                 vertex.position = Vector3{
                     topLeftX + i * xStep,
                     0,
@@ -643,8 +643,8 @@ namespace Gradient::Rendering
     }
 
     void ComputeFrustum(
-        GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+        ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         float topRadius,
         float bottomRadius,
         int numStacks,
@@ -676,7 +676,7 @@ namespace Gradient::Rendering
                 float x = r * cosf(j * dTheta);
                 float z = r * sinf(j * dTheta);
 
-                GeometricPrimitive::VertexType vertex;
+                ProceduralMesh::VertexType vertex;
                 vertex.position = XMFLOAT3(x, y, z);
                 vertex.textureCoordinate.x = static_cast<float>(j) / numVerticalSections;
                 vertex.textureCoordinate.y = 1.0f - static_cast<float>(i) / numStacks;
@@ -717,7 +717,7 @@ namespace Gradient::Rendering
         //Bottom cap
 
         //Center vertex.
-        GeometricPrimitive::VertexType center;
+        ProceduralMesh::VertexType center;
         center.position = XMFLOAT3(0, 0, 0);
         center.normal = XMFLOAT3(0, -1, 0);
         center.textureCoordinate = XMFLOAT2(0.5, 0.5);
@@ -727,7 +727,7 @@ namespace Gradient::Rendering
         int centerIndex = vertices.size() - 1;
 
         //Copy the bottom ring of vertices.
-        GeometricPrimitive::VertexCollection bottomVertices;
+        ProceduralMesh::VertexCollection bottomVertices;
         for (int i = 0; i < verticesPerSlice; i++)
         {
             bottomVertices.push_back(vertices[i]);
@@ -762,7 +762,7 @@ namespace Gradient::Rendering
         centerIndex = vertices.size() - 1;
 
         //Copy the top ring of vertices.
-        GeometricPrimitive::VertexCollection topVertices;
+        ProceduralMesh::VertexCollection topVertices;
         int base = lastVertex - verticesPerSlice + 1;
 
         for (int i = base; i < base + verticesPerSlice; i++)
@@ -792,8 +792,8 @@ namespace Gradient::Rendering
     }
 
     void ComputeAngledFrustum(
-        GeometricPrimitive::VertexCollection& vertices,
-        GeometricPrimitive::IndexCollection& indices,
+        ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
         float bottomRadius,
         float topRadius,
         Vector3 topCentre,
@@ -820,7 +820,7 @@ namespace Gradient::Rendering
                 auto rotationMatrix = Matrix::CreateFromAxisAngle(Vector3::UnitY, theta);
                 auto centreOffset = Vector3::Transform(r, rotationMatrix);
 
-                GeometricPrimitive::VertexType vertex;
+                ProceduralMesh::VertexType vertex;
                 vertex.position = centreOffset;
                 auto normal = centreOffset;
                 normal.Normalize();
@@ -844,7 +844,7 @@ namespace Gradient::Rendering
                 auto rotationMatrix = Matrix::CreateFromAxisAngle(topNormal, theta);
                 auto centreOffset = Vector3::Transform(r, rotationMatrix);
 
-                GeometricPrimitive::VertexType vertex;
+                ProceduralMesh::VertexType vertex;
                 vertex.position = topCentre + centreOffset;
                 auto normal = centreOffset;
                 normal.Normalize();
@@ -874,7 +874,7 @@ namespace Gradient::Rendering
             //Bottom cap
 
             //Center vertex.
-            GeometricPrimitive::VertexType center;
+            ProceduralMesh::VertexType center;
             center.position = { 0, 0, 0 };
             center.normal = { 0, -1, 0 };
             center.textureCoordinate = { 0.5, 0.5 };
@@ -884,7 +884,7 @@ namespace Gradient::Rendering
             int centerIndex = vertices.size() - 1;
 
             //Copy the bottom ring of vertices.
-            GeometricPrimitive::VertexCollection bottomVertices;
+            ProceduralMesh::VertexCollection bottomVertices;
             for (int i = 0; i < verticesPerSlice; i++)
             {
                 bottomVertices.push_back(vertices[i]);
@@ -915,7 +915,7 @@ namespace Gradient::Rendering
             // Top cap
 
             //Center vertex
-            GeometricPrimitive::VertexType center;
+            ProceduralMesh::VertexType center;
             center.position = topCentre;
             center.normal = topNormal;
             center.textureCoordinate = { 0.5, 0.5 };
@@ -924,7 +924,7 @@ namespace Gradient::Rendering
             auto centerIndex = vertices.size() - 1;
 
             //Copy the top ring of vertices.
-            GeometricPrimitive::VertexCollection topVertices;
+            ProceduralMesh::VertexCollection topVertices;
             int base = lastVertex - verticesPerSlice + 1;
 
             for (int i = base; i < base + verticesPerSlice; i++)
@@ -971,7 +971,7 @@ namespace Gradient::Rendering
         }
     }
 
-    void GeometricPrimitive::Draw(ID3D12GraphicsCommandList* cl)
+    void ProceduralMesh::Draw(ID3D12GraphicsCommandList* cl)
     {
         cl->IASetVertexBuffers(0,
             1,
@@ -985,7 +985,7 @@ namespace Gradient::Rendering
             0);
     }
 
-    void GeometricPrimitive::Initialize(ID3D12Device* device,
+    void ProceduralMesh::Initialize(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         VertexCollection vertices,
         IndexCollection indices)
@@ -1023,7 +1023,7 @@ namespace Gradient::Rendering
         m_indexCount = indices.size();
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateBox(
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBox(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const DirectX::XMFLOAT3& size,
@@ -1034,13 +1034,10 @@ namespace Gradient::Rendering
         IndexCollection indices;
         ComputeBox(vertices, indices, size, rhcoords, invertn);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, cq, vertices, indices);
-
-        return primitive;
+        return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateSphere(
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateSphere(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         float diameter,
@@ -1052,14 +1049,10 @@ namespace Gradient::Rendering
         IndexCollection indices;
         ComputeSphere(vertices, indices, diameter, tessellation, rhcoords, invertn);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-
-        primitive->Initialize(device, cq, vertices, indices);
-
-        return primitive;
+        return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGeoSphere(
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateGeoSphere(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         float diameter,
@@ -1070,14 +1063,10 @@ namespace Gradient::Rendering
         IndexCollection indices;
         ComputeGeoSphere(vertices, indices, diameter, tessellation, rhcoords);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-
-        primitive->Initialize(device, cq, vertices, indices);
-
-        return primitive;
+        return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateGrid(ID3D12Device* device,
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateGrid(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& width,
         const float& height,
@@ -1088,13 +1077,10 @@ namespace Gradient::Rendering
         IndexCollection indices;
         ComputeGrid(vertices, indices, width, height, divisions, tiled);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, cq, vertices, indices);
-
-        return primitive;
+        return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateFrustum(
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFrustum(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& topRadius,
@@ -1110,13 +1096,10 @@ namespace Gradient::Rendering
             18,
             height);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
-        primitive->Initialize(device, cq, vertices, indices);
-
-        return primitive;
+        return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<GeometricPrimitive> GeometricPrimitive::CreateAngledFrustum(
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateAngledFrustum(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& bottomRadius,
@@ -1133,7 +1116,17 @@ namespace Gradient::Rendering
             topNormal,
             18);
 
-        std::unique_ptr<GeometricPrimitive> primitive(new GeometricPrimitive());
+        return CreateFromVertices(device, cq, vertices, indices);
+    }
+
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFromVertices(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const VertexCollection& vertices,
+        const IndexCollection& indices
+    )
+    {
+        std::unique_ptr<ProceduralMesh> primitive(new ProceduralMesh());
         primitive->Initialize(device, cq, vertices, indices);
 
         return primitive;

@@ -8,7 +8,7 @@
 #include "Core/GraphicsMemoryManager.h"
 #include "Core/TextureManager.h"
 #include "Core/Rendering/TextureDrawer.h"
-#include "Core/Rendering/GeometricPrimitive.h"
+#include "Core/Rendering/ProceduralMesh.h"
 #include "Core/Parameters.h"
 #include "Core/ECS/Components/NameTagComponent.h"
 #include "Core/ECS/Components/DrawableComponent.h"
@@ -441,7 +441,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(sphere1, "sphere1");
     entityManager->Registry.emplace<TransformComponent>(sphere1);
     entityManager->Registry.emplace<DrawableComponent>(sphere1,
-        Rendering::GeometricPrimitive::CreateSphere(device,
+        Rendering::ProceduralMesh::CreateSphere(device,
             cq, 2.f)
     );
     entityManager->Registry.emplace<MaterialComponent>(sphere1,
@@ -467,7 +467,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(sphere2, "sphere2");
     entityManager->Registry.emplace<TransformComponent>(sphere2);
     entityManager->Registry.emplace<DrawableComponent>(sphere2,
-        Rendering::GeometricPrimitive::CreateSphere(device,
+        Rendering::ProceduralMesh::CreateSphere(device,
             cq, 2.f));
     entityManager->Registry.emplace<MaterialComponent>(sphere2,
         Rendering::PBRMaterial(
@@ -496,7 +496,7 @@ void Game::CreateEntities()
     Vector3 topNormal = { 1, 1, 0 };
     topNormal.Normalize();
     entityManager->Registry.emplace<DrawableComponent>(frustum,
-        Rendering::GeometricPrimitive::CreateAngledFrustum(device,
+        Rendering::ProceduralMesh::CreateAngledFrustum(device,
             cq, 2.f, 1.f, {2, 8, 0}, topNormal));
     entityManager->Registry.emplace<MaterialComponent>(frustum,
         Rendering::PBRMaterial(
@@ -513,7 +513,7 @@ void Game::CreateEntities()
         entityManager->Registry.emplace<TransformComponent>(floor);
     floorTransform.Translation = Matrix::CreateTranslation(Vector3{ 0.f, -0.25f + 10.f, 0.f });
     entityManager->Registry.emplace<DrawableComponent>(floor,
-        Rendering::GeometricPrimitive::CreateBox(device,
+        Rendering::ProceduralMesh::CreateBox(device,
             cq, Vector3{ 20.f, 0.5f, 20.f }));
     entityManager->Registry.emplace<MaterialComponent>(floor,
         Rendering::PBRMaterial(
@@ -539,7 +539,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(box1, "box1");
     entityManager->Registry.emplace<TransformComponent>(box1);
     entityManager->Registry.emplace<DrawableComponent>(box1,
-        Rendering::GeometricPrimitive::CreateBox(device,
+        Rendering::ProceduralMesh::CreateBox(device,
             cq, Vector3{ 3.f, 3.f, 3.f }));
     entityManager->Registry.emplace<MaterialComponent>(box1,
         Rendering::PBRMaterial(
@@ -558,7 +558,7 @@ void Game::CreateEntities()
     auto box2 = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(box2, "box2");
     entityManager->Registry.emplace<TransformComponent>(box2);
-    entityManager->Registry.emplace<DrawableComponent>(box2, Rendering::GeometricPrimitive::CreateBox(device,
+    entityManager->Registry.emplace<DrawableComponent>(box2, Rendering::ProceduralMesh::CreateBox(device,
         cq, Vector3{ 3.f, 3.f, 3.f }));
     auto& box2MaterialComponent
         = entityManager->Registry.emplace<MaterialComponent>(box2);
@@ -577,7 +577,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(water, "water");
     entityManager->Registry.emplace<TransformComponent>(water);
     entityManager->Registry.emplace<DrawableComponent>(water,
-        Rendering::GeometricPrimitive::CreateGrid(device,
+        Rendering::ProceduralMesh::CreateGrid(device,
             cq,
             800,
             800,
@@ -588,7 +588,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(ePointLight1, "pointLight1");
     entityManager->Registry.emplace<TransformComponent>(ePointLight1);
     entityManager->Registry.emplace<DrawableComponent>(ePointLight1,
-        Rendering::GeometricPrimitive::CreateSphere(device,
+        Rendering::ProceduralMesh::CreateSphere(device,
             cq,
             0.5f));
     auto& pointLight1MaterialComponent
@@ -618,7 +618,7 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(ePointLight2, "pointLight2");
     entityManager->Registry.emplace<TransformComponent>(ePointLight2);
     entityManager->Registry.emplace<DrawableComponent>(ePointLight2,
-        Rendering::GeometricPrimitive::CreateSphere(device,
+        Rendering::ProceduralMesh::CreateSphere(device,
             cq,
             0.5f));
     auto& pointLight2MaterialComponent
@@ -652,7 +652,7 @@ void Game::CreateEntities()
     auto& terrainTransform = entityManager->Registry.emplace<TransformComponent>(terrain);
     terrainTransform.Translation = Matrix::CreateTranslation(Vector3{ 50, -1, 0 });
     entityManager->Registry.emplace<DrawableComponent>(terrain,
-        Rendering::GeometricPrimitive::CreateGrid(device,
+        Rendering::ProceduralMesh::CreateGrid(device,
             cq,
             256,
             256,

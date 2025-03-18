@@ -43,7 +43,7 @@ namespace Gradient::Rendering
 
         SkyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device);
         SkyDomePipeline->SetAmbientIrradiance(1.f);
-        SkyGeometry = Rendering::GeometricPrimitive::CreateGeoSphere(device,
+        SkyGeometry = Rendering::ProceduralMesh::CreateGeoSphere(device,
             cq, 2.f, 3,
             false);
         EnvironmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,

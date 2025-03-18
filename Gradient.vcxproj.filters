@@ -37,7 +37,7 @@
     <ClInclude Include="Core\Rendering\IDrawable.h" />
     <ClInclude Include="Core\Pipelines\WaterPipeline.h" />
     <ClInclude Include="GUI\RenderingWindow.h" />
-    <ClInclude Include="Core\Rendering\GeometricPrimitive.h" />
+    <ClInclude Include="Core\Rendering\ProceduralMesh.h" />
     <ClInclude Include="GUI\PerformanceWindow.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Rendering\PointLight.h" />
@@ -89,7 +89,7 @@
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\WaterPipeline.cpp" />
     <ClCompile Include="GUI\RenderingWindow.cpp" />
-    <ClCompile Include="Core\Rendering\GeometricPrimitive.cpp" />
+    <ClCompile Include="Core\Rendering\ProceduralMesh.cpp" />
     <ClCompile Include="GUI\PerformanceWindow.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
     <ClCompile Include="Core\Rendering\PointLight.cpp" />
