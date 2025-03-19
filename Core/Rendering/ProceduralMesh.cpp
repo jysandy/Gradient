@@ -937,7 +937,7 @@ namespace Gradient::Rendering
             // with the top normal as the Y axis.
             Quaternion unRotate;
             topRotation.Inverse(unRotate);
-            Matrix toNewBasis 
+            Matrix toNewBasis
                 = Matrix::CreateTranslation(-topCentre) 
                 * Matrix::CreateFromQuaternion(unRotate);
 
