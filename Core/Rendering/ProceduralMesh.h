@@ -25,7 +25,11 @@ namespace Gradient::Rendering
             VertexCollection Vertices;
             IndexCollection Indices;
 
-            MeshPart Append(MeshPart appendage,
+            MeshPart Append(const MeshPart& appendage,
+                DirectX::SimpleMath::Vector3 translation,
+                DirectX::SimpleMath::Quaternion rotation);
+
+            void AppendInPlace(const MeshPart& appendage,
                 DirectX::SimpleMath::Vector3 translation,
                 DirectX::SimpleMath::Quaternion rotation);
         };

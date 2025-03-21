@@ -14,5 +14,11 @@ namespace Gradient::Rendering
 
         std::unique_ptr<ProceduralMesh> Build(ID3D12Device* device,
             ID3D12CommandQueue* cq);
+
+    private:
+        ProceduralMesh::MeshPart InterpretRule(const std::string& rule);
+        std::string ExpandRule(const std::string& startingRule,
+            const std::unordered_map<char, std::string>& productionRules,
+            int numGenerations);
     };
 }

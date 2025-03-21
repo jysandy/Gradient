@@ -2,6 +2,9 @@
 
 #include "Core/Rendering/LSystem.h"
 
+#include <stack>
+#include <sstream>
+
 using namespace DirectX::SimpleMath;
 
 namespace Gradient::Rendering
@@ -57,6 +60,10 @@ namespace Gradient::Rendering
         Vector3 Location = { 0, 0, 0 };
         Quaternion ForwardRotation = Quaternion::Identity;
         Quaternion UpRotation = Quaternion::Identity;
+        float Radius = 0.3f;
+        float RadiusFactor = 0.7f;
+        float AngleDegrees = 25.7f;
+        float MoveDistance = 1.5f;
 
         Vector3 ForwardVector()
         {
@@ -73,25 +80,38 @@ namespace Gradient::Rendering
             return ForwardVector().Cross(UpVector());
         }
 
+        void YawLeft()
+        {
+            ForwardRotation = Quaternion::Concatenate(ForwardRotation,
+                Quaternion::CreateFromAxisAngle(UpVector(),
+                    DirectX::XMConvertToRadians(AngleDegrees)));
+        }
+
+        void YawRight()
+        {
+            ForwardRotation = Quaternion::Concatenate(ForwardRotation,
+                Quaternion::CreateFromAxisAngle(UpVector(),
+                    DirectX::XMConvertToRadians(-AngleDegrees)));
+        }
 
         void RollLeft()
         {
             UpRotation = Quaternion::Concatenate(UpRotation,
                 Quaternion::CreateFromAxisAngle(ForwardVector(),
-                    DirectX::XMConvertToRadians(-10.f)));
+                    DirectX::XMConvertToRadians(-AngleDegrees)));
         }
 
         void RollRight()
         {
             UpRotation = Quaternion::Concatenate(UpRotation,
                 Quaternion::CreateFromAxisAngle(ForwardVector(),
-                    DirectX::XMConvertToRadians(10.f)));
+                    DirectX::XMConvertToRadians(AngleDegrees)));
         }
 
         void PitchUp()
         {
             auto pitchQuat = Quaternion::CreateFromAxisAngle(RightVector(),
-                DirectX::XMConvertToRadians(10.f));
+                DirectX::XMConvertToRadians(AngleDegrees));
 
             ForwardRotation = Quaternion::Concatenate(ForwardRotation,
                 pitchQuat);
@@ -102,7 +122,7 @@ namespace Gradient::Rendering
         void PitchDown()
         {
             auto pitchQuat = Quaternion::CreateFromAxisAngle(RightVector(),
-                DirectX::XMConvertToRadians(-10.f));
+                DirectX::XMConvertToRadians(-AngleDegrees));
 
             ForwardRotation = Quaternion::Concatenate(ForwardRotation,
                 pitchQuat);
@@ -112,37 +132,91 @@ namespace Gradient::Rendering
 
         void MoveForward()
         {
-            Location += ForwardVector();
+            Location += MoveDistance * ForwardVector();
         }
     };
 
     std::unique_ptr<ProceduralMesh> LSystem::Build(ID3D12Device* device,
         ID3D12CommandQueue* cq)
     {
-        const int numVerticalSections = 18;
+        std::unordered_map<char, std::string> productionRules;
 
-        std::string rule = "F//&F\\^F\\\\/&&F^^^//^^F//^^F\\&&F/&/&F";
+        productionRules['X'] = "F[+X][-X]FX";
+        productionRules['F'] = "FF";
+
+        std::string startingRule = "X";
+
+        std::string rule = ExpandRule(startingRule, productionRules, 3);
+
+        auto tree = InterpretRule(rule);
+
+        return ProceduralMesh::CreateFromPart(device, cq, tree);
+    }
+
+    std::string LSystem::ExpandRule(const std::string& startingRule,
+        const std::unordered_map<char, std::string>& productionRules,
+        int numGenerations)
+    {
+        std::string previousRule = startingRule;
+
+        for (int i = 0; i < numGenerations; i++)
+        {
+            std::stringstream stream(previousRule);
+            std::ostringstream nextRule;
+
+            while (stream)
+            {
+                char c;
+                stream >> c;
+
+                auto entry = productionRules.find(c);
+
+                if (entry != productionRules.end())
+                {
+                    nextRule << entry->second;
+                }
+                else
+                {
+                    nextRule << c;
+                }
+            }
+
+            previousRule = nextRule.str();
+        }
+
+        return previousRule;
+    }
+
+    ProceduralMesh::MeshPart LSystem::InterpretRule(const std::string& rule)
+    {
+        const int numVerticalSections = 18;
 
         std::vector<char> ruleCharacters(rule.begin(), rule.end());
 
         TurtleState turtle;
-        std::vector<PartParameters> partParameters;
+        std::vector<std::vector<PartParameters>> branches;
+        branches.push_back({});
+        int branchIndex = 0;
 
-        const float radius = 0.5f;
+        std::stack<TurtleState> branchStack;
 
         for (const auto& c : ruleCharacters)
         {
+            auto& currentBranch = branches[branchIndex];
+
             if (c == 'F')
             {
-                if (partParameters.size() > 0)
+                if (turtle.MoveDistance < 0.2f) continue;
+
+                if (currentBranch.size() > 0)
                 {
                     // Update the previous part's top
-                    auto lastIndex = partParameters.size() - 1;
+                    auto lastIndex = currentBranch.size() - 1;
 
                     Quaternion inverseRotation;
-                    partParameters[lastIndex].BottomRotation.Inverse(inverseRotation);
+                    currentBranch[lastIndex].BottomRotation.Inverse(inverseRotation);
 
-                    partParameters[lastIndex].TopRelativeRotation =
+                    currentBranch[lastIndex].TopRelativeRotation =
                         Quaternion::Concatenate(inverseRotation, turtle.ForwardRotation);
                 }
 
@@ -153,18 +227,40 @@ namespace Gradient::Rendering
 
                 turtle.MoveForward();
 
-                partParameters.push_back(
+                currentBranch.push_back(
                     {
                         bottomTranslation,
                         bottomRotation,
-                        radius,
-                        radius,
+                        turtle.Radius,
+                        turtle.Radius,
                         Vector3::Transform(turtle.Location - bottomTranslation,
                             bottomRotationInverse),
                         Quaternion::Concatenate(bottomRotationInverse,
                             turtle.ForwardRotation)
                     }
                 );
+            }
+            else if (c == '[')
+            {
+                branchStack.push(turtle);
+                branches.push_back({});
+                branchIndex += 1;
+                turtle.Radius *= turtle.RadiusFactor;
+            }
+            else if (c == ']')
+            {
+                turtle = branchStack.top();
+                turtle.MoveDistance *= 0.8;
+                branchIndex -= 1;
+                branchStack.pop();
+            }
+            else if (c == '+')
+            {
+                turtle.YawLeft();
+            }
+            else if (c == '-')
+            {
+                turtle.YawRight();
             }
             else if (c == '/')
             {
@@ -184,33 +280,36 @@ namespace Gradient::Rendering
             }
         }
 
-        if (partParameters.size() > 0)
+        if (branches[0].size() > 0)
         {
             // Update the previous part's top
-            auto lastIndex = partParameters.size() - 1;
+            auto lastIndex = branches[0].size() - 1;
 
             Quaternion inverseRotation;
-            partParameters[lastIndex].BottomRotation.Inverse(inverseRotation);
+            branches[0][lastIndex].BottomRotation.Inverse(inverseRotation);
 
-            partParameters[lastIndex].TopRelativeRotation =
+            branches[0][lastIndex].TopRelativeRotation =
                 Quaternion::Concatenate(inverseRotation, turtle.ForwardRotation);
         }
 
         ProceduralMesh::MeshPart tree;
 
-        for (const auto& params : partParameters)
+        for (const auto& branch : branches)
         {
-            auto part = ProceduralMesh::CreateAngledFrustumPart(
-                radius,
-                radius,
-                params.TopRelativeTranslation,
-                params.TopRelativeRotation,
-                numVerticalSections
-            );
+            for (const auto& params : branch)
+            {
+                auto part = ProceduralMesh::CreateAngledFrustumPart(
+                    params.BottomRadius,
+                    params.TopRadius,
+                    params.TopRelativeTranslation,
+                    params.TopRelativeRotation,
+                    numVerticalSections
+                );
 
-            tree = tree.Append(part, params.BottomTranslation, params.BottomRotation);
+                tree.AppendInPlace(part, params.BottomTranslation, params.BottomRotation);
+            }
         }
 
-        return ProceduralMesh::CreateFromPart(device, cq, tree);
+        return tree;
     }
 }

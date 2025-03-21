@@ -1160,7 +1160,7 @@ namespace Gradient::Rendering
     }
 
     ProceduralMesh::MeshPart ProceduralMesh::MeshPart::Append(
-        ProceduralMesh::MeshPart appendage,
+        const ProceduralMesh::MeshPart& appendage,
         Vector3 translation,
         Quaternion rotation
     )
@@ -1185,5 +1185,29 @@ namespace Gradient::Rendering
         }
 
         return out;
+    }
+
+    void ProceduralMesh::MeshPart::AppendInPlace(
+        const ProceduralMesh::MeshPart& appendage,
+        Vector3 translation,
+        Quaternion rotation
+    )
+    {
+        Matrix transform = Matrix::CreateFromQuaternion(rotation)
+            * Matrix::CreateTranslation(translation);
+
+        auto baseIndex = Vertices.size();
+
+        for (const auto& vertex : appendage.Vertices)
+        {
+            auto newVertex = vertex;
+            newVertex.position = Vector3::Transform(vertex.position, transform);
+            Vertices.push_back(newVertex);
+        }
+
+        for (const auto& index : appendage.Indices)
+        {
+            Indices.push_back(index + baseIndex);
+        }
     }
 }
