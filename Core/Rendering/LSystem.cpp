@@ -63,7 +63,7 @@ namespace Gradient::Rendering
         float Radius = 0.3f;
         float RadiusFactor = 0.7f;
         float AngleDegrees = 25.7f;
-        float MoveDistance = 1.5f;
+        float MoveDistance = 1.f;
 
         Vector3 ForwardVector()
         {
@@ -133,6 +133,7 @@ namespace Gradient::Rendering
         void MoveForward()
         {
             Location += MoveDistance * ForwardVector();
+            MoveDistance *= 0.99;
         }
     };
 
@@ -146,7 +147,7 @@ namespace Gradient::Rendering
 
         std::string startingRule = "X";
 
-        std::string rule = ExpandRule(startingRule, productionRules, 3);
+        std::string rule = ExpandRule(startingRule, productionRules, 5);
 
         auto tree = InterpretRule(rule);
 
@@ -198,7 +199,12 @@ namespace Gradient::Rendering
         branches.push_back({});
         int branchIndex = 0;
 
-        std::stack<TurtleState> branchStack;
+        struct StackState {
+            TurtleState Turtle;
+            int BranchIndex;
+        };
+
+        std::stack<StackState> branchStack;
 
         for (const auto& c : ruleCharacters)
         {
@@ -206,7 +212,7 @@ namespace Gradient::Rendering
 
             if (c == 'F')
             {
-                if (turtle.MoveDistance < 0.2f) continue;
+                if (turtle.MoveDistance < 0.3f) continue;
 
                 if (currentBranch.size() > 0)
                 {
@@ -242,16 +248,17 @@ namespace Gradient::Rendering
             }
             else if (c == '[')
             {
-                branchStack.push(turtle);
+                branchStack.push({ turtle, branchIndex });
+                branchIndex = branches.size();
                 branches.push_back({});
-                branchIndex += 1;
                 turtle.Radius *= turtle.RadiusFactor;
             }
             else if (c == ']')
             {
-                turtle = branchStack.top();
-                turtle.MoveDistance *= 0.8;
-                branchIndex -= 1;
+                auto state = branchStack.top();
+                turtle = state.Turtle;
+                //turtle.MoveDistance *= 0.8;
+                branchIndex = state.BranchIndex;
                 branchStack.pop();
             }
             else if (c == '+')
