@@ -493,11 +493,16 @@ void Game::CreateEntities()
     entityManager->Registry.emplace<NameTagComponent>(tree, "tree");
     auto& frustumTransform 
         = entityManager->Registry.emplace<TransformComponent>(tree);
-    frustumTransform.Translation = Matrix::CreateTranslation({0.f, 20.f, 0.f});
+    frustumTransform.Translation = Matrix::CreateTranslation({
+        38.6f, 
+        8.7f, 
+        0.f});
 
     Rendering::LSystem lsystem;
+    lsystem.AddRule('X', "FFF[/+FX][////+FX]/////////+FX");
     entityManager->Registry.emplace<DrawableComponent>(tree,
-        lsystem.Build(device, cq));
+        lsystem.Build(device, cq,
+            "X", 5));
 
     entityManager->Registry.emplace<MaterialComponent>(tree,
         Rendering::PBRMaterial(

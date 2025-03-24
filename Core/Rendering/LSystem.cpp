@@ -133,21 +133,22 @@ namespace Gradient::Rendering
         void MoveForward()
         {
             Location += MoveDistance * ForwardVector();
-            MoveDistance *= 0.99;
         }
     };
 
-    std::unique_ptr<ProceduralMesh> LSystem::Build(ID3D12Device* device,
-        ID3D12CommandQueue* cq)
+    void LSystem::AddRule(char lhs, const std::string& rhs)
     {
-        std::unordered_map<char, std::string> productionRules;
+        m_productionRules[lhs] = rhs;
+    }
 
-        productionRules['X'] = "F[+X][-X]FX";
-        productionRules['F'] = "FF";
-
-        std::string startingRule = "X";
-
-        std::string rule = ExpandRule(startingRule, productionRules, 5);
+    std::unique_ptr<ProceduralMesh> LSystem::Build(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        std::string startingRule,
+        int numGenerations)
+    {
+        std::string rule = ExpandRule(startingRule, 
+            m_productionRules, 
+            numGenerations);
 
         auto tree = InterpretRule(rule);
 
@@ -165,7 +166,7 @@ namespace Gradient::Rendering
             std::stringstream stream(previousRule);
             std::ostringstream nextRule;
 
-            while (stream)
+            for (int j = 0; j < previousRule.size(); j++)
             {
                 char c;
                 stream >> c;
