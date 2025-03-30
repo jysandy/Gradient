@@ -4,6 +4,7 @@
 #include "Core/BarrierResource.h"
 #include "Core/Rendering/RenderTexture.h"
 #include "Core/Pipelines/PBRPipeline.h"
+#include "Core/Pipelines/InstancedPBRPipeline.h"
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
 #include "Core/Pipelines/HeightmapPipeline.h"
@@ -41,6 +42,7 @@ namespace Gradient::Rendering
         std::unique_ptr<DirectX::CommonStates> m_states;
 
         std::unique_ptr<Gradient::Pipelines::PBRPipeline> PbrPipeline;
+        std::unique_ptr<Gradient::Pipelines::InstancedPBRPipeline> InstancePipeline;
         std::unique_ptr<Gradient::Pipelines::WaterPipeline> WaterPipeline;
         std::unique_ptr<Gradient::Pipelines::HeightmapPipeline> HeightmapPipeline;
         std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> SkyDomePipeline;

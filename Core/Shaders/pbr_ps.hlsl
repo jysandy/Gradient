@@ -12,9 +12,11 @@ Texture2D roughnessMap : register(t5, space1);
 TextureCube environmentMap : register(t6, space1);
 TextureCubeArray pointShadowMaps : register(t7, space1);
 
-SamplerState linearSampler : register(s3, space1); 
-SamplerState anisotropicSampler : register(s0, space1); 
-SamplerComparisonState shadowMapSampler : register(s1, space1); 
+SamplerState linearSampler : register(s3, space1);
+SamplerState anisotropicSampler : register(s0, space1);
+SamplerComparisonState shadowMapSampler : register(s1, space1);
+
+// TODO: Support sub-uvs?
 
 #define MAX_POINT_LIGHTS 8
 
@@ -44,6 +46,9 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
+    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
+    clip(albedoSample.a - 0.01);
+    
     input.normal = normalize(input.normal);
     
     float3 N = perturbNormal(
@@ -54,7 +59,7 @@ float4 main(InputType input) : SV_TARGET
         input.tex);
     float3 V = normalize(cameraPosition - input.worldPosition);
     
-    float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
+
     float3 albedo = albedoSample.rgb;
     float ao = aoMap.Sample(linearSampler, input.tex).r;
     float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
@@ -89,7 +94,7 @@ float4 main(InputType input) : SV_TARGET
         shadowTransform,
         input.worldPosition);
     
-    float3 outputColour = ambient 
+    float3 outputColour = ambient
         + shadowFactor * directRadiance
         + pointRadiance
         + emissiveRadiance;

@@ -37,19 +37,38 @@ namespace Gradient
     {
         assert(!m_isBuilt);
 
-        CD3DX12_DESCRIPTOR_RANGE1 range;
-        range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, slot, space);
-        m_descRanges.push_back(range);
+        m_descRanges.push_back({
+            ParameterTypes::RootCBV,
+            slot,
+            space
+            });
         m_cbvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
     }
 
+    // TODO: Add a method to add an SRV as a root parameter
     void RootSignature::AddSRV(UINT slot, UINT space)
     {
         assert(!m_isBuilt);
 
-        CD3DX12_DESCRIPTOR_RANGE1 range;
-        range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, slot, space);
-        m_descRanges.push_back(range);
+        m_descRanges.push_back(
+            {
+               ParameterTypes::DescriptorTableSRV,
+               slot,
+               space
+            });
+        m_srvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
+    }
+
+    void RootSignature::AddRootSRV(UINT slot, UINT space)
+    {
+        assert(!m_isBuilt);
+
+        m_descRanges.push_back(
+            {
+                ParameterTypes::RootSRV,
+                slot,
+                space
+            });
         m_srvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
     }
 
@@ -69,19 +88,34 @@ namespace Gradient
     {
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
 
+        // These descriptor ranges need to be kept around until 
+        // the root signature is built
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> descriptorRanges;
+        descriptorRanges.reserve(m_descRanges.size());
+        
         for (int i = 0; i < m_descRanges.size(); i++)
         {
             CD3DX12_ROOT_PARAMETER1 rp;
-            switch (m_descRanges[i].RangeType)
+            switch (m_descRanges[i].Type)
             {
-            case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
-                rp.InitAsConstantBufferView(m_descRanges[i].BaseShaderRegister,
-                    m_descRanges[i].RegisterSpace);
+            case ParameterTypes::RootCBV:
+                rp.InitAsConstantBufferView(m_descRanges[i].Slot,
+                    m_descRanges[i].Space);
                 rootParameters.push_back(rp);
                 break;
 
-            case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
-                rp.InitAsDescriptorTable(1, &m_descRanges[i]);
+            case ParameterTypes::DescriptorTableSRV:
+                descriptorRanges.push_back({});
+                descriptorRanges[descriptorRanges.size() - 1].Init(
+                    D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                    1, m_descRanges[i].Slot, m_descRanges[i].Space);
+                rp.InitAsDescriptorTable(1, &descriptorRanges[descriptorRanges.size() - 1]);
+                rootParameters.push_back(rp);
+                break;
+
+            case ParameterTypes::RootSRV:
+                rp.InitAsShaderResourceView(m_descRanges[i].Slot,
+                    m_descRanges[i].Space);
                 rootParameters.push_back(rp);
                 break;
 

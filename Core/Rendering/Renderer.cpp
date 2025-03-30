@@ -7,6 +7,7 @@
 #include "Core/ECS/Components/MaterialComponent.h"
 #include "Core/ECS/Components/TransformComponent.h"
 #include "Core/ECS/Components/PointLightComponent.h"
+#include "Core/ECS/Components/InstanceDataComponent.h"
 #include "Core/TextureManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 
@@ -22,6 +23,7 @@ namespace Gradient::Rendering
     {
         m_states = std::make_unique<DirectX::CommonStates>(device);
         PbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device);
+        InstancePipeline = std::make_unique<Pipelines::InstancedPBRPipeline>(device);
         WaterPipeline = std::make_unique<Pipelines::WaterPipeline>(device);
         HeightmapPipeline = std::make_unique<Pipelines::HeightmapPipeline>(device);
         Tonemapper = std::make_unique<Rendering::TextureDrawer>(
@@ -153,6 +155,8 @@ namespace Gradient::Rendering
 
         PbrPipeline->SetView(DirectionalLight->GetView());
         PbrPipeline->SetProjection(DirectionalLight->GetProjection());
+        InstancePipeline->SetView(DirectionalLight->GetView());
+        InstancePipeline->SetProjection(DirectionalLight->GetProjection());
         HeightmapPipeline->SetView(DirectionalLight->GetView());
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
@@ -219,6 +223,14 @@ namespace Gradient::Rendering
         PbrPipeline->SetPointLights(PointLightParams());
         PbrPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
+        InstancePipeline->SetCameraPosition(camera->GetPosition());
+        InstancePipeline->SetDirectionalLight(DirectionalLight.get());
+        InstancePipeline->SetView(camera->GetViewMatrix());
+        InstancePipeline->SetProjection(camera->GetProjectionMatrix());
+        InstancePipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
+        InstancePipeline->SetPointLights(PointLightParams());
+        InstancePipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+
         HeightmapPipeline->SetCameraPosition(camera->GetPosition());
         HeightmapPipeline->SetCameraDirection(camera->GetDirection());
         HeightmapPipeline->SetDirectionalLight(DirectionalLight.get());
@@ -269,10 +281,10 @@ namespace Gradient::Rendering
         using namespace ECS::Components;
         auto em = EntityManager::Get();
 
-        // Default shading model
+        // Default shading model without instancing
         auto defaultView = em->Registry.view<DrawableComponent,
             TransformComponent,
-            MaterialComponent>();
+            MaterialComponent>(entt::exclude<InstanceDataComponent>);
         for (auto entity : defaultView)
         {
             auto [drawable, transform, material]
@@ -293,6 +305,34 @@ namespace Gradient::Rendering
             PbrPipeline->Apply(cl, true, drawingShadows);
 
             drawable.Drawable->Draw(cl);
+        }
+
+        // Default shading model with instancing
+        auto instanceView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            MaterialComponent,
+            InstanceDataComponent>();
+        for (auto entity : instanceView)
+        {
+            auto [drawable, transform, material, instances]
+                = instanceView.get(entity);
+
+                if (drawable.Drawable == nullptr) continue;
+
+                if (drawingShadows && !drawable.CastsShadows) continue;
+
+                if (drawable.ShadingModel
+                    != DrawableComponent::ShadingModel::Default)
+                    continue;
+
+                if (!drawingShadows)
+                    InstancePipeline->SetMaterial(material.Material);
+
+                InstancePipeline->SetInstanceData(instances.Instances,
+                    transform.GetWorldMatrix());
+                InstancePipeline->Apply(cl, true, drawingShadows);
+
+                drawable.Drawable->Draw(cl, instances.Instances.size());
         }
 
         // Heightmap shading model

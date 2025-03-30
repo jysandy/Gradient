@@ -51,6 +51,9 @@ namespace Gradient
         template <typename T>
         inline DirectX::GraphicsResource AllocateConstant(const T& data);
 
+        template <typename T>
+        inline DirectX::GraphicsResource AllocateStructuredBuffer(const std::vector<T>& data);
+
         void Commit(ID3D12CommandQueue* cq);
 
 
@@ -155,5 +158,14 @@ namespace Gradient
     inline DirectX::GraphicsResource GraphicsMemoryManager::AllocateConstant(const T& data)
     {
         return m_graphicsMemory->AllocateConstant(data);
+    }
+
+    template <typename T>
+    inline DirectX::GraphicsResource GraphicsMemoryManager::AllocateStructuredBuffer(const std::vector<T>& data)
+    {
+        auto bufferMemory = m_graphicsMemory->Allocate(sizeof(T) * data.size());
+        memcpy(bufferMemory.Memory(), data.data(), sizeof(T) * data.size());
+
+        return bufferMemory;
     }
 }

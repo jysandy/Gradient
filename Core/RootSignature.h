@@ -13,6 +13,7 @@ namespace Gradient
 
         void AddCBV(UINT slot, UINT space);
         void AddSRV(UINT slot, UINT space);
+        void AddRootSRV(UINT slot, UINT space);
         void AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC samplerDesc,
             UINT slot,
             UINT space);
@@ -26,6 +27,12 @@ namespace Gradient
             UINT slot, 
             UINT space,
             const T& data);
+
+        template <typename T>
+        void SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
+            UINT slot,
+            UINT space,
+            const std::vector<T>& data);
         
         void SetSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,
@@ -37,10 +44,26 @@ namespace Gradient
     private:
         bool m_isBuilt = false;
 
-        std::vector<CD3DX12_DESCRIPTOR_RANGE1> m_descRanges;
+        enum class ParameterTypes
+        {
+            RootCBV,
+            RootSRV,
+            DescriptorTableSRV
+        };
+
+        struct ParameterDesc
+        {
+            ParameterTypes Type;
+            UINT Slot;
+            UINT Space;
+        };
+
+        std::vector<ParameterDesc> m_descRanges;
         std::vector< CD3DX12_STATIC_SAMPLER_DESC> m_staticSamplers;
-        std::array<std::array<UINT, 64>, 6> m_cbvSpaceToSlotToRPIndex;
-        std::array<std::array<UINT, 64>, 6> m_srvSpaceToSlotToRPIndex;
+        std::array<std::array<UINT, 64>, 6> m_cbvSpaceToSlotToRPIndex; // 'b' resources
+        std::array<std::array<UINT, 64>, 6> m_srvSpaceToSlotToRPIndex; // 't' resources
+
+        // TODO: Need an array for 'u' resources (UAVs)
 
         Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
     };
@@ -60,5 +83,22 @@ namespace Gradient
         auto gmm = GraphicsMemoryManager::Get();
         auto cbv = gmm->AllocateConstant(data);
         cl->SetGraphicsRootConstantBufferView(rpIndex, cbv.GpuAddress());
+    }
+
+    template <typename T>
+    void RootSignature::SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
+        UINT slot,
+        UINT space,
+        const std::vector<T>& data)
+    {
+        assert(m_isBuilt);
+
+        auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
+
+        assert(rpIndex != UINT32_MAX);
+
+        auto gmm = GraphicsMemoryManager::Get();
+        DirectX::GraphicsResource sb = gmm->AllocateStructuredBuffer(data);
+        cl->SetGraphicsRootShaderResourceView(rpIndex, sb.GpuAddress());
     }
 }

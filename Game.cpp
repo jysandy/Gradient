@@ -17,6 +17,7 @@
 #include "Core/ECS/Components/MaterialComponent.h"
 #include "Core/ECS/Components/RigidBodyComponent.h"
 #include "Core/ECS/Components/PointLightComponent.h"
+#include "Core/ECS/Components/InstanceDataComponent.h"
 #include <directxtk12/SimpleMath.h>
 
 #include <imgui.h>
@@ -431,6 +432,23 @@ void Game::CreateEntities()
     textureManager->LoadDDS(device, cq,
         "bark_ao",
         L"Assets\\Tree_Bark_sb0jlop0_1K_AO.dds");
+
+    textureManager->LoadDDS(device, cq, 
+        "leaf_albedo",
+        L"Assets\\Birch_qghn02_1K_BaseColor.dds"
+        );
+    textureManager->LoadDDS(device, cq,
+        "leaf_normal",
+        L"Assets\\Birch_qghn02_1K_Normal.dds"
+    );
+    textureManager->LoadDDS(device, cq,
+        "leaf_ao",
+        L"Assets\\Birch_qghn02_1K_AO.dds"
+    );
+    textureManager->LoadDDS(device, cq,
+        "leaf_roughness",
+        L"Assets\\Birch_qghn02_1K_Roughness.dds"
+    );
 #pragma endregion
 
     JPH::BodyInterface& bodyInterface
@@ -489,6 +507,8 @@ void Game::CreateEntities()
             }
         ));
 
+    // Tree
+
     auto tree = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(tree, "tree");
     auto& frustumTransform 
@@ -512,6 +532,58 @@ void Game::CreateEntities()
             "defaultMetalness",
             "bark_roughness"
         ));
+
+    // End tree
+
+    // Leaves
+
+    auto leaves = entityManager->AddEntity();
+    entityManager->Registry.emplace<NameTagComponent>(leaves, "leaves");
+    auto& leavesTransform
+        = entityManager->Registry.emplace<TransformComponent>(leaves);
+    leavesTransform.Translation = Matrix::CreateTranslation({
+        20.f,
+        20.f,
+        10.f
+        });
+    entityManager->Registry.emplace<MaterialComponent>(leaves,
+        Rendering::PBRMaterial(
+            "leaf_albedo",
+            "leaf_normal",
+            "leaf_ao",
+            "defaultMetalness",
+            "leaf_roughness"
+        ));
+
+    // Instance generation
+
+    int numRows = 3;
+    int numCols = 4;
+
+    auto& leavesInstance
+        = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
+
+    leavesInstance.Instances.push_back({
+        Matrix::CreateTranslation({1.f, 0.f, 0.f}),
+        Vector2{0.f, 1.f / numCols},
+        Vector2{0.f, 1.f / numRows}
+        });
+
+    leavesInstance.Instances.push_back({
+    Matrix::CreateTranslation({2.f, 0.f, 0.f}),
+    Vector2{0.f, 1.f / numCols},
+    Vector2{0.f, 1.f / numRows}
+        });
+
+    entityManager->Registry.emplace<DrawableComponent>(leaves,
+        Rendering::ProceduralMesh::CreateGrid(device,
+            cq,
+            0.5,
+            0.5,
+            1, false));
+
+    // End leaves
+
 
     auto floor = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(floor, "floor");

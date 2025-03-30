@@ -66,6 +66,8 @@
     <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\PlayerCharacter.h" />
     <ClInclude Include="Core\Rendering\LSystem.h" />
+    <ClInclude Include="Core\Pipelines\InstancedPBRPipeline.h" />
+    <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -110,6 +112,7 @@
     <ClCompile Include="Core\FreeMoveCamera.cpp" />
     <ClCompile Include="Core\PlayerCharacter.cpp" />
     <ClCompile Include="Core\Rendering\LSystem.cpp" />
+    <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -283,5 +286,6 @@
     <FxCompile Include="Core\Shaders\Heightmap_HS.hlsl" />
     <FxCompile Include="Core\Shaders\Heightmap_DS.hlsl" />
     <FxCompile Include="Core\Shaders\Heightmap_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\Instanced_VS.hlsl" />
   </ItemGroup>
 </Project>

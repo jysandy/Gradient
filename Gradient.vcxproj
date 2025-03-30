@@ -35,10 +35,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <CharacterSet>Unicode</CharacterSet>
-    <VCToolsVersion>14.42.34433</VCToolsVersion>
+    <VCToolsVersion>14.43.34808</VCToolsVersion>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -51,11 +51,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <VCToolsVersion>14.42.34433</VCToolsVersion>
+    <VCToolsVersion>14.43.34808</VCToolsVersion>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -202,6 +202,7 @@
     <ClInclude Include="Core\Camera.h" />
     <ClInclude Include="Core\ECS\Components\DrawableComponent.h" />
     <ClInclude Include="Core\ECS\Components\HeightMapComponent.h" />
+    <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
     <ClInclude Include="Core\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="Core\PipelineState.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
+    <ClInclude Include="Core\Pipelines\InstancedPBRPipeline.h" />
     <ClInclude Include="Core\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="Core\Pipelines\PBRPipeline.h" />
     <ClInclude Include="Core\Pipelines\SkyDomePipeline.h" />
@@ -261,6 +263,7 @@
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />
     <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
+    <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\PBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\SkyDomePipeline.cpp" />
@@ -406,6 +409,12 @@
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\Instanced_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Water_HS.hlsl">
