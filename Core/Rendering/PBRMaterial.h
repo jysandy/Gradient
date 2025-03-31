@@ -22,7 +22,13 @@ namespace Gradient::Rendering
             std::string aoKey,
             std::string metallicKey,
             std::string roughnessKey);
+        PBRMaterial(std::string albedoKey,
+            std::string normalKey,
+            std::string aoKey,
+            std::string roughnessKey);
 
-        static PBRMaterial DefaultPBRMaterial();
+        static PBRMaterial Default();
+        static PBRMaterial Light(float irradiance,
+            DirectX::SimpleMath::Vector3 color);
     };
 }

@@ -68,6 +68,7 @@
     <ClInclude Include="Core\Rendering\LSystem.h" />
     <ClInclude Include="Core\Pipelines\InstancedPBRPipeline.h" />
     <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
+    <ClInclude Include="Core\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
