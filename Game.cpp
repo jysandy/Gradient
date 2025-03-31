@@ -433,10 +433,10 @@ void Game::CreateEntities()
         "bark_ao",
         L"Assets\\Tree_Bark_sb0jlop0_1K_AO.dds");
 
-    textureManager->LoadDDS(device, cq, 
+    textureManager->LoadDDS(device, cq,
         "leaf_albedo",
         L"Assets\\Birch_qghn02_1K_BaseColor.dds"
-        );
+    );
     textureManager->LoadDDS(device, cq,
         "leaf_normal",
         L"Assets\\Birch_qghn02_1K_Normal.dds"
@@ -511,12 +511,12 @@ void Game::CreateEntities()
 
     auto tree = entityManager->AddEntity();
     entityManager->Registry.emplace<NameTagComponent>(tree, "tree");
-    auto& frustumTransform 
+    auto& frustumTransform
         = entityManager->Registry.emplace<TransformComponent>(tree);
     frustumTransform.Translation = Matrix::CreateTranslation({
-        38.6f, 
-        8.7f, 
-        0.f});
+        38.6f,
+        8.7f,
+        0.f });
 
     Rendering::LSystem lsystem;
     lsystem.AddRule('X', "FFF[/+FX][////+FX]/////////+FX");
@@ -563,24 +563,23 @@ void Game::CreateEntities()
     auto& leavesInstance
         = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
 
-    leavesInstance.Instances.push_back({
-        Matrix::CreateTranslation({1.f, 0.f, 0.f}),
-        Vector2{0.f, 1.f / numCols},
-        Vector2{0.f, 1.f / numRows}
-        });
-
-    leavesInstance.Instances.push_back({
-    Matrix::CreateTranslation({2.f, 0.f, 0.f}),
-    Vector2{0.f, 1.f / numCols},
-    Vector2{0.f, 1.f / numRows}
-        });
+    for (int i = 0; i < 1000; i++)
+    {
+        leavesInstance.Instances.push_back({
+                Matrix::CreateTranslation({
+                    static_cast<float>(i), 
+                    0.f, 
+                    0.f}),
+                Vector2{0.f, 1.f / numCols},
+                Vector2{0.f, 1.f / numRows}
+            });
+    }
 
     entityManager->Registry.emplace<DrawableComponent>(leaves,
-        Rendering::ProceduralMesh::CreateGrid(device,
+        Rendering::ProceduralMesh::CreateBillboard(device,
             cq,
             0.5,
-            0.5,
-            1, false));
+            0.5));
 
     // End leaves
 
@@ -744,7 +743,7 @@ void Game::CreateEntities()
         256.f);
     entityManager->Registry.emplace<RigidBodyComponent>(terrain,
         RigidBodyComponent::CreateHeightField(L"Assets\\island_height_32bit.dds",
-            256.f, 
+            256.f,
             10.f,
             Vector3{ 50, -1, 0 }));
 }

@@ -64,6 +64,12 @@ namespace Gradient::Rendering
             const float& divisions = 10,
             bool tiled = true);
 
+        static std::unique_ptr<ProceduralMesh> CreateBillboard(
+            ID3D12Device* device,
+            ID3D12CommandQueue* cq,
+            const float& width = 1,
+            const float& height = 1);
+
         static std::unique_ptr<ProceduralMesh> CreateFrustum(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,

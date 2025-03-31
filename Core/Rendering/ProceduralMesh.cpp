@@ -834,7 +834,7 @@ namespace Gradient::Rendering
 
         // Top ring
         {
-            Vector3 r = {topRadius, 0, 0};
+            Vector3 r = { topRadius, 0, 0 };
 
             for (int j = 0; j <= numVerticalSections; j++)
             {
@@ -938,7 +938,7 @@ namespace Gradient::Rendering
             Quaternion unRotate;
             topRotation.Inverse(unRotate);
             Matrix toNewBasis
-                = Matrix::CreateTranslation(-topCentre) 
+                = Matrix::CreateTranslation(-topCentre)
                 * Matrix::CreateFromQuaternion(unRotate);
 
             for (auto& x : topVertices)
@@ -962,6 +962,95 @@ namespace Gradient::Rendering
                 indices.push_back(centerIndex);
                 indices.push_back(i + 1);
             }
+        }
+    }
+
+    // A two-sided quad in the XZ plane centred at the origin.
+    void ComputeBillboard(
+        ProceduralMesh::VertexCollection& vertices,
+        ProceduralMesh::IndexCollection& indices,
+        float width, float height
+    )
+    {
+        float halfWidth = width / 2.f;
+        float halfHeight = height / 2.f;
+
+        // Upward face
+        {
+            ProceduralMesh::VertexType vertex;
+
+            // Bottom left
+            vertex.position = { -halfWidth, 0.f, halfHeight };
+            vertex.normal = Vector3::UnitY;
+            vertex.textureCoordinate = { 0.f, 1.f };
+            vertices.push_back(vertex);
+
+            // Bottom right
+            vertex.position = { halfWidth, 0.f, halfHeight };
+            vertex.normal = Vector3::UnitY;
+            vertex.textureCoordinate = { 1.f, 1.f };
+            vertices.push_back(vertex);
+
+            // Top right
+            vertex.position = { halfWidth, 0.f, -halfHeight };
+            vertex.normal = Vector3::UnitY;
+            vertex.textureCoordinate = { 1.f, 0.f };
+            vertices.push_back(vertex);
+
+            // Top left
+            vertex.position = { -halfWidth, 0.f, -halfHeight };
+            vertex.normal = Vector3::UnitY;
+            vertex.textureCoordinate = { 0.f, 0.f };
+            vertices.push_back(vertex);
+        }
+
+        // Upward face indices
+        {
+            indices.push_back(0);
+            indices.push_back(3);
+            indices.push_back(1);
+            indices.push_back(1);
+            indices.push_back(3);
+            indices.push_back(2);
+        }
+
+        // Downward face
+        {
+            ProceduralMesh::VertexType vertex;
+
+            // Bottom left
+            vertex.position = { halfWidth, 0.f, halfHeight };
+            vertex.normal = -Vector3::UnitY;
+            vertex.textureCoordinate = { 1.f, 1.f };
+            vertices.push_back(vertex);
+
+            // Bottom right
+            vertex.position = { -halfWidth, 0.f, halfHeight };
+            vertex.normal = -Vector3::UnitY;
+            vertex.textureCoordinate = { 0.f, 1.f };
+            vertices.push_back(vertex);
+
+            // Top right
+            vertex.position = { -halfWidth, 0.f, -halfHeight };
+            vertex.normal = -Vector3::UnitY;
+            vertex.textureCoordinate = { 0.f, 0.f };
+            vertices.push_back(vertex);
+
+            // Top left
+            vertex.position = { halfWidth, 0.f, -halfHeight };
+            vertex.normal = -Vector3::UnitY;
+            vertex.textureCoordinate = { 1.f, 0.f };
+            vertices.push_back(vertex);
+        }
+
+        // Downward face indices
+        {
+            indices.push_back(4);
+            indices.push_back(6);
+            indices.push_back(5);
+            indices.push_back(4);
+            indices.push_back(7);
+            indices.push_back(6);
         }
     }
 
@@ -1071,6 +1160,18 @@ namespace Gradient::Rendering
         VertexCollection vertices;
         IndexCollection indices;
         ComputeGrid(vertices, indices, width, height, divisions, tiled);
+
+        return CreateFromVertices(device, cq, vertices, indices);
+    }
+
+    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBillboard(ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const float& width,
+        const float& height)
+    {
+        VertexCollection vertices;
+        IndexCollection indices;
+        ComputeBillboard(vertices, indices, width, height);
 
         return CreateFromVertices(device, cq, vertices, indices);
     }
