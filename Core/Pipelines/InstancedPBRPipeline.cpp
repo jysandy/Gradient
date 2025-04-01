@@ -92,6 +92,7 @@ namespace Gradient::Pipelines
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
+        vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
@@ -115,6 +116,7 @@ namespace Gradient::Pipelines
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
+        vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
         vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
@@ -194,7 +196,7 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::SetWorld(DirectX::FXMMATRIX value)
     {
-        // Does nothing
+        m_world = value;
     }
 
     void InstancedPBRPipeline::SetView(DirectX::FXMMATRIX value)
@@ -209,7 +211,7 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection)
     {
-        // world is ignored
+        m_world = world;
         m_view = view;
         m_proj = projection;
     }
@@ -219,16 +221,14 @@ namespace Gradient::Pipelines
         m_cameraPosition = cameraPosition;
     }
 
-    void InstancedPBRPipeline::SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData,
-        DirectX::SimpleMath::Matrix parentTransform)
+    void InstancedPBRPipeline::SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData)
     {
         m_instanceData.clear();
 
         for (const auto& instance : instanceData)
         {
             m_instanceData.push_back({
-                DirectX::XMMatrixTranspose(instance.LocalTransform 
-                    * parentTransform),
+                DirectX::XMMatrixTranspose(instance.LocalTransform),
                 instance.TexcoordURange,
                 instance.TexcoordVRange
                 });

@@ -328,8 +328,8 @@ namespace Gradient::Rendering
                 if (!drawingShadows)
                     InstancePipeline->SetMaterial(material.Material);
 
-                InstancePipeline->SetInstanceData(instances.Instances,
-                    transform.GetWorldMatrix());
+                InstancePipeline->SetWorld(transform.GetWorldMatrix());
+                InstancePipeline->SetInstanceData(instances.Instances);
                 InstancePipeline->Apply(cl, true, drawingShadows);
 
                 drawable.Drawable->Draw(cl, instances.Instances.size());

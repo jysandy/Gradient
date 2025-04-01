@@ -23,6 +23,7 @@ namespace Gradient::Pipelines
 
         struct __declspec(align(16)) VertexCB
         {
+            DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
         };
@@ -66,9 +67,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
-        void SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData,
-            DirectX::SimpleMath::Matrix parentTransform
-                = DirectX::SimpleMath::Matrix::Identity);
+        void SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData);
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
@@ -92,6 +91,7 @@ namespace Gradient::Pipelines
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
         std::vector<InstanceData> m_instanceData;
+        DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;
         DirectX::SimpleMath::Matrix m_shadowTransform;

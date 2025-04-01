@@ -1,7 +1,8 @@
 cbuffer MatrixBuffer : register(b0, space0)
 {
-    matrix viewMatrix;
-    matrix projectionMatrix;
+    matrix g_worldMatrix;
+    matrix g_viewMatrix;
+    matrix g_projectionMatrix;
 };
 
 struct InstanceData
@@ -32,12 +33,12 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
 {
     OutputType output;
     
-    float4x4 worldMatrix = Instances[InstanceID].WorldMatrix;
+    float4x4 worldMatrix = mul(Instances[InstanceID].WorldMatrix, g_worldMatrix);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(float4(input.position, 1), worldMatrix);
-    output.position = mul(output.position, viewMatrix);
-    output.position = mul(output.position, projectionMatrix);
+    output.position = mul(output.position, g_viewMatrix);
+    output.position = mul(output.position, g_projectionMatrix);
 
     // Resolve sub-UVs
     output.tex.x = lerp(Instances[InstanceID].TexcoordURange.x,
