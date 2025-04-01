@@ -45,7 +45,7 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
         Instances[InstanceID].TexcoordURange.y,
         input.tex.x);
     output.tex.y = lerp(Instances[InstanceID].TexcoordVRange.x,
-        Instances[InstanceID].TexcoordURange.y,
+        Instances[InstanceID].TexcoordVRange.y,
         input.tex.y);
     
 	// Calculate the normal vector against the world matrix only and normalise.

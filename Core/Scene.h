@@ -203,10 +203,13 @@ namespace Gradient::Scene
 
         for (const auto& transform : lsystem.GetLeafTransforms())
         {
+            float colIndex = abs(rand()) % numCols;
+            float rowIndex = abs(rand()) % numRows;
+
             leavesInstance.Instances.push_back({
                     billboardTransform * transform,
-                    Vector2{0.f, 1.f / numCols},
-                    Vector2{0.f, 1.f / numRows}
+                    Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
+                    Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
                 });
         }
 

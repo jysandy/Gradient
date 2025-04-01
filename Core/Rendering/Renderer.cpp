@@ -180,6 +180,7 @@ namespace Gradient::Rendering
                     HeightmapPipeline->SetView(view);
                     HeightmapPipeline->SetProjection(proj);
 
+                    // TODO: Cull entities that are not in the light's range
                     DrawAllEntities(cl, true);
                 });
         }
