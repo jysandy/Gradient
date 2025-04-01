@@ -293,7 +293,7 @@ namespace Gradient::Scene
 
         AddTree(device, cq, "bush1",
             { 33.6f, 8.7f, 0.f },
-            bushSystem, "T", 5, 0.06f);
+            bushSystem, "T", 6, 0.06f);
 
 
         AddBox(device, cq,
