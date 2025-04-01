@@ -247,6 +247,19 @@ namespace Gradient::Rendering
                     }
                 );
             }
+            else if (c == 'L')
+            {
+                Matrix transform = Matrix::Identity;
+
+                // Rotate to match the turtle's orientation.
+                transform *= Matrix::CreateFromQuaternion(turtle.ForwardRotation);
+
+                // Translate to the turtle's position
+                transform *= Matrix::CreateTranslation(turtle.Location);
+
+                m_leafTransforms.push_back(transform);
+
+            }
             else if (c == '[')
             {
                 branchStack.push({ turtle, branchIndex });
@@ -319,5 +332,10 @@ namespace Gradient::Rendering
         }
 
         return tree;
+    }
+
+    const std::vector<Matrix>& LSystem::GetLeafTransforms() const
+    {
+        return m_leafTransforms;
     }
 }

@@ -14,7 +14,7 @@
 
 
 namespace Gradient::Scene
-{        
+{
     entt::entity AddEntity(const std::string& name)
     {
         using namespace Gradient::ECS::Components;
@@ -133,6 +133,92 @@ namespace Gradient::Scene
         return terrain;
     }
 
+    entt::entity AddTree(ID3D12Device* device, ID3D12CommandQueue* cq,
+        const std::string& name,
+        const DirectX::SimpleMath::Vector3& position,
+        Rendering::LSystem& lsystem,
+        const std::string& startingRule)
+    {
+        using namespace Gradient::ECS::Components;
+        auto entityManager = EntityManager::Get();
+        auto textureManager = TextureManager::Get();
+        JPH::BodyInterface& bodyInterface
+            = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
+
+
+        // Tree
+
+        auto tree = entityManager->AddEntity();
+        entityManager->Registry.emplace<NameTagComponent>(tree, name + "Trunk");
+        auto& frustumTransform
+            = entityManager->Registry.emplace<TransformComponent>(tree);
+        frustumTransform.Translation = Matrix::CreateTranslation(position);
+
+        entityManager->Registry.emplace<DrawableComponent>(tree,
+            lsystem.Build(device, cq, startingRule, 5));
+
+        entityManager->Registry.emplace<MaterialComponent>(tree,
+            Rendering::PBRMaterial(
+                "bark_albedo",
+                "bark_normal",
+                "bark_ao",
+                "defaultMetalness",
+                "bark_roughness"
+            ));
+
+        // End tree
+
+        // Leaves
+
+        auto leaves = entityManager->AddEntity();
+        entityManager->Registry.emplace<NameTagComponent>(leaves, name + "Leaves");
+        auto& leavesTransform
+            = entityManager->Registry.emplace<TransformComponent>(leaves);
+        leavesTransform.Translation = Matrix::CreateTranslation(position);
+        entityManager->Registry.emplace<MaterialComponent>(leaves,
+            Rendering::PBRMaterial(
+                "leaf_albedo",
+                "leaf_normal",
+                "leaf_ao",
+                "defaultMetalness",
+                "leaf_roughness"
+            ));
+
+        // Instance generation
+
+        int numRows = 3;
+        int numCols = 4;
+
+        auto& leavesInstance
+            = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
+
+        Matrix billboardTransform = Matrix::Identity;
+        const float leafWidth = 0.5f;
+
+        // Shift the leaf origin and point it upwards.
+        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
+            * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
+
+        for (const auto& transform : lsystem.GetLeafTransforms())
+        {
+            leavesInstance.Instances.push_back({
+                    billboardTransform * transform,
+                    Vector2{0.f, 1.f / numCols},
+                    Vector2{0.f, 1.f / numRows}
+                });
+        }
+
+        entityManager->Registry.emplace<DrawableComponent>(leaves,
+            Rendering::ProceduralMesh::CreateBillboard(device,
+                cq,
+                0.5,
+                0.5));
+
+        // End leaves
+
+        return tree;
+    }
+
 
     void CreateScene(ID3D12Device* device, ID3D12CommandQueue* cq)
     {
@@ -180,81 +266,13 @@ namespace Gradient::Scene
                 return settings;
             });
 
-        // Tree
-
-        auto tree = entityManager->AddEntity();
-        entityManager->Registry.emplace<NameTagComponent>(tree, "tree");
-        auto& frustumTransform
-            = entityManager->Registry.emplace<TransformComponent>(tree);
-        frustumTransform.Translation = Matrix::CreateTranslation({
-            38.6f,
-            8.7f,
-            0.f });
-
         Rendering::LSystem lsystem;
-        lsystem.AddRule('X', "FFF[/+FX][////+FX]/////////+FX");
-        entityManager->Registry.emplace<DrawableComponent>(tree,
-            lsystem.Build(device, cq,
-                "X", 5));
+        lsystem.AddRule('X', "FFF[/+FX[--L]][////+FX[++L]]/////////+FX[-L]");
+        lsystem.AddRule('L', "L/+^L/-L/&--L");
 
-        entityManager->Registry.emplace<MaterialComponent>(tree,
-            Rendering::PBRMaterial(
-                "bark_albedo",
-                "bark_normal",
-                "bark_ao",
-                "defaultMetalness",
-                "bark_roughness"
-            ));
-
-        // End tree
-
-        // Leaves
-
-        auto leaves = entityManager->AddEntity();
-        entityManager->Registry.emplace<NameTagComponent>(leaves, "leaves");
-        auto& leavesTransform
-            = entityManager->Registry.emplace<TransformComponent>(leaves);
-        leavesTransform.Translation = Matrix::CreateTranslation({
-            20.f,
-            20.f,
-            10.f
-            });
-        entityManager->Registry.emplace<MaterialComponent>(leaves,
-            Rendering::PBRMaterial(
-                "leaf_albedo",
-                "leaf_normal",
-                "leaf_ao",
-                "defaultMetalness",
-                "leaf_roughness"
-            ));
-
-        // Instance generation
-
-        int numRows = 3;
-        int numCols = 4;
-
-        auto& leavesInstance
-            = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
-
-        for (int i = 0; i < 1000; i++)
-        {
-            leavesInstance.Instances.push_back({
-                    Matrix::CreateTranslation({
-                        static_cast<float>(i),
-                        0.f,
-                        0.f}),
-                    Vector2{0.f, 1.f / numCols},
-                    Vector2{0.f, 1.f / numRows}
-                });
-        }
-
-        entityManager->Registry.emplace<DrawableComponent>(leaves,
-            Rendering::ProceduralMesh::CreateBillboard(device,
-                cq,
-                0.5,
-                0.5));
-
-        // End leaves
+        AddTree(device, cq, "tree1",
+            { 38.6f, 8.7f, 0.f },
+            lsystem, "X");
 
         AddBox(device, cq,
             "floor",
@@ -312,7 +330,7 @@ namespace Gradient::Scene
             Vector3{ -5.f, 20.f, 5.f },
             0.5f,
             Rendering::PBRMaterial::Light(7.f,
-                {0.9, 0.8, 0.5}),
+                { 0.9, 0.8, 0.5 }),
             [](auto settings)
             {
                 settings.mRestitution = 0.9f;

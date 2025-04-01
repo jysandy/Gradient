@@ -19,6 +19,8 @@ namespace Gradient::Rendering
             std::string startingRule,
             int numGenerations);
 
+        const std::vector<DirectX::SimpleMath::Matrix>& GetLeafTransforms() const;
+
     private:
         ProceduralMesh::MeshPart InterpretRule(const std::string& rule);
         std::string ExpandRule(const std::string& startingRule,
@@ -26,5 +28,7 @@ namespace Gradient::Rendering
             int numGenerations);
 
         std::unordered_map<char, std::string> m_productionRules;
+
+        std::vector<DirectX::SimpleMath::Matrix> m_leafTransforms;
     };
 }
