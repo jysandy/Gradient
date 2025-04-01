@@ -206,6 +206,7 @@
     <ClInclude Include="Core\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Core\ECS\Components\NameTagComponent.h" />
     <ClInclude Include="Core\ECS\Components\PointLightComponent.h" />
+    <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
     <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
     <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Core\FreeMoveCamera.h" />

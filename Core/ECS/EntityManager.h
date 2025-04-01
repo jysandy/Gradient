@@ -10,6 +10,8 @@
 #include <entt/entt.hpp>
 #include "StepTimer.h"
 
+#include "Core/ECS/Components/TransformComponent.h"
+#include "Core/ECS/Components/RelationshipComponent.h"
 
 namespace Gradient
 {
@@ -26,6 +28,11 @@ namespace Gradient
 
         entt::entity AddEntity();
 
+        template <typename T>
+        const T* TryGetParentComponent(entt::entity entity) const;
+
+        DirectX::SimpleMath::Matrix GetWorldMatrix(entt::entity entity) const;
+
         void SetRotation(entt::entity entity,
             float yaw, float pitch, float roll);
         void SetTranslation(entt::entity entity,
@@ -41,4 +48,19 @@ namespace Gradient
         EntityManager();
         static std::unique_ptr<EntityManager> s_instance;
     };
+
+    template <typename T>
+    const T* EntityManager::TryGetParentComponent(entt::entity entity) const
+    {
+        auto relationship = Registry.try_get<ECS::Components::RelationshipComponent>(entity);
+        if (relationship)
+        {
+            const T* parentComponent
+                = Registry.try_get<T>(relationship->Parent);
+
+            return parentComponent;
+        }
+
+        return nullptr;
+    }
 }

@@ -150,4 +150,26 @@ namespace Gradient
     {
         return Registry.get<TransformComponent>(entity).GetTranslation();
     }
+
+    DirectX::SimpleMath::Matrix EntityManager::GetWorldMatrix(entt::entity entity) const
+    {
+        // TODO: Follow the relationship chain all the way up
+
+        DirectX::SimpleMath::Matrix outWorld = DirectX::SimpleMath::Matrix::Identity;
+
+        auto childTransform = Registry.try_get<TransformComponent>(entity);
+        if (childTransform)
+        {
+            outWorld = childTransform->GetWorldMatrix();
+        }
+
+        auto parentTransform = TryGetParentComponent<TransformComponent>(entity);
+
+        if (parentTransform)
+        {
+            outWorld *= parentTransform->GetWorldMatrix();
+        }
+
+        return outWorld;
+    }
 }

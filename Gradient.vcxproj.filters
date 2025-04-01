@@ -69,6 +69,7 @@
     <ClInclude Include="Core\Pipelines\InstancedPBRPipeline.h" />
     <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
     <ClInclude Include="Core\Scene.h" />
+    <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

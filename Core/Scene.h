@@ -11,6 +11,7 @@
 #include "Core/ECS/Components/RigidBodyComponent.h"
 #include "Core/ECS/Components/PointLightComponent.h"
 #include "Core/ECS/Components/InstanceDataComponent.h"
+#include "Core/ECS/Components/RelationshipComponent.h"
 
 
 namespace Gradient::Scene
@@ -174,7 +175,7 @@ namespace Gradient::Scene
         entityManager->Registry.emplace<NameTagComponent>(leaves, name + "Leaves");
         auto& leavesTransform
             = entityManager->Registry.emplace<TransformComponent>(leaves);
-        leavesTransform.Translation = Matrix::CreateTranslation(position);
+        entityManager->Registry.emplace<RelationshipComponent>(leaves, tree);
         entityManager->Registry.emplace<MaterialComponent>(leaves,
             Rendering::PBRMaterial(
                 "leaf_albedo",

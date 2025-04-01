@@ -8,6 +8,7 @@
 #include "Core/ECS/Components/TransformComponent.h"
 #include "Core/ECS/Components/PointLightComponent.h"
 #include "Core/ECS/Components/InstanceDataComponent.h"
+#include "Core/ECS/Components/RelationshipComponent.h"
 #include "Core/TextureManager.h"
 #include "Core/Physics/PhysicsEngine.h"
 
@@ -301,7 +302,7 @@ namespace Gradient::Rendering
             if (!drawingShadows)
                 PbrPipeline->SetMaterial(material.Material);
 
-            PbrPipeline->SetWorld(transform.GetWorldMatrix());
+            PbrPipeline->SetWorld(em->GetWorldMatrix(entity));
             PbrPipeline->Apply(cl, true, drawingShadows);
 
             drawable.Drawable->Draw(cl);
@@ -328,7 +329,7 @@ namespace Gradient::Rendering
                 if (!drawingShadows)
                     InstancePipeline->SetMaterial(material.Material);
 
-                InstancePipeline->SetWorld(transform.GetWorldMatrix());
+                InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
                 InstancePipeline->SetInstanceData(instances.Instances);
                 InstancePipeline->Apply(cl, true, drawingShadows);
 
@@ -351,7 +352,7 @@ namespace Gradient::Rendering
                 continue;
 
             HeightmapPipeline->SetHeightMapComponent(heightMap);
-            HeightmapPipeline->SetWorld(transform.GetWorldMatrix());
+            HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
             HeightmapPipeline->Apply(cl, true, drawingShadows);
 
             drawable.Drawable->Draw(cl);
@@ -371,7 +372,7 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Water)
                 continue;
 
-            WaterPipeline->SetWorld(transform.GetWorldMatrix());
+            WaterPipeline->SetWorld(em->GetWorldMatrix(entity));
             WaterPipeline->Apply(cl, true, drawingShadows);
 
             drawable.Drawable->Draw(cl);
