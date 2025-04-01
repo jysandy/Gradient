@@ -196,6 +196,12 @@ namespace Gradient::Rendering
         std::vector<char> ruleCharacters(rule.begin(), rule.end());
 
         TurtleState turtle;
+
+        turtle.Radius = StartingRadius;
+        turtle.RadiusFactor = RadiusFactor;
+        turtle.AngleDegrees = AngleDegrees;
+        turtle.MoveDistance = MoveDistance;
+
         std::vector<std::vector<PartParameters>> branches;
         branches.push_back({});
         int branchIndex = 0;
@@ -213,7 +219,7 @@ namespace Gradient::Rendering
 
             if (c == 'F')
             {
-                if (turtle.MoveDistance < 0.3f) continue;
+                //if (turtle.MoveDistance < 0.3f) continue;
 
                 if (currentBranch.size() > 0)
                 {

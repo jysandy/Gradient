@@ -138,7 +138,9 @@ namespace Gradient::Scene
         const std::string& name,
         const DirectX::SimpleMath::Vector3& position,
         Rendering::LSystem& lsystem,
-        const std::string& startingRule)
+        const std::string& startingRule,
+        int numGenerations,
+        const float leafWidth = 0.5f)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -156,7 +158,7 @@ namespace Gradient::Scene
         frustumTransform.Translation = Matrix::CreateTranslation(position);
 
         entityManager->Registry.emplace<DrawableComponent>(tree,
-            lsystem.Build(device, cq, startingRule, 5));
+            lsystem.Build(device, cq, startingRule, numGenerations));
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
             Rendering::PBRMaterial(
@@ -194,7 +196,6 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
 
         Matrix billboardTransform = Matrix::Identity;
-        const float leafWidth = 0.5f;
 
         // Shift the leaf origin and point it upwards.
         billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
@@ -212,8 +213,8 @@ namespace Gradient::Scene
         entityManager->Registry.emplace<DrawableComponent>(leaves,
             Rendering::ProceduralMesh::CreateBillboard(device,
                 cq,
-                0.5,
-                0.5));
+                leafWidth,
+                leafWidth));
 
         // End leaves
 
@@ -270,10 +271,30 @@ namespace Gradient::Scene
         Rendering::LSystem lsystem;
         lsystem.AddRule('X', "FFF[/+FX[--L]][////+FX[++L]]/////////+FX[-L]");
         lsystem.AddRule('L', "L/+^L/-L/&--L");
+        lsystem.StartingRadius = 0.3f;
+        lsystem.RadiusFactor = 0.7f;
+        lsystem.AngleDegrees = 25.7f;
+        lsystem.MoveDistance = 1.f;
 
         AddTree(device, cq, "tree1",
             { 38.6f, 8.7f, 0.f },
-            lsystem, "X");
+            lsystem, "X", 5);
+
+        Rendering::LSystem bushSystem;
+
+        bushSystem.AddRule('T', "FFFX");
+        bushSystem.AddRule('X', "F[/+FB[--L]][////+FB[++L]]/////////+FB[-L]");
+        bushSystem.AddRule('B', "FF[/+FB[-L-L]][////+F[+L+L]B[+L+L]]/////////+F[+L+L]B");
+        bushSystem.AddRule('L', "+^L/&--L/&&+L");
+        bushSystem.StartingRadius = 0.01f;
+        bushSystem.RadiusFactor = 1.f;
+        bushSystem.AngleDegrees = 25.7f;
+        bushSystem.MoveDistance = 0.05f;
+
+        AddTree(device, cq, "bush1",
+            { 33.6f, 8.7f, 0.f },
+            bushSystem, "T", 5, 0.06f);
+
 
         AddBox(device, cq,
             "floor",
