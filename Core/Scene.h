@@ -288,26 +288,20 @@ namespace Gradient::Scene
         Rendering::LSystem twigSystem;
         twigSystem.AddRule('X', "FF/-F+F[--B]//F[^^B]//-FB");
         twigSystem.AddRule('B', "FG[//^^B]F[\\\\&L]GG[+B]-B");
-        twigSystem.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L]");
-        twigSystem.StartingRadius = 0.05f;
+        twigSystem.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
+        twigSystem.AddRule('L', "L///+^L");
+        twigSystem.StartingRadius = 0.02f;
         twigSystem.RadiusFactor = 1.f;
         twigSystem.AngleDegrees = 20.f;
         twigSystem.MoveDistance = 0.2f;
 
-        twigSystem.Build("X", 4);
+        twigSystem.Build("X", 5);
 
         lsystem.Combine(twigSystem);
 
-        // TODO: Fix this. 
-        // Breaking because there are more than 
-        // UINT16_MAX vertices
         AddTree(device, cq, "tree1",
             { 38.6f, 8.7f, 0.f },
-            lsystem, "X", 5, 0.15f);
-
-        //AddTree(device, cq, "twig",
-        //    { 30.f, 8.7f, 0.f },
-        //    twigSystem, "X", 3, 0.15f);
+            lsystem, "X", 5, 0.20f);
 
         Rendering::LSystem bushSystem;
         bushSystem.AddRule('T', "FFFX");
