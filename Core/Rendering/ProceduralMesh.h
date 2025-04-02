@@ -13,7 +13,8 @@ namespace Gradient::Rendering
     public:
         using VertexType = DirectX::VertexPositionNormalTexture;
         using VertexCollection = std::vector<DirectX::VertexPositionNormalTexture>;
-        using IndexCollection = std::vector<uint16_t>;
+        using IndexCollection = std::vector<uint32_t>;
+        using NarrowIndexCollection = std::vector<uint16_t>;
 
 
         virtual ~ProceduralMesh() = default;
@@ -111,8 +112,8 @@ namespace Gradient::Rendering
 
         void Initialize(ID3D12Device* device,
             ID3D12CommandQueue* cq,
-            VertexCollection vertices,
-            IndexCollection indices);
+            const VertexCollection& vertices,
+            const IndexCollection& indices);
 
         Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
         Microsoft::WRL::ComPtr<ID3D12Resource> m_indexBuffer;

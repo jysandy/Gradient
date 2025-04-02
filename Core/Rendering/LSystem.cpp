@@ -9,42 +9,6 @@ using namespace DirectX::SimpleMath;
 
 namespace Gradient::Rendering
 {
-    std::unique_ptr<ProceduralMesh> LSystem::BuildTwo(ID3D12Device* device,
-        ID3D12CommandQueue* cq)
-    {
-        using namespace DirectX::SimpleMath;
-
-        const int numVerticalSections = 18;
-
-        Quaternion bottomRotation = Quaternion::CreateFromYawPitchRoll(
-            { 0, 0, -DirectX::XM_PIDIV4 });
-
-        Vector3 bottomEnd = { 0, 5, 0 };
-
-        ProceduralMesh::MeshPart bottom = ProceduralMesh::CreateAngledFrustumPart(
-            2.f, 1.5f, bottomEnd, bottomRotation, numVerticalSections
-        );
-
-        Quaternion topRotation = Quaternion::CreateFromYawPitchRoll(
-            { 0, 0, -DirectX::XM_PI / 6.f });
-
-        ProceduralMesh::MeshPart top = ProceduralMesh::CreateAngledFrustumPart(
-            1.5f, 1.5f, { 0, 5, 0 }, topRotation, numVerticalSections
-        );
-
-        ProceduralMesh::MeshPart system =
-            bottom.Append(top, bottomEnd, bottomRotation);
-
-        ProceduralMesh::MeshPart top2 = ProceduralMesh::CreateAngledFrustumPart(
-            1.5f, 1.5f, { 0, 5, 0 }, topRotation, numVerticalSections
-        );
-
-        system = system.Append(top2, { 0, 10, 0 },
-            Quaternion::Concatenate(bottomRotation, topRotation));
-
-        return ProceduralMesh::CreateFromPart(device, cq, system);
-    }
-
     struct PartParameters
     {
         Vector3 BottomTranslation;
@@ -141,18 +105,58 @@ namespace Gradient::Rendering
         m_productionRules[lhs] = rhs;
     }
 
-    std::unique_ptr<ProceduralMesh> LSystem::Build(ID3D12Device* device,
+    void LSystem::Build(std::string startingRule,
+        int numGenerations)
+    {
+        if (m_isBuilt) return;
+
+        std::string rule = ExpandRule(startingRule,
+            m_productionRules,
+            numGenerations);
+
+        m_trunkPart = InterpretRule(rule);
+        m_isBuilt = true;
+    }
+
+    const ProceduralMesh::MeshPart& LSystem::GetTrunk() const
+    {
+        return m_trunkPart;
+    }
+
+    void LSystem::Combine(const LSystem& subsystem)
+    {
+        std::vector<LSystem::LeafTransform> newLeafTransforms;
+
+        for (const auto& trunkTransform : m_leafTransforms)
+        {
+            m_trunkPart.AppendInPlace(subsystem.GetTrunk(),
+                trunkTransform.Translation,
+                trunkTransform.Rotation);
+
+            for (const auto& subsystemLeaf : subsystem.GetLeafTransforms())
+            {
+                newLeafTransforms.push_back(
+                    {
+                        trunkTransform.Translation
+                            + Vector3::Transform(subsystemLeaf.Translation,
+                                trunkTransform.Rotation),
+                        Quaternion::Concatenate(trunkTransform.Rotation,
+                            subsystemLeaf.Rotation)
+                    });
+            }
+        }
+
+        m_leafTransforms = newLeafTransforms;
+    }
+
+    std::unique_ptr<ProceduralMesh> LSystem::GetMesh(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         std::string startingRule,
         int numGenerations)
     {
-        std::string rule = ExpandRule(startingRule, 
-            m_productionRules, 
-            numGenerations);
+        Build(startingRule, numGenerations);
 
-        auto tree = InterpretRule(rule);
-
-        return ProceduralMesh::CreateFromPart(device, cq, tree);
+        return ProceduralMesh::CreateFromPart(device, cq, m_trunkPart);
     }
 
     std::string LSystem::ExpandRule(const std::string& startingRule,
@@ -191,7 +195,7 @@ namespace Gradient::Rendering
 
     ProceduralMesh::MeshPart LSystem::InterpretRule(const std::string& rule)
     {
-        const int numVerticalSections = 18;
+        const int numVerticalSections = 6;
 
         std::vector<char> ruleCharacters(rule.begin(), rule.end());
 
@@ -255,16 +259,7 @@ namespace Gradient::Rendering
             }
             else if (c == 'L')
             {
-                Matrix transform = Matrix::Identity;
-
-                // Rotate to match the turtle's orientation.
-                transform *= Matrix::CreateFromQuaternion(turtle.ForwardRotation);
-
-                // Translate to the turtle's position
-                transform *= Matrix::CreateTranslation(turtle.Location);
-
-                m_leafTransforms.push_back(transform);
-
+                m_leafTransforms.push_back({turtle.Location, turtle.ForwardRotation});
             }
             else if (c == '[')
             {
@@ -340,7 +335,7 @@ namespace Gradient::Rendering
         return tree;
     }
 
-    const std::vector<Matrix>& LSystem::GetLeafTransforms() const
+    const std::vector<LSystem::LeafTransform>& LSystem::GetLeafTransforms() const
     {
         return m_leafTransforms;
     }

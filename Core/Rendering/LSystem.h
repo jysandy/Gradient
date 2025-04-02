@@ -9,17 +9,27 @@ namespace Gradient::Rendering
     class LSystem
     {
     public:
-        std::unique_ptr<ProceduralMesh> BuildTwo(ID3D12Device* device,
-            ID3D12CommandQueue* cq);
+        struct LeafTransform
+        {
+            DirectX::SimpleMath::Vector3 Translation;
+            DirectX::SimpleMath::Quaternion Rotation;
+        };
 
         void AddRule(char lhs, const std::string& rhs);
 
-        std::unique_ptr<ProceduralMesh> Build(ID3D12Device* device,
+        void Build(std::string startingRule,
+            int numGenerations);
+
+        std::unique_ptr<ProceduralMesh> GetMesh(ID3D12Device* device,
             ID3D12CommandQueue* cq,
             std::string startingRule,
             int numGenerations);
 
-        const std::vector<DirectX::SimpleMath::Matrix>& GetLeafTransforms() const;
+        const ProceduralMesh::MeshPart& GetTrunk() const;
+
+        void Combine(const LSystem& subsystem);
+
+        const std::vector<LeafTransform>& GetLeafTransforms() const;
 
         float StartingRadius = 0.3f;
         float RadiusFactor = 0.7f;
@@ -27,6 +37,8 @@ namespace Gradient::Rendering
         float MoveDistance = 1.f;
 
     private:
+        bool m_isBuilt = false;
+
         ProceduralMesh::MeshPart InterpretRule(const std::string& rule);
         std::string ExpandRule(const std::string& startingRule,
             const std::unordered_map<char, std::string>& productionRules,
@@ -34,6 +46,7 @@ namespace Gradient::Rendering
 
         std::unordered_map<char, std::string> m_productionRules;
 
-        std::vector<DirectX::SimpleMath::Matrix> m_leafTransforms;
+        ProceduralMesh::MeshPart m_trunkPart;
+        std::vector<LeafTransform> m_leafTransforms;
     };
 }

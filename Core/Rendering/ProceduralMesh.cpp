@@ -18,7 +18,7 @@ namespace Gradient::Rendering
     inline void CheckIndexOverflow(size_t value)
     {
         // Use >=, not > comparison, because some D3D level 9_x hardware does not support 0xFFFF index values.
-        if (value >= USHRT_MAX)
+        if (value >= UINT32_MAX)
             throw std::out_of_range("Index value out of range: cannot tesselate primitive so finely");
     }
 
@@ -27,7 +27,7 @@ namespace Gradient::Rendering
     inline void index_push_back(ProceduralMesh::IndexCollection& indices, size_t value)
     {
         CheckIndexOverflow(value);
-        indices.push_back(static_cast<uint16_t>(value));
+        indices.push_back(static_cast<uint32_t>(value));
     }
 
 
@@ -225,11 +225,11 @@ namespace Gradient::Rendering
 
         // An undirected edge between two vertices, represented by a pair of indexes into a vertex array.
         // Becuse this edge is undirected, (a,b) is the same as (b,a).
-        using UndirectedEdge = std::pair<uint16_t, uint16_t>;
+        using UndirectedEdge = std::pair<uint32_t, uint32_t>;
 
         // Makes an undirected edge. Rather than overloading comparison operators to give us the (a,b)==(b,a) property,
         // we'll just ensure that the larger of the two goes first. This'll simplify things greatly.
-        auto makeUndirectedEdge = [](uint16_t a, uint16_t b) noexcept
+        auto makeUndirectedEdge = [](uint32_t a, uint32_t b) noexcept
             {
                 return std::make_pair(std::max(a, b), std::min(a, b));
             };
@@ -237,7 +237,7 @@ namespace Gradient::Rendering
         // Key: an edge
         // Value: the index of the vertex which lies midway between the two vertices pointed to by the key value
         // This map is used to avoid duplicating vertices when subdividing triangles along edges.
-        using EdgeSubdivisionMap = std::map<UndirectedEdge, uint16_t>;
+        using EdgeSubdivisionMap = std::map<UndirectedEdge, uint32_t>;
 
 
         static const XMFLOAT3 OctahedronVertices[] =
@@ -250,7 +250,7 @@ namespace Gradient::Rendering
             XMFLOAT3(-1,  0,  0), // 4 left
             XMFLOAT3(0, -1,  0), // 5 bottom
         };
-        static const uint16_t OctahedronIndices[] =
+        static const uint32_t OctahedronIndices[] =
         {
             0, 1, 2, // top front-right face
             0, 2, 3, // top back-right face
@@ -273,8 +273,8 @@ namespace Gradient::Rendering
         // We know these values by looking at the above index list for the octahedron. Despite the subdivisions that are
         // about to go on, these values aren't ever going to change because the vertices don't move around in the array.
         // We'll need these values later on to fix the singularities that show up at the poles.
-        constexpr uint16_t northPoleIndex = 0;
-        constexpr uint16_t southPoleIndex = 5;
+        constexpr uint32_t northPoleIndex = 0;
+        constexpr uint32_t southPoleIndex = 5;
 
         for (size_t iSubdivision = 0; iSubdivision < tessellation; ++iSubdivision)
         {
@@ -293,20 +293,20 @@ namespace Gradient::Rendering
                 // The winding order of the triangles we output are the same as the winding order of the inputs.
 
                 // Indices of the vertices making up this triangle
-                const uint16_t iv0 = indices[iTriangle * 3 + 0];
-                const uint16_t iv1 = indices[iTriangle * 3 + 1];
-                const uint16_t iv2 = indices[iTriangle * 3 + 2];
+                const uint32_t iv0 = indices[iTriangle * 3 + 0];
+                const uint32_t iv1 = indices[iTriangle * 3 + 1];
+                const uint32_t iv2 = indices[iTriangle * 3 + 2];
 
                 // Get the new vertices
                 XMFLOAT3 v01; // vertex on the midpoint of v0 and v1
                 XMFLOAT3 v12; // ditto v1 and v2
                 XMFLOAT3 v20; // ditto v2 and v0
-                uint16_t iv01; // index of v01
-                uint16_t iv12; // index of v12
-                uint16_t iv20; // index of v20
+                uint32_t iv01; // index of v01
+                uint32_t iv12; // index of v12
+                uint32_t iv20; // index of v20
 
                 // Function that, when given the index of two vertices, creates a new vertex at the midpoint of those vertices.
-                auto const divideEdge = [&](uint16_t i0, uint16_t i1, XMFLOAT3& outVertex, uint16_t& outIndex)
+                auto const divideEdge = [&](uint32_t i0, uint32_t i1, XMFLOAT3& outVertex, uint32_t& outIndex)
                     {
                         const UndirectedEdge edge = makeUndirectedEdge(i0, i1);
 
@@ -331,7 +331,7 @@ namespace Gradient::Rendering
                                 )
                             );
 
-                            outIndex = static_cast<uint16_t>(vertexPositions.size());
+                            outIndex = static_cast<uint32_t>(vertexPositions.size());
                             CheckIndexOverflow(outIndex);
                             vertexPositions.push_back(outVertex);
 
@@ -354,7 +354,7 @@ namespace Gradient::Rendering
                 //     /b\c/d\
                 // v2 o---o---o v1
                 //       v12
-                const uint16_t indicesToAdd[] =
+                const uint32_t indicesToAdd[] =
                 {
                      iv0, iv01, iv20, // a
                     iv20, iv12,  iv2, // b
@@ -420,9 +420,9 @@ namespace Gradient::Rendering
                 // Now find all the triangles which contain this vertex and update them if necessary
                 for (size_t j = 0; j < indices.size(); j += 3)
                 {
-                    uint16_t* triIndex0 = &indices[j + 0];
-                    uint16_t* triIndex1 = &indices[j + 1];
-                    uint16_t* triIndex2 = &indices[j + 2];
+                    uint32_t* triIndex0 = &indices[j + 0];
+                    uint32_t* triIndex1 = &indices[j + 1];
+                    uint32_t* triIndex2 = &indices[j + 2];
 
                     if (*triIndex0 == i)
                     {
@@ -456,7 +456,7 @@ namespace Gradient::Rendering
                         abs(v0.textureCoordinate.x - v2.textureCoordinate.x) > 0.5f)
                     {
                         // yep; replace the specified index to point to the new, corrected vertex
-                        *triIndex0 = static_cast<uint16_t>(newIndex);
+                        *triIndex0 = static_cast<uint32_t>(newIndex);
                     }
                 }
             }
@@ -477,9 +477,9 @@ namespace Gradient::Rendering
                     // These pointers point to the three indices which make up this triangle. pPoleIndex is the pointer to the
                     // entry in the index array which represents the pole index, and the other two pointers point to the other
                     // two indices making up this triangle.
-                    uint16_t* pPoleIndex;
-                    uint16_t* pOtherIndex0;
-                    uint16_t* pOtherIndex1;
+                    uint32_t* pPoleIndex;
+                    uint32_t* pOtherIndex0;
+                    uint32_t* pOtherIndex1;
                     if (indices[i + 0] == poleIndex)
                     {
                         pPoleIndex = &indices[i + 0];
@@ -520,7 +520,7 @@ namespace Gradient::Rendering
                     {
                         CheckIndexOverflow(vertices.size());
 
-                        *pPoleIndex = static_cast<uint16_t>(vertices.size());
+                        *pPoleIndex = static_cast<uint32_t>(vertices.size());
                         vertices.push_back(newPoleVertex);
                     }
                 }
@@ -1071,9 +1071,23 @@ namespace Gradient::Rendering
 
     void ProceduralMesh::Initialize(ID3D12Device* device,
         ID3D12CommandQueue* cq,
-        VertexCollection vertices,
-        IndexCollection indices)
+        const VertexCollection& vertices,
+        const IndexCollection& indices)
     {
+        NarrowIndexCollection narrowIndices;
+
+        // Use 16 bit indices if the vertex count allows for it.
+        const bool use16bit = vertices.size() < UINT16_MAX;
+
+        if (use16bit)
+        {
+            for (const auto& index : indices)
+            {
+                narrowIndices.push_back(static_cast<uint32_t>(index));
+            }
+        }
+
+
         DirectX::ResourceUploadBatch uploadBatch(device);
 
         uploadBatch.Begin();
@@ -1084,12 +1098,24 @@ namespace Gradient::Rendering
                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
                 m_vertexBuffer.ReleaseAndGetAddressOf()));
 
-        DX::ThrowIfFailed(
-            DirectX::CreateStaticBuffer(device,
-                uploadBatch,
-                indices,
-                D3D12_RESOURCE_STATE_INDEX_BUFFER,
-                m_indexBuffer.ReleaseAndGetAddressOf()));
+        if (use16bit)
+        {
+            DX::ThrowIfFailed(
+                DirectX::CreateStaticBuffer(device,
+                    uploadBatch,
+                    narrowIndices,
+                    D3D12_RESOURCE_STATE_INDEX_BUFFER,
+                    m_indexBuffer.ReleaseAndGetAddressOf()));
+        }
+        else
+        {
+            DX::ThrowIfFailed(
+                DirectX::CreateStaticBuffer(device,
+                    uploadBatch,
+                    indices,
+                    D3D12_RESOURCE_STATE_INDEX_BUFFER,
+                    m_indexBuffer.ReleaseAndGetAddressOf()));
+        }
 
         auto uploadFinished = uploadBatch.End(cq);
 
@@ -1098,13 +1124,21 @@ namespace Gradient::Rendering
         m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vbv.StrideInBytes = sizeof(VertexType);
         m_vbv.SizeInBytes = m_vbv.StrideInBytes * vertices.size();
+        m_vertexCount = vertices.size();
 
         m_ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-        m_ibv.Format = DXGI_FORMAT_R16_UINT;
-        m_ibv.SizeInBytes = sizeof(uint16_t) * indices.size();
-
-        m_vertexCount = vertices.size();
-        m_indexCount = indices.size();
+        if (use16bit)
+        {
+            m_ibv.Format = DXGI_FORMAT_R16_UINT;
+            m_ibv.SizeInBytes = sizeof(uint16_t) * narrowIndices.size();
+            m_indexCount = narrowIndices.size();
+        }
+        else
+        {
+            m_ibv.Format = DXGI_FORMAT_R32_UINT;
+            m_ibv.SizeInBytes = sizeof(uint32_t) * indices.size();
+            m_indexCount = indices.size();
+        }
     }
 
     std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBox(
@@ -1241,6 +1275,10 @@ namespace Gradient::Rendering
         const IndexCollection& indices
     )
     {
+        // Indices are 32 bit, can't have more vertices 
+        // than UINT32_MAX.
+        assert(vertices.size() < UINT32_MAX);
+
         std::unique_ptr<ProceduralMesh> primitive(new ProceduralMesh());
         primitive->Initialize(device, cq, vertices, indices);
 

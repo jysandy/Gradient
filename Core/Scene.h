@@ -158,7 +158,7 @@ namespace Gradient::Scene
         frustumTransform.Translation = Matrix::CreateTranslation(position);
 
         entityManager->Registry.emplace<DrawableComponent>(tree,
-            lsystem.Build(device, cq, startingRule, numGenerations));
+            lsystem.GetMesh(device, cq, startingRule, numGenerations));
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
             Rendering::PBRMaterial(
@@ -207,7 +207,9 @@ namespace Gradient::Scene
             float rowIndex = abs(rand()) % numRows;
 
             leavesInstance.Instances.push_back({
-                    billboardTransform * transform,
+                    billboardTransform 
+                        * Matrix::CreateFromQuaternion(transform.Rotation)
+                        * Matrix::CreateTranslation(transform.Translation),
                     Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
                     Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
                 });
@@ -272,19 +274,42 @@ namespace Gradient::Scene
             });
 
         Rendering::LSystem lsystem;
-        lsystem.AddRule('X', "FFF[/+FX[--L]][////+FX[++L]]/////////+FX[-L]");
-        lsystem.AddRule('L', "L/+^L/-L/&--L");
+        lsystem.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
+        lsystem.AddRule('X', "F[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
+        lsystem.AddRule('G', "[//--L][//---L][\\^++L][\\\\&&++L]");
+        lsystem.AddRule('L', "L///+^L");
         lsystem.StartingRadius = 0.3f;
-        lsystem.RadiusFactor = 0.7f;
+        lsystem.RadiusFactor = 0.5f;
         lsystem.AngleDegrees = 25.7f;
         lsystem.MoveDistance = 1.f;
 
+        lsystem.Build("T", 3);
+
+        Rendering::LSystem twigSystem;
+        twigSystem.AddRule('X', "FF/-F+F[--B]//F[^^B]//-FB");
+        twigSystem.AddRule('B', "FG[//^^B]F[\\\\&L]GG[+B]-B");
+        twigSystem.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L]");
+        twigSystem.StartingRadius = 0.05f;
+        twigSystem.RadiusFactor = 1.f;
+        twigSystem.AngleDegrees = 20.f;
+        twigSystem.MoveDistance = 0.2f;
+
+        twigSystem.Build("X", 4);
+
+        lsystem.Combine(twigSystem);
+
+        // TODO: Fix this. 
+        // Breaking because there are more than 
+        // UINT16_MAX vertices
         AddTree(device, cq, "tree1",
             { 38.6f, 8.7f, 0.f },
-            lsystem, "X", 5);
+            lsystem, "X", 5, 0.15f);
+
+        //AddTree(device, cq, "twig",
+        //    { 30.f, 8.7f, 0.f },
+        //    twigSystem, "X", 3, 0.15f);
 
         Rendering::LSystem bushSystem;
-
         bushSystem.AddRule('T', "FFFX");
         bushSystem.AddRule('X', "F[/+FB[--L]][////+FB[++L]]/////////+FB[-L]");
         bushSystem.AddRule('B', "FF[/+FB[-L-L]][////+F[+L+L]B[+L+L]]/////////+F[+L+L]B");
