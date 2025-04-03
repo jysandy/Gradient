@@ -67,7 +67,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
-        void SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData);
+        void SetInstanceData(const ECS::Components::InstanceDataComponent& instanceComponent);
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
         void SetPointLights(std::vector<Params::PointLight> pointLights);
@@ -90,7 +90,7 @@ namespace Gradient::Pipelines
         GraphicsMemoryManager::DescriptorView m_environmentMap;
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
-        std::vector<InstanceData> m_instanceData;
+        BufferManager::InstanceBufferHandle m_instanceHandle;
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;

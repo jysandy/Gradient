@@ -70,6 +70,7 @@
     <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
+    <ClInclude Include="Core\BufferManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -115,6 +116,7 @@
     <ClCompile Include="Core\PlayerCharacter.cpp" />
     <ClCompile Include="Core\Rendering\LSystem.cpp" />
     <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
+    <ClCompile Include="Core\BufferManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

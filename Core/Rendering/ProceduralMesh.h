@@ -19,7 +19,7 @@ namespace Gradient::Rendering
 
         virtual ~ProceduralMesh() = default;
 
-        virtual void Draw(ID3D12GraphicsCommandList* cl, int numInstances=1) override;
+        virtual void Draw(ID3D12GraphicsCommandList* cl, uint32_t numInstances=1) override;
 
         struct MeshPart
         {

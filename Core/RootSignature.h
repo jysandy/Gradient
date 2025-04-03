@@ -3,6 +3,7 @@
 #include "pch.h"
 #include <array>
 #include "Core/GraphicsMemoryManager.h"
+#include "Core/BufferManager.h"
 
 namespace Gradient
 {
@@ -28,11 +29,10 @@ namespace Gradient
             UINT space,
             const T& data);
 
-        template <typename T>
         void SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,
             UINT space,
-            const std::vector<T>& data);
+            BufferManager::InstanceBufferHandle handle);
         
         void SetSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,
@@ -83,22 +83,5 @@ namespace Gradient
         auto gmm = GraphicsMemoryManager::Get();
         auto cbv = gmm->AllocateConstant(data);
         cl->SetGraphicsRootConstantBufferView(rpIndex, cbv.GpuAddress());
-    }
-
-    template <typename T>
-    void RootSignature::SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
-        UINT slot,
-        UINT space,
-        const std::vector<T>& data)
-    {
-        assert(m_isBuilt);
-
-        auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
-
-        assert(rpIndex != UINT32_MAX);
-
-        auto gmm = GraphicsMemoryManager::Get();
-        DirectX::GraphicsResource sb = gmm->AllocateStructuredBuffer(data);
-        cl->SetGraphicsRootShaderResourceView(rpIndex, sb.GpuAddress());
     }
 }

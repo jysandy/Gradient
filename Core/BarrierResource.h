@@ -13,6 +13,8 @@ namespace Gradient
         ID3D12Resource* Get();
         ID3D12Resource** ReleaseAndGetAddressOf();
 
+        D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() const;
+
         void Create(
             ID3D12Device* device,
             const D3D12_RESOURCE_DESC* pDesc,

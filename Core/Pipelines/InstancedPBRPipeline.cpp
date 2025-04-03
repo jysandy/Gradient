@@ -97,7 +97,7 @@ namespace Gradient::Pipelines
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
-        m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceData);
+        m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceHandle);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
@@ -121,7 +121,7 @@ namespace Gradient::Pipelines
         vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
-        m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceData);
+        m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceHandle);
 
         auto lightBufferData = m_dLightCBData;
         lightBufferData.numPointLights = std::min(MAX_POINT_LIGHTS, m_pointLights.size());
@@ -221,17 +221,8 @@ namespace Gradient::Pipelines
         m_cameraPosition = cameraPosition;
     }
 
-    void InstancedPBRPipeline::SetInstanceData(const std::vector<ECS::Components::InstanceDataComponent::Instance>& instanceData)
+    void InstancedPBRPipeline::SetInstanceData(const ECS::Components::InstanceDataComponent& instanceComponent)
     {
-        m_instanceData.clear();
-
-        for (const auto& instance : instanceData)
-        {
-            m_instanceData.push_back({
-                DirectX::XMMatrixTranspose(instance.LocalTransform),
-                instance.TexcoordURange,
-                instance.TexcoordVRange
-                });
-        }
+        m_instanceHandle = instanceComponent.BufferHandle;
     }
 }

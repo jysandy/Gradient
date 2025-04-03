@@ -192,21 +192,20 @@ namespace Gradient::Scene
         int numRows = 3;
         int numCols = 4;
 
-        auto& leavesInstance
-            = entityManager->Registry.emplace<InstanceDataComponent>(leaves);
-
         Matrix billboardTransform = Matrix::Identity;
 
         // Shift the leaf origin and point it upwards.
         billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
             * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
 
+        std::vector<BufferManager::InstanceData> instances;
+
         for (const auto& transform : lsystem.GetLeafTransforms())
         {
             float colIndex = abs(rand()) % numCols;
             float rowIndex = abs(rand()) % numRows;
 
-            leavesInstance.Instances.push_back({
+            instances.push_back({
                     billboardTransform 
                         * Matrix::CreateFromQuaternion(transform.Rotation)
                         * Matrix::CreateTranslation(transform.Translation),
@@ -214,6 +213,15 @@ namespace Gradient::Scene
                     Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
                 });
         }
+        
+        auto bm = BufferManager::Get();
+        auto bufferHandle = bm->CreateInstanceBuffer(device, 
+            cq, 
+            instances);
+
+        auto& leavesInstance
+            = entityManager->Registry.emplace<InstanceDataComponent>(leaves, 
+                bufferHandle);
 
         entityManager->Registry.emplace<DrawableComponent>(leaves,
             Rendering::ProceduralMesh::CreateBillboard(device,

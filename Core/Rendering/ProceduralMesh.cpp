@@ -1055,13 +1055,13 @@ namespace Gradient::Rendering
     }
 
     void ProceduralMesh::Draw(ID3D12GraphicsCommandList* cl,
-        int numInstances)
+        uint32_t numInstances)
     {
         cl->IASetVertexBuffers(0,
             1,
             &m_vbv);
         cl->IASetIndexBuffer(&m_ibv);
-
+                                            
         cl->DrawIndexedInstanced(m_indexCount,
             numInstances,
             0,

@@ -21,6 +21,11 @@ namespace Gradient
         return m_resource.ReleaseAndGetAddressOf();
     }
 
+    D3D12_GPU_VIRTUAL_ADDRESS BarrierResource::GetGpuAddress() const
+    {
+        return m_resource->GetGPUVirtualAddress();
+    }
+
     void BarrierResource::Create(
         ID3D12Device* device,
         const D3D12_RESOURCE_DESC* desc,

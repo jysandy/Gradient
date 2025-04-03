@@ -9,6 +9,6 @@ namespace Gradient::Rendering
     public:
         virtual ~IDrawable() = default;
 
-        virtual void Draw(ID3D12GraphicsCommandList* cl, int numInstances=1) = 0;
+        virtual void Draw(ID3D12GraphicsCommandList* cl, uint32_t numInstances=1) = 0;
     };
 }

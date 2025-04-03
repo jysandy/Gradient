@@ -282,6 +282,7 @@ namespace Gradient::Rendering
     {
         using namespace ECS::Components;
         auto em = EntityManager::Get();
+        auto bm = BufferManager::Get();
 
         // Default shading model without instancing
         auto defaultView = em->Registry.view<DrawableComponent,
@@ -331,10 +332,15 @@ namespace Gradient::Rendering
                     InstancePipeline->SetMaterial(material.Material);
 
                 InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
-                InstancePipeline->SetInstanceData(instances.Instances);
+                InstancePipeline->SetInstanceData(instances);
                 InstancePipeline->Apply(cl, true, drawingShadows);
 
-                drawable.Drawable->Draw(cl, instances.Instances.size());
+                auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+
+                if (bufferEntry)
+                {
+                    drawable.Drawable->Draw(cl, bufferEntry.value().InstanceCount);
+                }
         }
 
         // Heightmap shading model

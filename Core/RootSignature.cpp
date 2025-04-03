@@ -92,7 +92,7 @@ namespace Gradient
         // the root signature is built
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> descriptorRanges;
         descriptorRanges.reserve(m_descRanges.size());
-        
+
         for (int i = 0; i < m_descRanges.size(); i++)
         {
             CD3DX12_ROOT_PARAMETER1 rp;
@@ -169,5 +169,25 @@ namespace Gradient
     {
         assert(m_isBuilt);
         cl->SetGraphicsRootSignature(m_rootSignature.Get());
+    }
+
+    void RootSignature::SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
+        UINT slot,
+        UINT space,
+        BufferManager::InstanceBufferHandle handle)
+    {
+        assert(m_isBuilt);
+
+        auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
+
+        assert(rpIndex != UINT32_MAX);
+
+        auto bm = BufferManager::Get();
+
+        auto bufferEntry = bm->GetInstanceBuffer(handle);
+
+        assert(bufferEntry);
+        cl->SetGraphicsRootShaderResourceView(rpIndex,
+            bufferEntry.value().Resource->GetGpuAddress());
     }
 }

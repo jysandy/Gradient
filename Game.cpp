@@ -7,6 +7,7 @@
 #include "directxtk12/Keyboard.h"
 #include "Core/GraphicsMemoryManager.h"
 #include "Core/TextureManager.h"
+#include "Core/BufferManager.h"
 #include "Core/Rendering/TextureDrawer.h"
 #include "Core/Rendering/ProceduralMesh.h"
 #include "Core/Rendering/LSystem.h"
@@ -45,6 +46,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_mouse->SetWindow(window);
     m_mouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
 
+    Gradient::BufferManager::Initialize();
     Gradient::Physics::PhysicsEngine::Initialize();
     m_deviceResources->SetWindow(window, width, height);
 
