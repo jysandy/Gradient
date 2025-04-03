@@ -23,8 +23,7 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) VertexCB
         {
             DirectX::XMMATRIX world;
-            DirectX::XMMATRIX view;
-            DirectX::XMMATRIX proj;
+            DirectX::XMMATRIX worldViewProj;
         };
 
         struct __declspec(align(16)) PixelCB

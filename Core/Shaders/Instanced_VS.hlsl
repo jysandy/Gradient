@@ -1,6 +1,6 @@
 cbuffer MatrixBuffer : register(b0, space0)
 {
-    matrix g_worldMatrix;
+    matrix g_parentWorldMatrix;
     matrix g_viewMatrix;
     matrix g_projectionMatrix;
 };
@@ -33,9 +33,8 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
 {
     OutputType output;
     
-    float4x4 worldMatrix = mul(Instances[InstanceID].WorldMatrix, g_worldMatrix);
+    float4x4 worldMatrix = mul(Instances[InstanceID].WorldMatrix, g_parentWorldMatrix);
 
-	// Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(float4(input.position, 1), worldMatrix);
     output.position = mul(output.position, g_viewMatrix);
     output.position = mul(output.position, g_projectionMatrix);
@@ -48,7 +47,6 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
         Instances[InstanceID].TexcoordVRange.y,
         input.tex.y);
     
-	// Calculate the normal vector against the world matrix only and normalise.
     output.normal = mul(input.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 	

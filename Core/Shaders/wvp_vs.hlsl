@@ -1,8 +1,7 @@
 cbuffer MatrixBuffer : register(b0, space0)
 {
     matrix worldMatrix;
-    matrix viewMatrix;
-    matrix projectionMatrix;
+    matrix worldViewProjectionMatrix;
 };
 
 struct InputType
@@ -24,15 +23,10 @@ OutputType main(InputType input)
 {
     OutputType output;
 
-	// Calculate the position of the vertex against the world, view, and projection matrices.
-    output.position = mul(float4(input.position, 1), worldMatrix);
-    output.position = mul(output.position, viewMatrix);
-    output.position = mul(output.position, projectionMatrix);
+    output.position = mul(float4(input.position, 1), worldViewProjectionMatrix);
 
-	// Store the texture coordinates for the pixel shader.
     output.tex = input.tex;
 
-	// Calculate the normal vector against the world matrix only and normalise.
     output.normal = mul(input.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 	

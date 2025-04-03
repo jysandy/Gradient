@@ -91,8 +91,8 @@ namespace Gradient::Pipelines
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
-        vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
-        vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+        vertexConstants.worldViewProj = DirectX::XMMatrixTranspose(
+            m_world * m_view * m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
@@ -114,8 +114,8 @@ namespace Gradient::Pipelines
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
-        vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
-        vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+        vertexConstants.worldViewProj = DirectX::XMMatrixTranspose(
+            m_world * m_view * m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
