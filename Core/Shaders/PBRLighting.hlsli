@@ -6,6 +6,7 @@
 // Adapted from https://learnopengl.com/PBR/Lighting
 
 #include "LightStructs.hlsli"
+#include "ShadowMapping.hlsli"
 
 static const float PI = 3.14159265359;
 
@@ -174,6 +175,65 @@ float3 cookTorrancePointLight(float3 N,
     return cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, irradiance, true
     );
+}
+
+float3 DirectionalLightContribution(float3 N,
+    float3 V,
+    float3 albedo,
+    float metallic,
+    float roughness,
+    DirectionalLight light,
+    Texture2D shadowMap,
+    SamplerComparisonState shadowMapSampler,
+    float4x4 shadowTransform,
+    float3 worldPosition)
+{
+    float shadowFactor = calculateShadowFactor(shadowMap,
+        shadowMapSampler,
+        shadowTransform,
+        worldPosition);
+    
+    if (shadowFactor < 0.001f)
+    {
+        // Don't compute the BRDF if the pixel is in shadow.
+        return float3(0, 0, 0);
+    }
+    
+    return shadowFactor * cookTorranceDirectionalLight(N,
+        V,
+        albedo,
+        metallic,
+        roughness,
+        light);
+}
+
+float3 PointLightContribution(float3 N,
+    float3 V,
+    float3 albedo,
+    float metalness,
+    float roughness,
+    PointLight light,
+    TextureCubeArray shadowMaps,
+    SamplerComparisonState shadowMapSampler,
+    float3 worldPosition)
+{
+    float shadowFactor = cubeShadowFactor(shadowMaps,
+        shadowMapSampler,
+        light,
+        worldPosition);
+    
+    if (shadowFactor < 0.001f)
+    {
+        return float3(0, 0, 0);
+    }
+    
+    return shadowFactor * cookTorrancePointLight(N,
+        V,
+        albedo,
+        metalness,
+        roughness,
+        light,
+        worldPosition);
 }
 
 float3 sampleEnvironmentMap(TextureCube environmentMap,

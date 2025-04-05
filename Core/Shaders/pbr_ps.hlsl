@@ -63,20 +63,18 @@ float4 main(InputType input) : SV_TARGET
     float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     
-    float3 directRadiance = cookTorranceDirectionalLight(
-        N, V, albedo, metalness, roughness, g_directionalLight
+    float3 directRadiance = DirectionalLightContribution(
+        N, V, albedo, metalness, roughness, g_directionalLight,
+        shadowMap, shadowMapSampler, shadowTransform, input.worldPosition
     );
     
     float3 pointRadiance = float3(0, 0, 0);
     for (int i = 0; i < g_numPointLights; i++)
     {
-        pointRadiance += cookTorrancePointLight(
-            N, V, albedo, metalness, roughness, g_pointLights[i], input.worldPosition
-        )
-        * cubeShadowFactor(pointShadowMaps,
-            shadowMapSampler,
-            g_pointLights[i],
-            input.worldPosition);
+        pointRadiance += PointLightContribution(
+            N, V, albedo, metalness, roughness, g_pointLights[i],
+            pointShadowMaps, shadowMapSampler, input.worldPosition
+        );
     }
     
     float3 ambient = cookTorranceEnvironmentMap(
@@ -84,14 +82,8 @@ float4 main(InputType input) : SV_TARGET
         N, V, albedo, ao, metalness, roughness
     );
     
-    float shadowFactor = calculateShadowFactor(
-        shadowMap,
-        shadowMapSampler,
-        shadowTransform,
-        input.worldPosition);
-    
     float3 outputColour = ambient
-        + shadowFactor * directRadiance
+        + directRadiance
         + pointRadiance
         + emissiveRadiance;
     

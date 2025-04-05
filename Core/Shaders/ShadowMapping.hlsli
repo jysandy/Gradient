@@ -1,3 +1,6 @@
+#ifndef __SHADOW_MAPPING_HLSLI__
+#define __SHADOW_MAPPING_HLSLI__
+
 #include "CubeMap.hlsli"
 #include "LightStructs.hlsli"
 
@@ -122,3 +125,5 @@ float cubeShadowFactor(TextureCubeArray shadowMaps,
         float4(cubeMapSampleVector(uvw),
                 pointLight.shadowCubeIndex), depth);
 }
+
+#endif
