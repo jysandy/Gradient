@@ -1,4 +1,5 @@
 #include "CubeMap.hlsli"
+#include "LightStructs.hlsli"
 
 float calculateShadowFactor(
     Texture2D shadowMap,
@@ -71,13 +72,17 @@ float calculateShadowFactorNoLargeKernel(
 
 float cubeShadowFactor(TextureCubeArray shadowMaps,
     SamplerComparisonState shadowMapSampler,
-    float3 lightPosition,
-    float3 worldPosition,
-    float4x4 shadowTransforms[6],
-    uint cubeIndex
+    PointLight pointLight,
+    float3 worldPosition
     )
 {
-    float3 uvw = worldPosition - lightPosition;
+    float3 uvw = worldPosition - pointLight.position;
+
+    if (dot(uvw, uvw) > pointLight.maxRange * pointLight.maxRange)
+    {
+        // Early return if the position is out of range of the light.
+        return 1.f;
+    }
     
     float3 unitVectors[6] =
     {
@@ -107,7 +112,7 @@ float cubeShadowFactor(TextureCubeArray shadowMaps,
     }
 
     float4 transformed 
-        = mul(float4(worldPosition, 1.f), shadowTransforms[shadowTransformIndex]);
+        = mul(float4(worldPosition, 1.f), pointLight.shadowTransforms[shadowTransformIndex]);
     float depth = transformed.z / transformed.w;
         
     if (depth > 1.f || depth < 0.f)
@@ -115,5 +120,5 @@ float cubeShadowFactor(TextureCubeArray shadowMaps,
     
     return shadowMaps.SampleCmpLevelZero(shadowMapSampler,
         float4(cubeMapSampleVector(uvw),
-                cubeIndex), depth);
+                pointLight.shadowCubeIndex), depth);
 }

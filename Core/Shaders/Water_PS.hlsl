@@ -84,10 +84,8 @@ float4 main(InputType input) : SV_TARGET
         )
         * cubeShadowFactor(pointShadowMaps,
             shadowMapSampler,
-            g_pointLights[i].position,
-            input.worldPosition,
-            g_pointLights[i].shadowTransforms,
-            g_pointLights[i].shadowCubeIndex);
+            g_pointLights[i],
+            input.worldPosition);
         
         pointSSS += pointLightSSS(g_pointLights[i],
                                   input.worldPosition,

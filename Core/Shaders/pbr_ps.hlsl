@@ -16,8 +16,6 @@ SamplerState linearSampler : register(s3, space1);
 SamplerState anisotropicSampler : register(s0, space1);
 SamplerComparisonState shadowMapSampler : register(s1, space1);
 
-// TODO: Support sub-uvs?
-
 #define MAX_POINT_LIGHTS 8
 
 cbuffer LightBuffer : register(b0, space1)
@@ -77,10 +75,8 @@ float4 main(InputType input) : SV_TARGET
         )
         * cubeShadowFactor(pointShadowMaps,
             shadowMapSampler,
-            g_pointLights[i].position,
-            input.worldPosition,
-            g_pointLights[i].shadowTransforms,
-            g_pointLights[i].shadowCubeIndex);
+            g_pointLights[i],
+            input.worldPosition);
     }
     
     float3 ambient = cookTorranceEnvironmentMap(
