@@ -149,12 +149,42 @@ namespace Gradient::Rendering
         m_leafTransforms = newLeafTransforms;
     }
 
+    std::vector<LSystem::LeafTransform> LSystem::GetCombinedLeaves(const LSystem& subsystem) const
+    {
+        std::vector<LSystem::LeafTransform> newLeafTransforms;
+
+        for (const auto& trunkTransform : m_leafTransforms)
+        {
+            for (const auto& subsystemLeaf : subsystem.GetLeafTransforms())
+            {
+                newLeafTransforms.push_back(
+                    {
+                        trunkTransform.Translation
+                            + Vector3::Transform(subsystemLeaf.Translation,
+                                trunkTransform.Rotation),
+                        Quaternion::Concatenate(trunkTransform.Rotation,
+                            subsystemLeaf.Rotation)
+                    });
+            }
+        }
+
+        return newLeafTransforms;
+    }
+
     std::unique_ptr<ProceduralMesh> LSystem::GetMesh(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         std::string startingRule,
         int numGenerations)
     {
         Build(startingRule, numGenerations);
+
+        return ProceduralMesh::CreateFromPart(device, cq, m_trunkPart);
+    }
+
+    std::unique_ptr<ProceduralMesh> LSystem::GetBuiltMesh(ID3D12Device* device,
+        ID3D12CommandQueue* cq)
+    {
+        assert(m_isBuilt);
 
         return ProceduralMesh::CreateFromPart(device, cq, m_trunkPart);
     }

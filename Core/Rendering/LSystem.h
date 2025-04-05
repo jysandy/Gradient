@@ -25,9 +25,13 @@ namespace Gradient::Rendering
             std::string startingRule,
             int numGenerations);
 
+        std::unique_ptr<ProceduralMesh> GetBuiltMesh(ID3D12Device* device,
+            ID3D12CommandQueue* cq);
+
         const ProceduralMesh::MeshPart& GetTrunk() const;
 
         void Combine(const LSystem& subsystem);
+        std::vector<LeafTransform> GetCombinedLeaves(const LSystem& subsystem) const;
 
         const std::vector<LeafTransform>& GetLeafTransforms() const;
 
