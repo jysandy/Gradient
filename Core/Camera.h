@@ -33,6 +33,7 @@ namespace Gradient
 
         DirectX::SimpleMath::Matrix GetViewMatrix() const;
         DirectX::SimpleMath::Matrix GetProjectionMatrix() const;
+        DirectX::BoundingFrustum GetFrustum() const;
 
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);

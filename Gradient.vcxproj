@@ -213,6 +213,7 @@
     <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
+    <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\Parameters.h" />
     <ClInclude Include="Core\Physics\Conversions.h" />
     <ClInclude Include="Core\Physics\DebugRenderer.h" />

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Camera.h"
+#include "Math.h"
 #include <directxtk12/Keyboard.h>
 #include <directxtk12/Mouse.h>
 #include <algorithm>
@@ -92,5 +93,10 @@ namespace Gradient
         up.Normalize();
 
         return std::make_tuple(right, up, forward);
+    }
+
+    DirectX::BoundingFrustum Camera::GetFrustum() const
+    {
+        return Math::MakeFrustum(GetViewMatrix(), m_projectionMatrix);
     }
 }

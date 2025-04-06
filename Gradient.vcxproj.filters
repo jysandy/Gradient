@@ -72,6 +72,7 @@
     <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
     <ClInclude Include="Core\BufferManager.h" />
     <ClInclude Include="Core\ECS\Components\BoundingBoxComponent.h" />
+    <ClInclude Include="Core\Math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

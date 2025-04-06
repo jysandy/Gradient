@@ -11,6 +11,7 @@
 #include "Core/ECS/Components/RelationshipComponent.h"
 #include "Core/TextureManager.h"
 #include "Core/Physics/PhysicsEngine.h"
+#include "Core/Math.h"
 
 #include <imgui.h>
 #include "GUI/imgui_impl_win32.h"
@@ -161,7 +162,6 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetView(DirectionalLight->GetView());
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
-
         DrawAllEntities(cl, true);
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
@@ -180,8 +180,9 @@ namespace Gradient::Rendering
                     HeightmapPipeline->SetView(view);
                     HeightmapPipeline->SetProjection(proj);
 
-                    // TODO: Cull entities that are not in the light's range
-                    DrawAllEntities(cl, true);
+                    auto frustum = Math::MakeFrustum(view, proj);
+
+                    DrawAllEntities(cl, true, frustum);
                 });
         }
 
@@ -251,7 +252,7 @@ namespace Gradient::Rendering
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        DrawAllEntities(cl);
+        DrawAllEntities(cl, false, camera->GetFrustum());
 
         auto physicsEngine = Physics::PhysicsEngine::Get();
         // This is too slow for now and is hence commented out
@@ -278,7 +279,8 @@ namespace Gradient::Rendering
     }
 
     void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
-        bool drawingShadows)
+        bool drawingShadows,
+        std::optional<DirectX::BoundingFrustum> viewFrustum)
     {
         using namespace ECS::Components;
         auto em = EntityManager::Get();
@@ -293,21 +295,32 @@ namespace Gradient::Rendering
             auto [drawable, transform, material]
                 = defaultView.get(entity);
 
-            if (drawable.Drawable == nullptr) continue;
+                if (drawable.Drawable == nullptr) continue;
 
-            if (drawingShadows && !drawable.CastsShadows) continue;
+                if (drawingShadows && !drawable.CastsShadows) continue;
 
-            if (drawable.ShadingModel
-                != DrawableComponent::ShadingModel::Default)
-                continue;
+                if (drawable.ShadingModel
+                    != DrawableComponent::ShadingModel::Default)
+                    continue;
 
-            if (!drawingShadows)
-                PbrPipeline->SetMaterial(material.Material);
+                if (!drawingShadows)
+                    PbrPipeline->SetMaterial(material.Material);
 
-            PbrPipeline->SetWorld(em->GetWorldMatrix(entity));
-            PbrPipeline->Apply(cl, true, drawingShadows);
+                auto world = em->GetWorldMatrix(entity);
+                auto bb = em->GetBoundingBox(entity);
 
-            drawable.Drawable->Draw(cl);
+                    if (viewFrustum && bb)
+                    {
+                        if (!viewFrustum.value().Intersects(bb.value()))
+                        {
+                            continue;
+                        }
+                    }
+
+                PbrPipeline->SetWorld(world);
+                PbrPipeline->Apply(cl, true, drawingShadows);
+
+                drawable.Drawable->Draw(cl);
         }
 
         // Default shading model with instancing
@@ -330,6 +343,16 @@ namespace Gradient::Rendering
 
                 if (!drawingShadows)
                     InstancePipeline->SetMaterial(material.Material);
+
+                auto bb = em->GetBoundingBox(entity);
+
+                if (viewFrustum && bb)
+                {
+                    if (!viewFrustum.value().Intersects(bb.value()))
+                    {
+                        continue;
+                    }
+                }
 
                 InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
                 InstancePipeline->SetInstanceData(instances);

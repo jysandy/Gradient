@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <set>
+#include <optional>
 #include <directxtk12/SimpleMath.h>
 #include <entt/entt.hpp>
 #include "StepTimer.h"
@@ -32,6 +33,7 @@ namespace Gradient
         const T* TryGetParentComponent(entt::entity entity) const;
 
         DirectX::SimpleMath::Matrix GetWorldMatrix(entt::entity entity) const;
+        std::optional<DirectX::BoundingBox> GetBoundingBox(entt::entity entity) const;
 
         void SetRotation(entt::entity entity,
             float yaw, float pitch, float roll);

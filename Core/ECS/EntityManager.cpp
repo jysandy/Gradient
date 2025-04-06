@@ -4,6 +4,7 @@
 #include "Core/ECS/Components/RigidBodyComponent.h"
 #include "Core/ECS/Components/TransformComponent.h"
 #include "Core/ECS/Components/DrawableComponent.h"
+#include "Core/ECS/Components/BoundingBoxComponent.h"
 #include "Core/TextureManager.h"
 #include <directxtk12/GeometricPrimitive.h>
 #include <directxtk12/SimpleMath.h>
@@ -171,5 +172,22 @@ namespace Gradient
         }
 
         return outWorld;
+    }
+
+    std::optional<DirectX::BoundingBox> EntityManager::GetBoundingBox(entt::entity entity) const
+    {
+        auto bbComponent = Registry.try_get<BoundingBoxComponent>(entity);
+
+        if (!bbComponent)
+        {
+            return std::nullopt;
+        }
+
+        auto worldMatrix = GetWorldMatrix(entity);
+
+        DirectX::BoundingBox out;
+        bbComponent->BoundingBox.Transform(out, worldMatrix);
+
+        return out;
     }
 }

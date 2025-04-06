@@ -37,7 +37,8 @@ namespace Gradient::Rendering
             RenderTexture* finalRenderTarget);
 
         void DrawAllEntities(ID3D12GraphicsCommandList* cl,
-            bool drawingShadows = false);
+            bool drawingShadows = false,
+            std::optional<DirectX::BoundingFrustum> viewFrustum = std::nullopt);
 
         std::unique_ptr<DirectX::CommonStates> m_states;
 

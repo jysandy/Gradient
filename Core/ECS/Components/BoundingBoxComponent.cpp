@@ -9,7 +9,7 @@ namespace Gradient::ECS::Components
     {
         auto in = BoundingBox;
         DirectX::BoundingBox transformedOther;
-        other.Transform(BoundingBox, transform);
+        other.Transform(transformedOther, transform);
         DirectX::BoundingBox::CreateMerged(BoundingBox,
             in,
             transformedOther);
