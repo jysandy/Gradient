@@ -1061,7 +1061,7 @@ namespace Gradient::Rendering
             1,
             &m_vbv);
         cl->IASetIndexBuffer(&m_ibv);
-                                            
+
         cl->DrawIndexedInstanced(m_indexCount,
             numInstances,
             0,
@@ -1119,6 +1119,22 @@ namespace Gradient::Rendering
 
         auto uploadFinished = uploadBatch.End(cq);
 
+        // Create the bounding box while waiting for the upload.
+        {
+            std::vector<DirectX::XMFLOAT3> points;
+
+            for (const auto& vertex : vertices)
+            {
+                points.push_back(vertex.position);
+            }
+
+            DirectX::BoundingBox::CreateFromPoints(m_boundingBox,
+                points.size(),
+                points.data(),
+                sizeof(DirectX::XMFLOAT3)
+            );
+        }
+
         uploadFinished.wait();
 
         m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
@@ -1139,6 +1155,11 @@ namespace Gradient::Rendering
             m_ibv.SizeInBytes = sizeof(uint32_t) * indices.size();
             m_indexCount = indices.size();
         }
+    }
+
+    const DirectX::BoundingBox& ProceduralMesh::GetBoundingBox() const
+    {
+        return m_boundingBox;
     }
 
     std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBox(

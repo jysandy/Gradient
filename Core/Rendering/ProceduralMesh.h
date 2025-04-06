@@ -21,6 +21,8 @@ namespace Gradient::Rendering
 
         virtual void Draw(ID3D12GraphicsCommandList* cl, uint32_t numInstances=1) override;
 
+        const DirectX::BoundingBox& GetBoundingBox() const;
+
         struct MeshPart
         {
             VertexCollection Vertices;
@@ -122,5 +124,6 @@ namespace Gradient::Rendering
 
         D3D12_VERTEX_BUFFER_VIEW m_vbv;
         D3D12_INDEX_BUFFER_VIEW m_ibv;
+        DirectX::BoundingBox m_boundingBox;
     };
 }

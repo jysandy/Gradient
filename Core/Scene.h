@@ -12,6 +12,7 @@
 #include "Core/ECS/Components/PointLightComponent.h"
 #include "Core/ECS/Components/InstanceDataComponent.h"
 #include "Core/ECS/Components/RelationshipComponent.h"
+#include "Core/ECS/Components/BoundingBoxComponent.h"
 
 
 namespace Gradient::Scene
@@ -26,6 +27,47 @@ namespace Gradient::Scene
         entityManager->Registry.emplace<TransformComponent>(e);
 
         return e;
+    }
+
+    void AttachMeshWithBB(entt::entity entity, 
+        std::unique_ptr<Rendering::ProceduralMesh> mesh)
+    {
+        using namespace Gradient::ECS::Components;
+        auto em = EntityManager::Get();
+
+        em->Registry.emplace<BoundingBoxComponent>(
+            entity,
+            mesh->GetBoundingBox()
+        );
+
+        em->Registry.emplace<DrawableComponent>(
+            entity,
+            std::move(mesh)
+        );
+    }
+
+    void AttachInstances(entt::entity entity,
+        std::unique_ptr<Rendering::ProceduralMesh> instancedMesh,
+        BufferManager::InstanceBufferHandle instanceBufferHandle,
+        const std::vector<BufferManager::InstanceData>& instances)
+    {
+        using namespace Gradient::ECS::Components;
+        auto em = EntityManager::Get();
+
+        auto& leavesInstance
+            = em->Registry.emplace<InstanceDataComponent>(
+                entity,
+                instanceBufferHandle);
+
+        em->Registry.emplace<BoundingBoxComponent>(
+            entity,
+            BoundingBoxComponent::CreateFromInstanceData(
+                instancedMesh->GetBoundingBox(),
+                instances
+            ));
+
+        em->Registry.emplace<DrawableComponent>(entity,
+            std::move(instancedMesh));
     }
 
     entt::entity AddSphere(ID3D12Device* device, ID3D12CommandQueue* cq,
@@ -44,10 +86,8 @@ namespace Gradient::Scene
         auto sphere1 = entityManager->AddEntity();
         entityManager->Registry.emplace<NameTagComponent>(sphere1, name);
         entityManager->Registry.emplace<TransformComponent>(sphere1);
-        entityManager->Registry.emplace<DrawableComponent>(sphere1,
-            Rendering::ProceduralMesh::CreateSphere(device,
-                cq, diameter)
-        );
+        AttachMeshWithBB(sphere1, Rendering::ProceduralMesh::CreateSphere(device,
+            cq, diameter));
         entityManager->Registry.emplace<MaterialComponent>(sphere1,
             material);
         entityManager->Registry.emplace<RigidBodyComponent>(sphere1,
@@ -77,7 +117,7 @@ namespace Gradient::Scene
         auto& floorTransform =
             entityManager->Registry.emplace<TransformComponent>(floor);
         floorTransform.Translation = Matrix::CreateTranslation(position);
-        entityManager->Registry.emplace<DrawableComponent>(floor,
+        AttachMeshWithBB(floor,
             Rendering::ProceduralMesh::CreateBox(device,
                 cq, dimensions));
         entityManager->Registry.emplace<MaterialComponent>(floor,
@@ -124,6 +164,7 @@ namespace Gradient::Scene
             textureManager->GetTexture(textureKey),
             height,
             static_cast<float>(width));
+        // TODO: Make a bounding box
         entityManager->Registry.emplace<RigidBodyComponent>(terrain,
             RigidBodyComponent::CreateHeightField(assetPath,
                 static_cast<float>(width),
@@ -157,7 +198,7 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<TransformComponent>(tree);
         frustumTransform.Translation = Matrix::CreateTranslation(position);
 
-        entityManager->Registry.emplace<DrawableComponent>(tree,
+        AttachMeshWithBB(tree,
             lsystem.GetMesh(device, cq, startingRule, numGenerations));
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
@@ -219,15 +260,16 @@ namespace Gradient::Scene
             cq, 
             instances);
 
-        auto& leavesInstance
-            = entityManager->Registry.emplace<InstanceDataComponent>(leaves, 
-                bufferHandle);
+        auto leafBillboard = Rendering::ProceduralMesh::CreateBillboard(device,
+            cq,
+            leafWidth,
+            leafWidth);
 
-        entityManager->Registry.emplace<DrawableComponent>(leaves,
-            Rendering::ProceduralMesh::CreateBillboard(device,
-                cq,
-                leafWidth,
-                leafWidth));
+        AttachInstances(leaves,
+            std::move(leafBillboard),
+            bufferHandle,
+            instances
+        );
 
         // End leaves
 
@@ -246,6 +288,7 @@ namespace Gradient::Scene
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
         auto textureManager = TextureManager::Get();
+        auto bm = BufferManager::Get();
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
@@ -289,30 +332,29 @@ namespace Gradient::Scene
 
         // Branch instance generation
 
-        std::vector<BufferManager::InstanceData> branchInstances;
-
-        for (const auto& transform : lsystem.GetLeafTransforms())
         {
-            branchInstances.push_back({
-                    Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
-                    Vector2{0, 1},
-                    Vector2{0, 1}
-                });
+            std::vector<BufferManager::InstanceData> branchInstances;
+
+            for (const auto& transform : lsystem.GetLeafTransforms())
+            {
+                branchInstances.push_back({
+                        Matrix::CreateFromQuaternion(transform.Rotation)
+                            * Matrix::CreateTranslation(transform.Translation),
+                        Vector2{0, 1},
+                        Vector2{0, 1}
+                    });
+            }
+            
+            auto branchBufferHandle = bm->CreateInstanceBuffer(device,
+                cq,
+                branchInstances);
+
+            AttachInstances(branches,
+                twigSystem.GetBuiltMesh(device,
+                    cq),
+                branchBufferHandle,
+                branchInstances);
         }
-
-        auto bm = BufferManager::Get();
-        auto branchBufferHandle = bm->CreateInstanceBuffer(device,
-            cq,
-            branchInstances);
-
-        auto& branchInstance
-            = entityManager->Registry.emplace<InstanceDataComponent>(branches,
-                branchBufferHandle);
-
-        entityManager->Registry.emplace<DrawableComponent>(branches,
-            twigSystem.GetBuiltMesh(device,
-                cq));
 
         // Leaves
 
@@ -362,15 +404,13 @@ namespace Gradient::Scene
             cq,
             leafInstances);
 
-        auto& leavesInstance
-            = entityManager->Registry.emplace<InstanceDataComponent>(leaves,
-                bufferHandle);
-
-        entityManager->Registry.emplace<DrawableComponent>(leaves,
+        AttachInstances(leaves,
             Rendering::ProceduralMesh::CreateBillboard(device,
                 cq,
                 leafWidth,
-                leafWidth));
+                leafWidth),
+            bufferHandle,
+            leafInstances);
 
         // End leaves
 

@@ -201,6 +201,7 @@
     <ClInclude Include="Core\BarrierResource.h" />
     <ClInclude Include="Core\BufferManager.h" />
     <ClInclude Include="Core\Camera.h" />
+    <ClInclude Include="Core\ECS\Components\BoundingBoxComponent.h" />
     <ClInclude Include="Core\ECS\Components\DrawableComponent.h" />
     <ClInclude Include="Core\ECS\Components\HeightMapComponent.h" />
     <ClInclude Include="Core\ECS\Components\InstanceDataComponent.h" />
@@ -260,6 +261,7 @@
     <ClCompile Include="Core\BarrierResource.cpp" />
     <ClCompile Include="Core\BufferManager.cpp" />
     <ClCompile Include="Core\Camera.cpp" />
+    <ClCompile Include="Core\ECS\Components\BoundingBoxComponent.cpp" />
     <ClCompile Include="Core\ECS\Components\RigidBodyComponent.cpp" />
     <ClCompile Include="Core\ECS\Components\TransformComponent.cpp" />
     <ClCompile Include="Core\FreeMoveCamera.cpp" />

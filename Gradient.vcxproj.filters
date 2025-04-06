@@ -71,6 +71,7 @@
     <ClInclude Include="Core\Scene.h" />
     <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
     <ClInclude Include="Core\BufferManager.h" />
+    <ClInclude Include="Core\ECS\Components\BoundingBoxComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -117,6 +118,7 @@
     <ClCompile Include="Core\Rendering\LSystem.cpp" />
     <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
     <ClCompile Include="Core\BufferManager.cpp" />
+    <ClCompile Include="Core\ECS\Components\BoundingBoxComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
