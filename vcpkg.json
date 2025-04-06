@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "directxtex",
     "directxtk12",
     "entt",
     {
@@ -13,6 +14,6 @@
       ]
     },
     "spdlog",
-    "directxtex"
+    "meshoptimizer"
   ]
 }

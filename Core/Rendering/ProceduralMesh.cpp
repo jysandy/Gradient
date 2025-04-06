@@ -3,6 +3,7 @@
 #include <directxtk12/BufferHelpers.h>
 #include <directxtk12/ResourceUploadBatch.h>
 #include <map>
+#include <meshoptimizer.h>
 
 using namespace DirectX::SimpleMath;
 
@@ -1069,19 +1070,69 @@ namespace Gradient::Rendering
             0);
     }
 
+    std::tuple<ProceduralMesh::VertexCollection, ProceduralMesh::IndexCollection>
+        OptimizeMesh(const ProceduralMesh::VertexCollection& vertices, 
+        const ProceduralMesh::IndexCollection& indices)
+    {
+        std::vector<unsigned int> remap(vertices.size());
+        auto vertexCount = meshopt_generateVertexRemap(&remap[0],
+            indices.data(),
+            indices.size(),
+            vertices.data(),
+            vertices.size(),
+            sizeof(ProceduralMesh::VertexType));
+
+        ProceduralMesh::VertexCollection outVertices(vertexCount);
+        ProceduralMesh::IndexCollection outIndices(indices.size());
+
+        meshopt_remapIndexBuffer(outIndices.data(),
+            indices.data(),
+            indices.size(),
+            remap.data());
+
+        meshopt_remapVertexBuffer(outVertices.data(),
+            vertices.data(),
+            vertices.size(),
+            sizeof(ProceduralMesh::VertexType),
+            remap.data());
+
+        meshopt_optimizeVertexCache(outIndices.data(),
+            outIndices.data(),
+            outIndices.size(),
+            outVertices.size());
+        meshopt_optimizeOverdraw(outIndices.data(),
+            outIndices.data(),
+            outIndices.size(),
+            &outVertices[0].position.x,
+            outVertices.size(),
+            sizeof(ProceduralMesh::VertexType),
+            1.05f);
+        meshopt_optimizeVertexFetch(outVertices.data(),
+            outIndices.data(),
+            outIndices.size(),
+            outVertices.data(),
+            outVertices.size(),
+            sizeof(ProceduralMesh::VertexType));
+
+        return std::make_tuple(outVertices, outIndices);
+    }
+
     void ProceduralMesh::Initialize(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const VertexCollection& vertices,
         const IndexCollection& indices)
     {
+        auto [optimizedVertices, optimizedIndices] 
+            = OptimizeMesh(vertices, indices);
+
         NarrowIndexCollection narrowIndices;
 
         // Use 16 bit indices if the vertex count allows for it.
-        const bool use16bit = vertices.size() < UINT16_MAX;
+        const bool use16bit = optimizedVertices.size() < UINT16_MAX;
 
         if (use16bit)
         {
-            for (const auto& index : indices)
+            for (const auto& index : optimizedIndices)
             {
                 narrowIndices.push_back(static_cast<uint32_t>(index));
             }
@@ -1094,7 +1145,7 @@ namespace Gradient::Rendering
 
         DX::ThrowIfFailed(
             DirectX::CreateStaticBuffer(device, uploadBatch,
-                vertices,
+                optimizedVertices,
                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
                 m_vertexBuffer.ReleaseAndGetAddressOf()));
 
@@ -1112,7 +1163,7 @@ namespace Gradient::Rendering
             DX::ThrowIfFailed(
                 DirectX::CreateStaticBuffer(device,
                     uploadBatch,
-                    indices,
+                    optimizedIndices,
                     D3D12_RESOURCE_STATE_INDEX_BUFFER,
                     m_indexBuffer.ReleaseAndGetAddressOf()));
         }
@@ -1123,7 +1174,7 @@ namespace Gradient::Rendering
         {
             std::vector<DirectX::XMFLOAT3> points;
 
-            for (const auto& vertex : vertices)
+            for (const auto& vertex : optimizedVertices)
             {
                 points.push_back(vertex.position);
             }
@@ -1139,8 +1190,8 @@ namespace Gradient::Rendering
 
         m_vbv.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
         m_vbv.StrideInBytes = sizeof(VertexType);
-        m_vbv.SizeInBytes = m_vbv.StrideInBytes * vertices.size();
-        m_vertexCount = vertices.size();
+        m_vbv.SizeInBytes = m_vbv.StrideInBytes * optimizedVertices.size();
+        m_vertexCount = optimizedVertices.size();
 
         m_ibv.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
         if (use16bit)
@@ -1152,8 +1203,8 @@ namespace Gradient::Rendering
         else
         {
             m_ibv.Format = DXGI_FORMAT_R32_UINT;
-            m_ibv.SizeInBytes = sizeof(uint32_t) * indices.size();
-            m_indexCount = indices.size();
+            m_ibv.SizeInBytes = sizeof(uint32_t) * optimizedIndices.size();
+            m_indexCount = optimizedIndices.size();
         }
     }
 
