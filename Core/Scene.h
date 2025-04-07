@@ -105,7 +105,8 @@ namespace Gradient::Scene
 
         auto sphere1 = entityManager->AddEntity();
         entityManager->Registry.emplace<NameTagComponent>(sphere1, name);
-        entityManager->Registry.emplace<TransformComponent>(sphere1);
+        auto& sphereTransform = entityManager->Registry.emplace<TransformComponent>(sphere1);
+        sphereTransform.Translation = Matrix::CreateTranslation(position);
         AttachMeshWithBB(sphere1, bm->CreateSphere(device,
             cq, diameter));
         entityManager->Registry.emplace<MaterialComponent>(sphere1,
@@ -434,7 +435,8 @@ namespace Gradient::Scene
     }
 
 
-    void CreateScene(ID3D12Device* device, ID3D12CommandQueue* cq)
+    // Creates some boxes and spheres.
+    void CreateDemoObjects(ID3D12Device* device, ID3D12CommandQueue* cq)
     {
         using namespace Gradient::ECS::Components;
 
@@ -444,7 +446,6 @@ namespace Gradient::Scene
 
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
-
 
         AddSphere(device, cq,
             "sphere1",
@@ -480,6 +481,126 @@ namespace Gradient::Scene
                 settings.mRestitution = 0.9f;
                 return settings;
             });
+
+        AddBox(device, cq,
+            "floor",
+            Vector3{ 0.f, -0.25f + 10.f, 0.f },
+            Vector3{ 20.f, 0.5f, 20.f },
+            Rendering::PBRMaterial(
+                "tiles06Albedo",
+                "tiles06Normal",
+                "tiles06AO",
+                "tiles06Metalness",
+                "tiles06Roughness"
+            ),
+            [](JPH::BodyCreationSettings settings)
+            {
+                settings.mMotionType = JPH::EMotionType::Static;
+                settings.mObjectLayer = Gradient::Physics::ObjectLayers::NON_MOVING;
+                return settings;
+            });
+
+        AddBox(device, cq,
+            "box1",
+            Vector3{ -5.f, 1.5f + 10.f, -4.f },
+            Vector3{ 1, 1, 1 },
+            Rendering::PBRMaterial(
+                "metal01Albedo",
+                "metal01Normal",
+                "metal01AO",
+                "metal01Metalness",
+                "metal01Roughness"
+            ));
+
+        AddBox(device, cq,
+            "box2",
+            Vector3{ -5.f, 1.5f + 10.f, 1.f },
+            Vector3{ 1, 1, 1 },
+            Rendering::PBRMaterial(
+                "crate",
+                "crateNormal",
+                "crateAO",
+                "defaultMetalness",
+                "crateRoughness"
+            ));
+    }
+
+    // Creates a couple of point lights.
+    void CreatePointLights(ID3D12Device* device, ID3D12CommandQueue* cq, bool nonMoving = false)
+    {
+        using namespace Gradient::ECS::Components;
+
+        auto entityManager = EntityManager::Get();
+        auto textureManager = TextureManager::Get();
+        auto bm = BufferManager::Get();
+
+        JPH::BodyInterface& bodyInterface
+            = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
+
+        auto ePointLight1 = AddSphere(device, cq,
+            "pointLight1",
+            Vector3{ -5.f, 20.f, 5.f },
+            0.5f,
+            Rendering::PBRMaterial::Light(7.f,
+                { 0.9, 0.8, 0.5 }),
+            [=](auto settings)
+            {
+                if (nonMoving)
+                {
+                    settings.mMotionType = JPH::EMotionType::Static;
+                    settings.mObjectLayer = Gradient::Physics::ObjectLayers::NON_MOVING;
+                }
+
+                settings.mRestitution = 0.9f;
+                return settings;
+            });
+
+        auto& pointLightComponent
+            = entityManager->Registry.emplace<PointLightComponent>(ePointLight1);
+        pointLightComponent.PointLight.Colour = Color(Vector3{ 0.9, 0.8, 0.5 });
+        pointLightComponent.PointLight.Irradiance = 7.f;
+        pointLightComponent.PointLight.MaxRange = 10.f;
+        pointLightComponent.PointLight.ShadowCubeIndex = 0;
+
+        auto ePointLight2 = AddSphere(device, cq,
+            "pointLight2",
+            { 8.f, 20, 0.f },
+            0.5f,
+            Rendering::PBRMaterial::Light(7.f,
+                { 1, 0.3, 0 }),
+            [=](auto settings)
+            {
+                if (nonMoving)
+                {
+                    settings.mMotionType = JPH::EMotionType::Static;
+                    settings.mObjectLayer = Gradient::Physics::ObjectLayers::NON_MOVING;
+                }
+
+                settings.mRestitution = 0.9f;
+                return settings;
+            });
+
+        auto& pointLight2Component
+            = entityManager->Registry.emplace<PointLightComponent>(ePointLight2);
+        pointLight2Component.PointLight.Colour = Color(Vector3{ 1, 0.3, 0 });
+        pointLight2Component.PointLight.Irradiance = 7.f;
+        pointLight2Component.PointLight.MaxRange = 10.f;
+        pointLight2Component.PointLight.ShadowCubeIndex = 1;
+    }
+
+    void CreateScene(ID3D12Device* device, ID3D12CommandQueue* cq)
+    {
+        using namespace Gradient::ECS::Components;
+
+        auto entityManager = EntityManager::Get();
+        auto textureManager = TextureManager::Get();
+        auto bm = BufferManager::Get();
+
+        JPH::BodyInterface& bodyInterface
+            = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
+
+        CreatePointLights(device, cq, true);
+        //CreateDemoObjects(device, cq);
 
         Rendering::LSystem treeTrunk;
         treeTrunk.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
@@ -535,48 +656,6 @@ namespace Gradient::Scene
             bushTrunkMesh, bushLeafData);
 
 
-        AddBox(device, cq,
-            "floor",
-            Vector3{ 0.f, -0.25f + 10.f, 0.f },
-            Vector3{ 20.f, 0.5f, 20.f },
-            Rendering::PBRMaterial(
-                "tiles06Albedo",
-                "tiles06Normal",
-                "tiles06AO",
-                "tiles06Metalness",
-                "tiles06Roughness"
-            ),
-            [](JPH::BodyCreationSettings settings)
-            {
-                settings.mMotionType = JPH::EMotionType::Static;
-                settings.mObjectLayer = Gradient::Physics::ObjectLayers::NON_MOVING;
-                return settings;
-            });
-
-        AddBox(device, cq,
-            "box1",
-            Vector3{ -5.f, 1.5f + 10.f, -4.f },
-            Vector3{ 1, 1, 1 },
-            Rendering::PBRMaterial(
-                "metal01Albedo",
-                "metal01Normal",
-                "metal01AO",
-                "metal01Metalness",
-                "metal01Roughness"
-            ));
-
-        AddBox(device, cq,
-            "box2",
-            Vector3{ -5.f, 1.5f + 10.f, 1.f },
-            Vector3{ 1, 1, 1 },
-            Rendering::PBRMaterial(
-                "crate",
-                "crateNormal",
-                "crateAO",
-                "defaultMetalness",
-                "crateRoughness"
-            ));
-
         auto water = AddEntity("water");
         entityManager->Registry.emplace<DrawableComponent>(water,
             bm->CreateGrid(device,
@@ -585,45 +664,6 @@ namespace Gradient::Scene
                 800,
                 100),
             DrawableComponent::ShadingModel::Water);
-
-        auto ePointLight1 = AddSphere(device, cq,
-            "pointLight1",
-            Vector3{ -5.f, 20.f, 5.f },
-            0.5f,
-            Rendering::PBRMaterial::Light(7.f,
-                { 0.9, 0.8, 0.5 }),
-            [](auto settings)
-            {
-                settings.mRestitution = 0.9f;
-                return settings;
-            });
-
-        auto& pointLightComponent
-            = entityManager->Registry.emplace<PointLightComponent>(ePointLight1);
-        pointLightComponent.PointLight.Colour = Color(Vector3{ 0.9, 0.8, 0.5 });
-        pointLightComponent.PointLight.Irradiance = 7.f;
-        pointLightComponent.PointLight.MaxRange = 10.f;
-        pointLightComponent.PointLight.ShadowCubeIndex = 0;
-
-        auto ePointLight2 = AddSphere(device, cq,
-            "pointLight2",
-            { 8.f, 20, 0.f },
-            0.5f,
-            Rendering::PBRMaterial::Light(7.f,
-                { 1, 0.3, 0 }),
-            [](auto settings)
-            {
-                settings.mRestitution = 0.9f;
-                return settings;
-            });
-
-        auto& pointLight2Component
-            = entityManager->Registry.emplace<PointLightComponent>(ePointLight2);
-        pointLight2Component.PointLight.Colour = Color(Vector3{ 1, 0.3, 0 });
-        pointLight2Component.PointLight.Irradiance = 7.f;
-        pointLight2Component.PointLight.MaxRange = 10.f;
-        pointLight2Component.PointLight.ShadowCubeIndex = 1;
-
 
         textureManager->LoadDDS(device, cq,
             "islandHeightMap",
