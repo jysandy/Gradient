@@ -188,6 +188,6 @@ namespace Gradient
 
         assert(bufferEntry);
         cl->SetGraphicsRootShaderResourceView(rpIndex,
-            bufferEntry.value().Resource->GetGpuAddress());
+            bufferEntry->Resource.GetGpuAddress());
     }
 }

@@ -362,7 +362,7 @@ namespace Gradient::Rendering
 
                 if (bufferEntry)
                 {
-                    drawable.Drawable->Draw(cl, bufferEntry.value().InstanceCount);
+                    drawable.Drawable->Draw(cl, bufferEntry->InstanceCount);
                 }
         }
 

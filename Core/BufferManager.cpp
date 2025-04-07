@@ -40,12 +40,12 @@ namespace Gradient
                 });
         }
 
-        auto handle = AllocateInstanceBufferHandle();
-        m_instanceBuffers[handle] = {
-            std::make_shared<BarrierResource>(),
+        auto handle = m_instanceBuffers.Allocate({
+            BarrierResource(),
             static_cast<uint32_t>(transposedInstanceData.size())
-        };
-        auto buffer = m_instanceBuffers[handle].Resource.get();
+            });
+
+        auto entry = m_instanceBuffers.Get(handle);
 
         DirectX::ResourceUploadBatch uploadBatch(device);
 
@@ -58,8 +58,8 @@ namespace Gradient
                 transposedInstanceData.data(),
                 transposedInstanceData.size(),
                 D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
-                buffer->ReleaseAndGetAddressOf()));
-        buffer->SetState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+                entry->Resource.ReleaseAndGetAddressOf()));
+        entry->Resource.SetState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
 
         auto uploadFinished = uploadBatch.End(cq);
         uploadFinished.wait();
@@ -67,22 +67,8 @@ namespace Gradient
         return handle;
     }
 
-    BufferManager::InstanceBufferHandle BufferManager::AllocateInstanceBufferHandle()
+    BufferManager::InstanceBufferEntry* BufferManager::GetInstanceBuffer(InstanceBufferHandle handle)
     {
-        auto allocatedHandle = m_nextIBH;
-        m_nextIBH++;
-        return allocatedHandle;
-    }
-
-    std::optional<BufferManager::InstanceBufferEntry> BufferManager::GetInstanceBuffer(InstanceBufferHandle handle)
-    {
-        auto buffer = m_instanceBuffers.find(handle);
-
-        if (buffer != m_instanceBuffers.end())
-        {
-            return buffer->second;
-        }
-
-        return std::nullopt;
+        return m_instanceBuffers.Get(handle);
     }
 }

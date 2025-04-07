@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "Core/BarrierResource.h"
+#include "Core/FreeListAllocator.h"
 
 #include <optional>
 
@@ -11,8 +12,6 @@ namespace Gradient
     class BufferManager
     {
     public:
-        using InstanceBufferHandle = std::uint64_t;
-
         struct __declspec(align(16)) InstanceData
         {
             DirectX::XMMATRIX World;
@@ -22,9 +21,12 @@ namespace Gradient
 
         struct InstanceBufferEntry
         {
-            std::shared_ptr<BarrierResource> Resource;
+            BarrierResource Resource;
             uint32_t InstanceCount;
         };
+
+        using InstanceBufferList = FreeListAllocator<InstanceBufferEntry>;
+        using InstanceBufferHandle = InstanceBufferList::Handle;
 
         static void Initialize();
         static void Shutdown();
@@ -33,18 +35,12 @@ namespace Gradient
         InstanceBufferHandle CreateInstanceBuffer(ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const std::vector<InstanceData>& instanceData);
-        std::optional<InstanceBufferEntry> GetInstanceBuffer(InstanceBufferHandle handle);
+        InstanceBufferEntry* GetInstanceBuffer(InstanceBufferHandle handle);
 
 
     private:
         static std::unique_ptr<BufferManager> s_instance;
 
-        InstanceBufferHandle m_nextIBH = 0;
-        InstanceBufferHandle AllocateInstanceBufferHandle();
-
-        // TODO: Track the size of the instance buffer here.
-        // TODO: Change this to a vector with a free list
-        std::unordered_map<InstanceBufferHandle, InstanceBufferEntry> m_instanceBuffers;
-
+        InstanceBufferList m_instanceBuffers;
     };
 }

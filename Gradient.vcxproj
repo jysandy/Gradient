@@ -211,6 +211,7 @@
     <ClInclude Include="Core\ECS\Components\RelationshipComponent.h" />
     <ClInclude Include="Core\ECS\Components\RigidBodyComponent.h" />
     <ClInclude Include="Core\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Core\FreeListAllocator.h" />
     <ClInclude Include="Core\FreeMoveCamera.h" />
     <ClInclude Include="Core\GraphicsMemoryManager.h" />
     <ClInclude Include="Core\Math.h" />
