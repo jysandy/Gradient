@@ -29,6 +29,13 @@ namespace Gradient::Scene
         return e;
     }
 
+    struct InstanceEntityData
+    {
+        BufferManager::MeshHandle MeshHandle;
+        BufferManager::InstanceBufferHandle InstanceBufferHandle;
+        std::vector<BufferManager::InstanceData> Instances;
+    };
+
     void AttachMeshWithBB(entt::entity entity,
         BufferManager::MeshHandle meshHandle)
     {
@@ -74,6 +81,12 @@ namespace Gradient::Scene
 
         em->Registry.emplace<DrawableComponent>(entity,
             instancedMeshHandle);
+    }
+
+    void AttachInstances(entt::entity entity,
+        const InstanceEntityData& data)
+    {
+        AttachInstances(entity, data.MeshHandle, data.InstanceBufferHandle, data.Instances);
     }
 
     entt::entity AddSphere(ID3D12Device* device, ID3D12CommandQueue* cq,
@@ -184,11 +197,123 @@ namespace Gradient::Scene
         return terrain;
     }
 
+    InstanceEntityData MakeLeaves(ID3D12Device* device, ID3D12CommandQueue* cq,
+        Rendering::LSystem& lsystem, const float leafWidth = 0.5f)
+    {
+        auto bm = BufferManager::Get();
+
+        InstanceEntityData out;
+
+        Matrix billboardTransform = Matrix::Identity;
+
+        // Shift the leaf origin and point it upwards.
+        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
+            * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
+
+        int numRows = 3;
+        int numCols = 4;
+
+        for (const auto& transform : lsystem.GetLeafTransforms())
+        {
+            float colIndex = abs(rand()) % numCols;
+            float rowIndex = abs(rand()) % numRows;
+
+            out.Instances.push_back({
+                    billboardTransform
+                        * Matrix::CreateFromQuaternion(transform.Rotation)
+                        * Matrix::CreateTranslation(transform.Translation),
+                    Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
+                    Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
+                });
+        }
+
+        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+            cq,
+            out.Instances);
+
+        out.MeshHandle = bm->CreateBillboard(device,
+            cq,
+            leafWidth,
+            leafWidth);
+
+        return out;
+    }
+
+    InstanceEntityData MakeLeaves(ID3D12Device* device, ID3D12CommandQueue* cq,
+        Rendering::LSystem& trunk, Rendering::LSystem& branches, const float leafWidth = 0.5f)
+    {
+        auto bm = BufferManager::Get();
+
+        InstanceEntityData out;
+
+        int numRows = 3;
+        int numCols = 4;
+
+        Matrix billboardTransform = Matrix::Identity;
+
+        // Shift the leaf origin and point it upwards.
+        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
+            * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
+
+        auto leafTransforms = trunk.GetCombinedLeaves(branches);
+
+        for (const auto& transform : leafTransforms)
+        {
+            float colIndex = abs(rand()) % numCols;
+            float rowIndex = abs(rand()) % numRows;
+
+            out.Instances.push_back({
+                    billboardTransform
+                        * Matrix::CreateFromQuaternion(transform.Rotation)
+                        * Matrix::CreateTranslation(transform.Translation),
+                    Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
+                    Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
+                });
+        }
+
+        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+            cq,
+            out.Instances);
+
+        out.MeshHandle = bm->CreateBillboard(device,
+            cq,
+            leafWidth,
+            leafWidth);
+
+        return out;
+    }
+
+    InstanceEntityData MakeBranches(ID3D12Device* device, ID3D12CommandQueue* cq,
+        Rendering::LSystem& trunk, Rendering::LSystem& branches)
+    {
+        auto bm = BufferManager::Get();
+
+        InstanceEntityData out;
+
+        for (const auto& transform : trunk.GetLeafTransforms())
+        {
+            out.Instances.push_back({
+                    Matrix::CreateFromQuaternion(transform.Rotation)
+                        * Matrix::CreateTranslation(transform.Translation),
+                    Vector2{0, 1},
+                    Vector2{0, 1}
+                });
+        }
+
+        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+            cq,
+            out.Instances);
+
+        out.MeshHandle = bm->CreateFromPart(device, cq, branches.GetTrunk());
+
+        return out;
+    }
+
     entt::entity AddBush(ID3D12Device* device, ID3D12CommandQueue* cq,
         const std::string& name,
         const DirectX::SimpleMath::Vector3& position,
-        Rendering::LSystem& lsystem,
-        const float leafWidth = 0.5f)
+        BufferManager::MeshHandle trunkMeshHandle,
+        const InstanceEntityData& leafData)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -206,8 +331,7 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<TransformComponent>(tree);
         frustumTransform.Translation = Matrix::CreateTranslation(position);
 
-        AttachMeshWithBB(tree,
-            bm->CreateFromPart(device, cq, lsystem.GetTrunk()));
+        AttachMeshWithBB(tree, trunkMeshHandle);
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
             Rendering::PBRMaterial(
@@ -217,8 +341,6 @@ namespace Gradient::Scene
                 "defaultMetalness",
                 "bark_roughness"
             ));
-
-        // End tree
 
         // Leaves
 
@@ -236,49 +358,7 @@ namespace Gradient::Scene
                 "leaf_roughness"
             ));
 
-        // Instance generation
-
-        int numRows = 3;
-        int numCols = 4;
-
-        Matrix billboardTransform = Matrix::Identity;
-
-        // Shift the leaf origin and point it upwards.
-        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
-            * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
-
-        std::vector<BufferManager::InstanceData> instances;
-
-        for (const auto& transform : lsystem.GetLeafTransforms())
-        {
-            float colIndex = abs(rand()) % numCols;
-            float rowIndex = abs(rand()) % numRows;
-
-            instances.push_back({
-                    billboardTransform
-                        * Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
-                    Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
-                    Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
-                });
-        }
-
-        auto bufferHandle = bm->CreateInstanceBuffer(device,
-            cq,
-            instances);
-
-        auto leafBillboard = bm->CreateBillboard(device,
-            cq,
-            leafWidth,
-            leafWidth);
-
-        AttachInstances(leaves,
-            leafBillboard,
-            bufferHandle,
-            instances
-        );
-
-        // End leaves
+        AttachInstances(leaves, leafData);
 
         return tree;
     }
@@ -286,9 +366,9 @@ namespace Gradient::Scene
     entt::entity AddTree(ID3D12Device* device, ID3D12CommandQueue* cq,
         const std::string& name,
         const DirectX::SimpleMath::Vector3& position,
-        Rendering::LSystem& lsystem,
-        Rendering::LSystem& twigSystem,
-        const float leafWidth = 0.5f)
+        BufferManager::MeshHandle trunkMeshHandle,
+        const InstanceEntityData& branchData,
+        const InstanceEntityData& leafData)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -296,7 +376,6 @@ namespace Gradient::Scene
         auto bm = BufferManager::Get();
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
-
 
         // Tree
 
@@ -306,8 +385,7 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<TransformComponent>(tree);
         frustumTransform.Translation = Matrix::CreateTranslation(position);
 
-        entityManager->Registry.emplace<DrawableComponent>(tree,
-            bm->CreateFromPart(device, cq, lsystem.GetTrunk()));
+        AttachMeshWithBB(tree, trunkMeshHandle);
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
             Rendering::PBRMaterial(
@@ -317,8 +395,6 @@ namespace Gradient::Scene
                 "defaultMetalness",
                 "bark_roughness"
             ));
-
-        // End tree
 
         // Branches
         auto branches = entityManager->AddEntity();
@@ -335,33 +411,9 @@ namespace Gradient::Scene
                 "bark_roughness"
             ));
 
-        // Branch instance generation
-
-        {
-            std::vector<BufferManager::InstanceData> branchInstances;
-
-            for (const auto& transform : lsystem.GetLeafTransforms())
-            {
-                branchInstances.push_back({
-                        Matrix::CreateFromQuaternion(transform.Rotation)
-                            * Matrix::CreateTranslation(transform.Translation),
-                        Vector2{0, 1},
-                        Vector2{0, 1}
-                    });
-            }
-
-            auto branchBufferHandle = bm->CreateInstanceBuffer(device,
-                cq,
-                branchInstances);
-
-            AttachInstances(branches,
-                bm->CreateFromPart(device, cq, twigSystem.GetTrunk()),
-                branchBufferHandle,
-                branchInstances);
-        }
+        AttachInstances(branches, branchData);
 
         // Leaves
-
         auto leaves = entityManager->AddEntity();
         entityManager->Registry.emplace<NameTagComponent>(leaves, name + "Leaves");
         auto& leavesTransform
@@ -376,47 +428,7 @@ namespace Gradient::Scene
                 "leaf_roughness"
             ));
 
-        // Instance generation
-
-        int numRows = 3;
-        int numCols = 4;
-
-        Matrix billboardTransform = Matrix::Identity;
-
-        // Shift the leaf origin and point it upwards.
-        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
-            * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
-
-        std::vector<BufferManager::InstanceData> leafInstances;
-        auto leafTransforms = lsystem.GetCombinedLeaves(twigSystem);
-
-        for (const auto& transform : leafTransforms)
-        {
-            float colIndex = abs(rand()) % numCols;
-            float rowIndex = abs(rand()) % numRows;
-
-            leafInstances.push_back({
-                    billboardTransform
-                        * Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
-                    Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
-                    Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
-                });
-        }
-
-        auto bufferHandle = bm->CreateInstanceBuffer(device,
-            cq,
-            leafInstances);
-
-        AttachInstances(leaves,
-            bm->CreateBillboard(device,
-                cq,
-                leafWidth,
-                leafWidth),
-            bufferHandle,
-            leafInstances);
-
-        // End leaves
+        AttachInstances(leaves, leafData);
 
         return tree;
     }
@@ -469,35 +481,39 @@ namespace Gradient::Scene
                 return settings;
             });
 
-        Rendering::LSystem lsystem;
-        lsystem.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
-        lsystem.AddRule('X', "F[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
-        lsystem.AddRule('G', "[//--L][//---L][\\^++L][\\\\&&++L]");
-        lsystem.AddRule('L', "L///+^L");
-        lsystem.StartingRadius = 0.3f;
-        lsystem.RadiusFactor = 0.5f;
-        lsystem.AngleDegrees = 25.7f;
-        lsystem.MoveDistance = 1.f;
+        Rendering::LSystem treeTrunk;
+        treeTrunk.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
+        treeTrunk.AddRule('X', "F[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
+        treeTrunk.AddRule('G', "[//--L][//---L][\\^++L][\\\\&&++L]");
+        treeTrunk.AddRule('L', "L///+^L");
+        treeTrunk.StartingRadius = 0.3f;
+        treeTrunk.RadiusFactor = 0.5f;
+        treeTrunk.AngleDegrees = 25.7f;
+        treeTrunk.MoveDistance = 1.f;
 
-        lsystem.Build("T", 3);
+        treeTrunk.Build("T", 3);
 
-        Rendering::LSystem twigSystem;
-        twigSystem.AddRule('X', "FF/-F+F[--B]//F[^^B]//-FB");
-        twigSystem.AddRule('B', "FG[//^^B]F[\\\\&L]GG[+B]-B");
-        twigSystem.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
-        twigSystem.AddRule('L', "L///+^L");
-        twigSystem.StartingRadius = 0.02f;
-        twigSystem.RadiusFactor = 1.f;
-        twigSystem.AngleDegrees = 20.f;
-        twigSystem.MoveDistance = 0.2f;
+        Rendering::LSystem treeBranch;
+        treeBranch.AddRule('X', "FF/-F+F[--B]//F[^^B]//-FB");
+        treeBranch.AddRule('B', "FG[//^^B]F[\\\\&L]GG[+B]-B");
+        treeBranch.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
+        treeBranch.AddRule('L', "L///+^L");
+        treeBranch.StartingRadius = 0.02f;
+        treeBranch.RadiusFactor = 1.f;
+        treeBranch.AngleDegrees = 20.f;
+        treeBranch.MoveDistance = 0.2f;
 
-        twigSystem.Build("X", 5);
+        treeBranch.Build("X", 5);
+
+        auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk());
+        auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
+        auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
         AddTree(device, cq, "tree1",
             { 38.6f, 8.7f, 0.f },
-            lsystem,
-            twigSystem,
-            0.20f);
+            trunkMesh,
+            branchData,
+            leafData);
 
         Rendering::LSystem bushSystem;
         bushSystem.AddRule('T', "FFFX");
@@ -511,9 +527,12 @@ namespace Gradient::Scene
 
         bushSystem.Build("T", 6);
 
+        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk());
+        auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
+
         AddBush(device, cq, "bush1",
             { 33.6f, 8.7f, 0.f },
-            bushSystem, 0.06f);
+            bushTrunkMesh, bushLeafData);
 
 
         AddBox(device, cq,
