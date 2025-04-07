@@ -616,9 +616,9 @@ namespace Gradient::Scene
 
         Rendering::LSystem treeBranch;
         treeBranch.AddRule('X', "FF/-F+F[--B]//F[^^B]//-FB");
-        treeBranch.AddRule('B', "FG[//^^B]F[\\\\&L]GG[+B]-B");
+        treeBranch.AddRule('B', "F[//^^B]F[\\\\&L]G[+B]-BG");
         treeBranch.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
-        treeBranch.AddRule('L', "L///+^L");
+        //treeBranch.AddRule('L', "L///+^L");
         treeBranch.StartingRadius = 0.02f;
         treeBranch.RadiusFactor = 1.f;
         treeBranch.AngleDegrees = 20.f;
