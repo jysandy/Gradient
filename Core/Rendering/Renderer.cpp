@@ -171,6 +171,8 @@ namespace Gradient::Rendering
         for (auto& entity : pointLightsView)
         {
             auto [transform, light] = pointLightsView.get(entity);
+            // TODO: Cull lights whose range doesn't intersect 
+            // with the camera frustum.
             ShadowCubeArray->Render(cl,
                 light.PointLight.ShadowCubeIndex,
                 transform.GetTranslation(),

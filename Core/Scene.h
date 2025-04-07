@@ -665,9 +665,23 @@ namespace Gradient::Scene
         auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk());
         auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
 
-        AddBush(device, cq, "bush1",
-            { 33.6f, 8.7f, 0.f },
-            bushTrunkMesh, bushLeafData);
+        std::vector<Vector3> bushPositions = {
+            {33.6, 7.9, 0},
+            {21.7, 0.2, 4.1},
+            {2.3, 8.4, 21.2},
+            {-0.4, 7.9, 33.4},
+            {-11.8, 7.5, 34.2},
+            {-26.5, 7.3, 31.1},
+            {-36.1, 7.8, 8},
+            {-41, 6.9, -22}
+        };
+
+        for (int i = 0; i < bushPositions.size(); i++)
+        {
+            AddBush(device, cq, "bush" + std::to_string(i),
+                bushPositions[i],
+                bushTrunkMesh, bushLeafData);
+        }
 
 
         auto water = AddEntity("water");
