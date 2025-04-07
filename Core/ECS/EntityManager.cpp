@@ -88,11 +88,12 @@ namespace Gradient
         // TODO: Is this necessary?
 
         auto view = Registry.view<ECS::Components::DrawableComponent>();
+        auto bm = BufferManager::Get();
 
         for (auto entity : view)
         {
             auto& drawable = view.get<ECS::Components::DrawableComponent>(entity);
-            drawable.Drawable.reset();
+            bm->RemoveMesh(drawable.MeshHandle);
         }
     }
 

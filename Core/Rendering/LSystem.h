@@ -20,14 +20,6 @@ namespace Gradient::Rendering
         void Build(std::string startingRule,
             int numGenerations);
 
-        std::unique_ptr<ProceduralMesh> GetMesh(ID3D12Device* device,
-            ID3D12CommandQueue* cq,
-            std::string startingRule,
-            int numGenerations);
-
-        std::unique_ptr<ProceduralMesh> GetBuiltMesh(ID3D12Device* device,
-            ID3D12CommandQueue* cq);
-
         const ProceduralMesh::MeshPart& GetTrunk() const;
 
         void Combine(const LSystem& subsystem);

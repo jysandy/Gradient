@@ -23,6 +23,8 @@ namespace Gradient::Rendering
     void Renderer::CreateWindowSizeIndependentResources(ID3D12Device* device,
         ID3D12CommandQueue* cq)
     {
+        auto bm = BufferManager::Get();
+
         m_states = std::make_unique<DirectX::CommonStates>(device);
         PbrPipeline = std::make_unique<Pipelines::PBRPipeline>(device);
         InstancePipeline = std::make_unique<Pipelines::InstancedPBRPipeline>(device);
@@ -47,7 +49,7 @@ namespace Gradient::Rendering
 
         SkyDomePipeline = std::make_unique<Gradient::Pipelines::SkyDomePipeline>(device);
         SkyDomePipeline->SetAmbientIrradiance(1.f);
-        SkyGeometry = Rendering::ProceduralMesh::CreateGeoSphere(device,
+        SkyGeometry = bm->CreateGeoSphere(device,
             cq, 2.f, 3,
             false);
         EnvironmentMap = std::make_unique<Gradient::Rendering::CubeMap>(device,
@@ -136,6 +138,7 @@ namespace Gradient::Rendering
 
         auto entityManager = Gradient::EntityManager::Get();
         auto gmm = Gradient::GraphicsMemoryManager::Get();
+        auto bm = BufferManager::Get();
 
         ID3D12DescriptorHeap* heaps[] = { gmm->GetSrvDescriptorHeap(), m_states->Heap() };
         cl->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
@@ -199,7 +202,7 @@ namespace Gradient::Rendering
                 SkyDomePipeline->SetProjection(proj);
                 SkyDomePipeline->SetView(view);
                 SkyDomePipeline->Apply(cl, false);
-                SkyGeometry->Draw(cl);
+                bm->GetMesh(SkyGeometry)->Draw(cl);
             });
 
         PIXEndEvent(cl);
@@ -211,7 +214,7 @@ namespace Gradient::Rendering
         SkyDomePipeline->SetProjection(camera->GetProjectionMatrix());
         SkyDomePipeline->SetView(camera->GetViewMatrix());
         SkyDomePipeline->Apply(cl);
-        SkyGeometry->Draw(cl);
+        bm->GetMesh(SkyGeometry)->Draw(cl);
 
         // TODO: Batch these barrier transitions
         DirectionalLight->TransitionToShaderResource(cl);
@@ -292,35 +295,36 @@ namespace Gradient::Rendering
             MaterialComponent>(entt::exclude<InstanceDataComponent>);
         for (auto entity : defaultView)
         {
-            auto [drawable, transform, material]
-                = defaultView.get(entity);
+            auto [drawable, transform, material] = defaultView.get(entity);
 
-                if (drawable.Drawable == nullptr) continue;
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
 
-                if (drawingShadows && !drawable.CastsShadows) continue;
+            if (mesh == nullptr) continue;
 
-                if (drawable.ShadingModel
-                    != DrawableComponent::ShadingModel::Default)
+            if (drawingShadows && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Default)
+                continue;
+
+            if (!drawingShadows)
+                PbrPipeline->SetMaterial(material.Material);
+
+            auto world = em->GetWorldMatrix(entity);
+            auto bb = em->GetBoundingBox(entity);
+
+            if (viewFrustum && bb)
+            {
+                if (!viewFrustum.value().Intersects(bb.value()))
+                {
                     continue;
+                }
+            }
 
-                if (!drawingShadows)
-                    PbrPipeline->SetMaterial(material.Material);
+            PbrPipeline->SetWorld(world);
+            PbrPipeline->Apply(cl, true, drawingShadows);
 
-                auto world = em->GetWorldMatrix(entity);
-                auto bb = em->GetBoundingBox(entity);
-
-                    if (viewFrustum && bb)
-                    {
-                        if (!viewFrustum.value().Intersects(bb.value()))
-                        {
-                            continue;
-                        }
-                    }
-
-                PbrPipeline->SetWorld(world);
-                PbrPipeline->Apply(cl, true, drawingShadows);
-
-                drawable.Drawable->Draw(cl);
+            mesh->Draw(cl);
         }
 
         // Default shading model with instancing
@@ -330,40 +334,40 @@ namespace Gradient::Rendering
             InstanceDataComponent>();
         for (auto entity : instanceView)
         {
-            auto [drawable, transform, material, instances]
-                = instanceView.get(entity);
+            auto [drawable, transform, material, instances] = instanceView.get(entity);
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
 
-                if (drawable.Drawable == nullptr) continue;
+            if (mesh == nullptr) continue;
 
-                if (drawingShadows && !drawable.CastsShadows) continue;
+            if (drawingShadows && !drawable.CastsShadows) continue;
 
-                if (drawable.ShadingModel
-                    != DrawableComponent::ShadingModel::Default)
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Default)
+                continue;
+
+            if (!drawingShadows)
+                InstancePipeline->SetMaterial(material.Material);
+
+            auto bb = em->GetBoundingBox(entity);
+
+            if (viewFrustum && bb)
+            {
+                if (!viewFrustum.value().Intersects(bb.value()))
+                {
                     continue;
-
-                if (!drawingShadows)
-                    InstancePipeline->SetMaterial(material.Material);
-
-                auto bb = em->GetBoundingBox(entity);
-
-                if (viewFrustum && bb)
-                {
-                    if (!viewFrustum.value().Intersects(bb.value()))
-                    {
-                        continue;
-                    }
                 }
+            }
 
-                InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
-                InstancePipeline->SetInstanceData(instances);
-                InstancePipeline->Apply(cl, true, drawingShadows);
+            InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
+            InstancePipeline->SetInstanceData(instances);
+            InstancePipeline->Apply(cl, true, drawingShadows);
 
-                auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
 
-                if (bufferEntry)
-                {
-                    drawable.Drawable->Draw(cl, bufferEntry->InstanceCount);
-                }
+            if (bufferEntry)
+            {
+                mesh->Draw(cl, bufferEntry->InstanceCount);
+            }
         }
 
         // Heightmap shading model
@@ -373,8 +377,9 @@ namespace Gradient::Rendering
         for (auto entity : heightmapView)
         {
             auto [drawable, transform, heightMap] = heightmapView.get(entity);
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
 
-            if (drawable.Drawable == nullptr) continue;
+            if (mesh == nullptr) continue;
             if (drawingShadows && !drawable.CastsShadows) continue;
 
             if (drawable.ShadingModel
@@ -385,7 +390,7 @@ namespace Gradient::Rendering
             HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
             HeightmapPipeline->Apply(cl, true, drawingShadows);
 
-            drawable.Drawable->Draw(cl);
+            mesh->Draw(cl);
         }
 
         // Water shading model
@@ -394,8 +399,9 @@ namespace Gradient::Rendering
         for (auto entity : waterView)
         {
             auto [drawable, transform] = waterView.get(entity);
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
 
-            if (drawable.Drawable == nullptr) continue;
+            if (mesh == nullptr) continue;
             if (drawingShadows) continue;
 
             if (drawable.ShadingModel
@@ -405,7 +411,7 @@ namespace Gradient::Rendering
             WaterPipeline->SetWorld(em->GetWorldMatrix(entity));
             WaterPipeline->Apply(cl, true, drawingShadows);
 
-            drawable.Drawable->Draw(cl);
+            mesh->Draw(cl);
         }
     }
 }

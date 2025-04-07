@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "Core/Rendering/IDrawable.h"
+#include "Core/BufferManager.h"
 
 namespace Gradient::ECS::Components
 {
@@ -15,7 +16,7 @@ namespace Gradient::ECS::Components
             Heightmap
         };
 
-        std::unique_ptr<Rendering::IDrawable> Drawable;
+        BufferManager::MeshHandle MeshHandle;
         ShadingModel ShadingModel = ShadingModel::Default;
         bool CastsShadows = true;
     };

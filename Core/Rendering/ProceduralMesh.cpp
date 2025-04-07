@@ -1213,7 +1213,7 @@ namespace Gradient::Rendering
         return m_boundingBox;
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBox(
+    ProceduralMesh ProceduralMesh::CreateBox(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const DirectX::XMFLOAT3& size,
@@ -1227,7 +1227,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateSphere(
+    ProceduralMesh ProceduralMesh::CreateSphere(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         float diameter,
@@ -1242,7 +1242,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateGeoSphere(
+    ProceduralMesh ProceduralMesh::CreateGeoSphere(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         float diameter,
@@ -1256,7 +1256,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateGrid(ID3D12Device* device,
+    ProceduralMesh ProceduralMesh::CreateGrid(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& width,
         const float& height,
@@ -1270,7 +1270,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateBillboard(ID3D12Device* device,
+    ProceduralMesh ProceduralMesh::CreateBillboard(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& width,
         const float& height)
@@ -1282,7 +1282,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFrustum(
+    ProceduralMesh ProceduralMesh::CreateFrustum(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& topRadius,
@@ -1320,7 +1320,7 @@ namespace Gradient::Rendering
         return part;
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateAngledFrustum(
+    ProceduralMesh ProceduralMesh::CreateAngledFrustum(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const float& bottomRadius,
@@ -1340,7 +1340,7 @@ namespace Gradient::Rendering
         return CreateFromVertices(device, cq, vertices, indices);
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFromVertices(
+    ProceduralMesh ProceduralMesh::CreateFromVertices(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const VertexCollection& vertices,
@@ -1351,13 +1351,13 @@ namespace Gradient::Rendering
         // than UINT32_MAX.
         assert(vertices.size() < UINT32_MAX);
 
-        std::unique_ptr<ProceduralMesh> primitive(new ProceduralMesh());
-        primitive->Initialize(device, cq, vertices, indices);
+        ProceduralMesh primitive;
+        primitive.Initialize(device, cq, vertices, indices);
 
         return primitive;
     }
 
-    std::unique_ptr<ProceduralMesh> ProceduralMesh::CreateFromPart(
+    ProceduralMesh ProceduralMesh::CreateFromPart(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const MeshPart& part

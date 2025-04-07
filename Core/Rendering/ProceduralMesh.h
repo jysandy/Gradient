@@ -37,14 +37,14 @@ namespace Gradient::Rendering
                 DirectX::SimpleMath::Quaternion rotation);
         };
 
-        static std::unique_ptr<ProceduralMesh> CreateBox(
+        static ProceduralMesh CreateBox(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const DirectX::XMFLOAT3& size,
             bool rhcoords = true,
             bool invertn = false);
 
-        static std::unique_ptr<ProceduralMesh> CreateSphere(
+        static ProceduralMesh CreateSphere(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             float diameter = 1,
@@ -52,14 +52,14 @@ namespace Gradient::Rendering
             bool rhcoords = true,
             bool invertn = false);
 
-        static std::unique_ptr<ProceduralMesh> CreateGeoSphere(
+        static ProceduralMesh CreateGeoSphere(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             float diameter = 1,
             size_t tessellation = 3,
             bool rhcoords = true);
 
-        static std::unique_ptr<ProceduralMesh> CreateGrid(
+        static ProceduralMesh CreateGrid(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const float& width = 10,
@@ -67,13 +67,13 @@ namespace Gradient::Rendering
             const float& divisions = 10,
             bool tiled = true);
 
-        static std::unique_ptr<ProceduralMesh> CreateBillboard(
+        static ProceduralMesh CreateBillboard(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const float& width = 1,
             const float& height = 1);
 
-        static std::unique_ptr<ProceduralMesh> CreateFrustum(
+        static ProceduralMesh CreateFrustum(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const float& topRadius = 1,
@@ -88,7 +88,7 @@ namespace Gradient::Rendering
             int numVerticalSections
         );
 
-        static std::unique_ptr<ProceduralMesh> CreateAngledFrustum(
+        static ProceduralMesh CreateAngledFrustum(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const float& bottomRadius = 1,
@@ -96,14 +96,14 @@ namespace Gradient::Rendering
             const DirectX::SimpleMath::Vector3& topCentre = {0, 3, 0},
             const DirectX::SimpleMath::Quaternion& topRotation = DirectX::SimpleMath::Quaternion::Identity);
 
-        static std::unique_ptr<ProceduralMesh> CreateFromVertices(
+        static ProceduralMesh CreateFromVertices(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const VertexCollection& vertices,
             const IndexCollection& indices
         );
 
-        static std::unique_ptr<ProceduralMesh> CreateFromPart(
+        static ProceduralMesh CreateFromPart(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const MeshPart& part

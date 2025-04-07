@@ -120,6 +120,7 @@ namespace Gradient::Rendering
 
     const ProceduralMesh::MeshPart& LSystem::GetTrunk() const
     {
+        assert(m_isBuilt);
         return m_trunkPart;
     }
 
@@ -169,24 +170,6 @@ namespace Gradient::Rendering
         }
 
         return newLeafTransforms;
-    }
-
-    std::unique_ptr<ProceduralMesh> LSystem::GetMesh(ID3D12Device* device,
-        ID3D12CommandQueue* cq,
-        std::string startingRule,
-        int numGenerations)
-    {
-        Build(startingRule, numGenerations);
-
-        return ProceduralMesh::CreateFromPart(device, cq, m_trunkPart);
-    }
-
-    std::unique_ptr<ProceduralMesh> LSystem::GetBuiltMesh(ID3D12Device* device,
-        ID3D12CommandQueue* cq)
-    {
-        assert(m_isBuilt);
-
-        return ProceduralMesh::CreateFromPart(device, cq, m_trunkPart);
     }
 
     std::string LSystem::ExpandRule(const std::string& startingRule,

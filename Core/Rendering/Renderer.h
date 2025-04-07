@@ -13,6 +13,7 @@
 #include "Core/Rendering/BloomProcessor.h"
 #include "Core/Rendering/CubeMap.h"
 #include "Core/Rendering/ProceduralMesh.h"
+#include "Core/BufferManager.h"
 #include "Core/Camera.h"
 
 namespace Gradient::Rendering
@@ -51,7 +52,7 @@ namespace Gradient::Rendering
         std::unique_ptr<Gradient::Rendering::RenderTexture> MultisampledRT;
         std::unique_ptr<Gradient::Rendering::BloomProcessor> BloomProcessor;
 
-        std::unique_ptr<Gradient::Rendering::ProceduralMesh> SkyGeometry;
+        BufferManager::MeshHandle SkyGeometry;
         std::unique_ptr<Gradient::Rendering::CubeMap> EnvironmentMap;
         std::unique_ptr<Gradient::Rendering::TextureDrawer> Tonemapper;
 
