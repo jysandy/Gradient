@@ -630,11 +630,25 @@ namespace Gradient::Scene
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
-        AddTree(device, cq, "tree1",
-            { 38.6f, 8.7f, 0.f },
-            trunkMesh,
-            branchData,
-            leafData);
+        std::vector<Vector3> treePositions = {
+            {75, 3.7, -35.1},
+            {41, 6.7, -35.1},
+            {-6.4, 3, -71.3},
+            {-59.4, 5.4, 7.9},
+            {-48.2, 6.1, 26.0},
+            {-15.8, 8.8, 0.4},
+            {28.7, 7.1, 34.5},
+            {-27.2, 4.6, 62.0}
+        };
+
+        for (int i = 0; i < treePositions.size(); i++)
+        {
+            AddTree(device, cq, "tree" + std::to_string(i),
+                treePositions[i],
+                trunkMesh,
+                branchData,
+                leafData);
+        }
 
         Rendering::LSystem bushSystem;
         bushSystem.AddRule('T', "FFFX");
@@ -671,7 +685,7 @@ namespace Gradient::Scene
 
         AddTerrain(device, cq,
             "terrain",
-            { 50, -1, 0 },
+            { 0, -1, 0 },
             256,
             10,
             "islandHeightMap",
