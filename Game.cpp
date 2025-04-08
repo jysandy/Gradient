@@ -445,6 +445,19 @@ void Game::CreateEntities()
         "leaf_roughness",
         L"Assets\\Birch_qghn02_1K_Roughness.dds"
     );
+
+    textureManager->LoadDDS(device, cq,
+        "forest_floor_albedo",
+        L"Assets\\Forest_Floor_vktfeilaw_1K_BaseColor.dds");
+    textureManager->LoadDDS(device, cq,
+        "forest_floor_normal",
+        L"Assets\\Forest_Floor_vktfeilaw_1K_Normal.dds");
+    textureManager->LoadDDS(device, cq,
+        "forest_floor_roughness",
+        L"Assets\\Forest_Floor_vktfeilaw_1K_Roughness.dds");
+    textureManager->LoadDDS(device, cq,
+        "forest_floor_ao",
+        L"Assets\\Forest_Floor_vktfeilaw_1K_AO.dds");
 #pragma endregion
 
     // TODO: Don't create the physics objects here, they shouldn't be recreated if the device is lost
