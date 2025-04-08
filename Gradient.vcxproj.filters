@@ -73,6 +73,8 @@
     <ClInclude Include="Core\BufferManager.h" />
     <ClInclude Include="Core\ECS\Components\BoundingBoxComponent.h" />
     <ClInclude Include="Core\Math.h" />
+    <ClInclude Include="Core\FreeListAllocator.h" />
+    <ClInclude Include="Core\PoissonGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -120,6 +122,7 @@
     <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
     <ClCompile Include="Core\BufferManager.cpp" />
     <ClCompile Include="Core\ECS\Components\BoundingBoxComponent.cpp" />
+    <ClCompile Include="Core\Math.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

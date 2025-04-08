@@ -13,6 +13,7 @@
 #include "Core/ECS/Components/InstanceDataComponent.h"
 #include "Core/ECS/Components/RelationshipComponent.h"
 #include "Core/ECS/Components/BoundingBoxComponent.h"
+#include "Core/Math.h"
 
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
 #include <Jolt/Core/RTTI.h>
@@ -631,7 +632,7 @@ namespace Gradient::Scene
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
-        CreatePointLights(device, cq, true);
+        //CreatePointLights(device, cq, true);
         //CreateDemoObjects(device, cq);
 
         auto water = AddEntity("water");
@@ -684,16 +685,8 @@ namespace Gradient::Scene
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
-        std::vector<Vector2> treePositions = {
-            {75, -35.1},
-            {41, -35.1},
-            {-6.4, -71.3},
-            {-59.4, 7.9},
-            {-48.2, 26.0},
-            {-15.8, 0.4},
-            {28.7, 34.5},
-            {-27.2, 62.0}
-        };
+        std::vector<Vector2> treePositions 
+            = Math::GeneratePoissonDiskSamples(50, 75, 4.f);
 
         auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);
         auto hfWorld = entityManager->GetWorldMatrix(terrain);

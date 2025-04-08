@@ -24,4 +24,9 @@ namespace Gradient::Math
 
         return worldSpaceFrustum;
     }
+
+    std::vector<DirectX::SimpleMath::Vector2> GeneratePoissonDiskSamples(
+        uint32_t numPoints,
+        float diskRadius,
+        float minDistance);
 }
