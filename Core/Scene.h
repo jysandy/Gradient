@@ -14,6 +14,11 @@
 #include "Core/ECS/Components/RelationshipComponent.h"
 #include "Core/ECS/Components/BoundingBoxComponent.h"
 
+#include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
+#include <Jolt/Core/RTTI.h>
+
+#include "Core/Physics/Conversions.h"
+
 
 namespace Gradient::Scene
 {
@@ -597,6 +602,24 @@ namespace Gradient::Scene
         pointLight2Component.PointLight.ShadowCubeIndex = 1;
     }
 
+    // Places a point onto a height field.
+    // point is in the xz plane, in the local space of the height field.
+    Vector3 PlaceOntoHeightField(const JPH::HeightFieldShape* hfShape,
+        Matrix hfWorld,
+        Vector2 point,
+        float offset = 0.f)
+    {
+        Matrix hfWorldInverse = hfWorld.Invert();
+
+        JPH::RVec3 out;
+        JPH::RVec3 in = Physics::ToJolt(Vector3::Transform({ point.x, 0, point.y }, hfWorldInverse));
+        JPH::SubShapeID ignored;
+
+        hfShape->ProjectOntoSurface(in, out, ignored);
+        return Vector3::Transform(Physics::FromJolt(out), hfWorld)
+            - Vector3{ 0, offset, 0 };
+    }
+
     void CreateScene(ID3D12Device* device, ID3D12CommandQueue* cq)
     {
         using namespace Gradient::ECS::Components;
@@ -610,6 +633,28 @@ namespace Gradient::Scene
 
         CreatePointLights(device, cq, true);
         //CreateDemoObjects(device, cq);
+
+        auto water = AddEntity("water");
+        entityManager->Registry.emplace<DrawableComponent>(water,
+            bm->CreateGrid(device,
+                cq,
+                800,
+                800,
+                100),
+            DrawableComponent::ShadingModel::Water);
+
+        textureManager->LoadDDS(device, cq,
+            "islandHeightMap",
+            L"Assets\\island_height_32bit.dds");
+
+        auto terrain = AddTerrain(device, cq,
+            "terrain",
+            { 0, -1, 0 },
+            256,
+            10,
+            "islandHeightMap",
+            L"Assets\\island_height_32bit.dds");
+
 
         Rendering::LSystem treeTrunk;
         treeTrunk.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
@@ -639,21 +684,30 @@ namespace Gradient::Scene
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
-        std::vector<Vector3> treePositions = {
-            {75, 3.7, -35.1},
-            {41, 6.7, -35.1},
-            {-6.4, 3, -71.3},
-            {-59.4, 5.4, 7.9},
-            {-48.2, 6.1, 26.0},
-            {-15.8, 8.8, 0.4},
-            {28.7, 7.1, 34.5},
-            {-27.2, 4.6, 62.0}
+        std::vector<Vector2> treePositions = {
+            {75, -35.1},
+            {41, -35.1},
+            {-6.4, -71.3},
+            {-59.4, 7.9},
+            {-48.2, 26.0},
+            {-15.8, 0.4},
+            {28.7, 34.5},
+            {-27.2, 62.0}
         };
+
+        auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);
+        auto hfWorld = entityManager->GetWorldMatrix(terrain);
+
+        auto shape = bodyInterface.GetShape(terrainBody.BodyID);
+        const JPH::HeightFieldShape* hfShape = JPH::StaticCast<JPH::HeightFieldShape>(shape);
 
         for (int i = 0; i < treePositions.size(); i++)
         {
             AddTree(device, cq, "tree" + std::to_string(i),
-                treePositions[i],
+                PlaceOntoHeightField(hfShape,
+                    hfWorld,
+                    treePositions[i],
+                    0.02),
                 trunkMesh,
                 branchData,
                 leafData);
@@ -674,44 +728,25 @@ namespace Gradient::Scene
         auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk());
         auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
 
-        std::vector<Vector3> bushPositions = {
-            {33.6, 7.9, 0},
-            {21.7, 0.2, 4.1},
-            {2.3, 8.4, 21.2},
-            {-0.4, 7.9, 33.4},
-            {-11.8, 7.5, 34.2},
-            {-26.5, 7.3, 31.1},
-            {-36.1, 7.8, 8},
-            {-41, 6.9, -22}
+        std::vector<Vector2> bushPositions = {
+            {33.6, 0},
+            {21.7, 4.1},
+            {2.3, 21.2},
+            {-0.4, 33.4},
+            {-11.8, 34.2},
+            {-26.5, 31.1},
+            {-36.1, 8},
+            {-41, -22}
         };
 
         for (int i = 0; i < bushPositions.size(); i++)
         {
             AddBush(device, cq, "bush" + std::to_string(i),
-                bushPositions[i],
+                PlaceOntoHeightField(hfShape,
+                    hfWorld,
+                    bushPositions[i],
+                    0.02),
                 bushTrunkMesh, bushLeafData);
         }
-
-
-        auto water = AddEntity("water");
-        entityManager->Registry.emplace<DrawableComponent>(water,
-            bm->CreateGrid(device,
-                cq,
-                800,
-                800,
-                100),
-            DrawableComponent::ShadingModel::Water);
-
-        textureManager->LoadDDS(device, cq,
-            "islandHeightMap",
-            L"Assets\\island_height_32bit.dds");
-
-        AddTerrain(device, cq,
-            "terrain",
-            { 0, -1, 0 },
-            256,
-            10,
-            "islandHeightMap",
-            L"Assets\\island_height_32bit.dds");
     }
 }
