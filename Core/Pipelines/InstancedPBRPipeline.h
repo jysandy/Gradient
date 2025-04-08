@@ -38,7 +38,7 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) PixelCB
         {
             DirectX::XMFLOAT3 cameraPosition;
-            float pad;
+            float tiling;
             DirectX::XMFLOAT3 emissiveRadiance;
             float pad2;
             DirectX::XMMATRIX shadowTransform;

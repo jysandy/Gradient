@@ -52,7 +52,8 @@ namespace Gradient::Rendering
         std::string normalKey,
         std::string aoKey,
         std::string metallicKey,
-        std::string roughnessKey)
+        std::string roughnessKey,
+        float tiling)
     {
         auto tm = TextureManager::Get();
 
@@ -61,12 +62,14 @@ namespace Gradient::Rendering
         AOMap = tm->GetTexture(aoKey);
         MetalnessMap = tm->GetTexture(metallicKey);
         RoughnessMap = tm->GetTexture(roughnessKey);
+        Tiling = tiling;
     }
 
     PBRMaterial::PBRMaterial(std::string albedoKey,
         std::string normalKey,
         std::string aoKey,
-        std::string roughnessKey)
+        std::string roughnessKey,
+        float tiling)
     {
         auto tm = TextureManager::Get();
 
@@ -74,6 +77,7 @@ namespace Gradient::Rendering
         NormalMap = tm->GetTexture(normalKey);
         AOMap = tm->GetTexture(aoKey);
         MetalnessMap = tm->GetTexture("defaultMetalness");
-        RoughnessMap = tm->GetTexture(roughnessKey);
+        RoughnessMap = tm->GetTexture(roughnessKey);  
+        Tiling = tiling;
     }
 }

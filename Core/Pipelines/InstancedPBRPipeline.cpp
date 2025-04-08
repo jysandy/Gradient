@@ -147,6 +147,7 @@ namespace Gradient::Pipelines
 
         PixelCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
+        pixelConstants.tiling = m_material.Tiling;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         pixelConstants.emissiveRadiance = m_material.EmissiveRadiance;
 

@@ -15,17 +15,20 @@ namespace Gradient::Rendering
         GraphicsMemoryManager::DescriptorView MetalnessMap = nullptr;
         GraphicsMemoryManager::DescriptorView RoughnessMap = nullptr;
         DirectX::SimpleMath::Vector3 EmissiveRadiance = { 0, 0, 0 };
+        float Tiling = 1.f;
 
         PBRMaterial() = default;
         PBRMaterial(std::string albedoKey,
             std::string normalKey,
             std::string aoKey,
             std::string metallicKey,
-            std::string roughnessKey);
+            std::string roughnessKey,
+            float tiling = 1.f);
         PBRMaterial(std::string albedoKey,
             std::string normalKey,
             std::string aoKey,
-            std::string roughnessKey);
+            std::string roughnessKey,
+            float tiling = 1.f);
 
         static PBRMaterial Default();
         static PBRMaterial Light(float irradiance,

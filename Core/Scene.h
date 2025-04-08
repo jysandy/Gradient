@@ -195,6 +195,16 @@ namespace Gradient::Scene
                 position,
                 settingsFn));
 
+        entityManager->Registry.emplace<MaterialComponent>(terrain,
+            Rendering::PBRMaterial(
+                "tiles06Albedo",
+                "tiles06Normal",
+                "tiles06AO",
+                "tiles06Metalness",
+                "tiles06Roughness",
+                5.f
+            ));
+
         return terrain;
     }
 

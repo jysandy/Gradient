@@ -19,7 +19,12 @@ namespace Gradient::Pipelines
         m_rootSignature.AddCBV(0, 2);   // lights
         m_rootSignature.AddCBV(1, 2);   // camera and shadow transform
         m_rootSignature.AddSRV(0, 0);   // heightmap
+        m_rootSignature.AddSRV(0, 2);   // albedo map
         m_rootSignature.AddSRV(1, 2);   // shadow map
+        m_rootSignature.AddSRV(2, 2);   // normal map
+        m_rootSignature.AddSRV(3, 2);   // ao map
+        m_rootSignature.AddSRV(4, 2);   // metallic map
+        m_rootSignature.AddSRV(5, 2);   // roughness map
         m_rootSignature.AddSRV(6, 2);   // environment map
         m_rootSignature.AddSRV(7, 2);   // point shadow maps
 
@@ -201,6 +206,7 @@ namespace Gradient::Pipelines
 
         PixelParamCB pixelConstants;
         pixelConstants.cameraPosition = m_cameraPosition;
+        pixelConstants.tiling = m_material.Tiling;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
 
         m_rootSignature.SetCBV(cl, 1, 2, pixelConstants);
@@ -208,7 +214,12 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetSRV(cl, 0, 0, 
             m_heightMapComponent.HeightMapTexture);
+        m_rootSignature.SetSRV(cl, 0, 2, m_material.Texture);
         m_rootSignature.SetSRV(cl, 1, 2, m_shadowMap);
+        m_rootSignature.SetSRV(cl, 2, 2, m_material.NormalMap);
+        m_rootSignature.SetSRV(cl, 3, 2, m_material.AOMap);
+        m_rootSignature.SetSRV(cl, 4, 2, m_material.MetalnessMap);
+        m_rootSignature.SetSRV(cl, 5, 2, m_material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 2, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 2, m_shadowCubeArray);
 
@@ -218,6 +229,11 @@ namespace Gradient::Pipelines
     void HeightmapPipeline::SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent)
     {
         m_heightMapComponent = hmComponent;
+    }
+
+    void HeightmapPipeline::SetMaterial(Rendering::PBRMaterial material)
+    {
+        m_material = material;
     }
 
     void XM_CALLCONV HeightmapPipeline::SetWorld(DirectX::FXMMATRIX value)

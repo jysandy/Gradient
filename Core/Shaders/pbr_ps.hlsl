@@ -28,7 +28,7 @@ cbuffer LightBuffer : register(b0, space1)
 cbuffer Constants : register(b1, space1)
 {
     float3 cameraPosition;
-    float pad;
+    float uvTiling;
     float3 emissiveRadiance;
     float pad2;
     float4x4 shadowTransform; // TODO: put this into the light
@@ -44,6 +44,8 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
+    input.tex *= uvTiling;
+    
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
     clip(albedoSample.a - 0.01);
     

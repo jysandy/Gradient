@@ -56,7 +56,7 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) PixelParamCB
         {
             DirectX::XMFLOAT3 cameraPosition;
-            float pad;
+            float tiling;
             DirectX::XMMATRIX shadowTransform;
         };
 
@@ -75,6 +75,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
         void SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent);
+        void SetMaterial(Rendering::PBRMaterial material) override;
 
 
         // TODO: Extract all of this junk into a single struct
@@ -103,6 +104,8 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;
         DirectX::SimpleMath::Matrix m_shadowTransform;
+
+        Rendering::PBRMaterial m_material;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
         DirectX::SimpleMath::Vector3 m_cameraDirection;

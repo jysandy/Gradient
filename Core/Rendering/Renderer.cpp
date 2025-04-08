@@ -375,10 +375,11 @@ namespace Gradient::Rendering
         // Heightmap shading model
         auto heightmapView = em->Registry.view<DrawableComponent,
             TransformComponent,
-            HeightMapComponent>();
+            HeightMapComponent,
+            MaterialComponent>();
         for (auto entity : heightmapView)
         {
-            auto [drawable, transform, heightMap] = heightmapView.get(entity);
+            auto [drawable, transform, heightMap, material] = heightmapView.get(entity);
             auto mesh = bm->GetMesh(drawable.MeshHandle);
 
             if (mesh == nullptr) continue;
@@ -388,6 +389,7 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Heightmap)
                 continue;
 
+            HeightmapPipeline->SetMaterial(material.Material);
             HeightmapPipeline->SetHeightMapComponent(heightMap);
             HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
             HeightmapPipeline->Apply(cl, true, drawingShadows);
