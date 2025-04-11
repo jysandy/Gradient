@@ -40,8 +40,7 @@ namespace Gradient::Rendering
         void DrawAllEntities(ID3D12GraphicsCommandList* cl,
             bool drawingShadows = false,
             std::optional<DirectX::BoundingFrustum> viewFrustum = std::nullopt,
-            bool useShadowBB = false,
-            DirectX::SimpleMath::Vector3 lightDirection = DirectX::SimpleMath::Vector3::Zero);
+            std::optional<DirectX::BoundingOrientedBox> shadowBB = std::nullopt);
 
         std::unique_ptr<DirectX::CommonStates> m_states;
 

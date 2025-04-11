@@ -166,7 +166,7 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetView(DirectionalLight->GetView());
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
-        DrawAllEntities(cl, true, camera->GetFrustum(), true, DirectionalLight->GetDirection());
+        DrawAllEntities(cl, true, camera->GetFrustum(), DirectionalLight->GetShadowBB());
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
         for (auto& entity : pointLightsView)
@@ -287,8 +287,7 @@ namespace Gradient::Rendering
     void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
         bool drawingShadows,
         std::optional<DirectX::BoundingFrustum> viewFrustum,
-        bool useShadowBB,
-        DirectX::SimpleMath::Vector3 lightDirection)
+        std::optional<DirectX::BoundingOrientedBox> shadowBB)
     {
         using namespace ECS::Components;
         auto em = EntityManager::Get();
@@ -312,26 +311,19 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
-            if (useShadowBB)
+            auto bb = em->GetBoundingBox(entity);
+            if (drawingShadows && shadowBB && bb)
             {
-                auto shadowBB = em->GetDirectionalShadowBoundingBox(entity, lightDirection);
-                if (viewFrustum && shadowBB)
+                if (!shadowBB.value().Intersects(bb.value()))
                 {
-                    if (!viewFrustum.value().Intersects(shadowBB.value()))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
-            else
+            else  if (viewFrustum && bb)
             {
-                auto bb = em->GetBoundingBox(entity);
-                if (viewFrustum && bb)
+                if (!viewFrustum.value().Intersects(bb.value()))
                 {
-                    if (!viewFrustum.value().Intersects(bb.value()))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
 
@@ -363,26 +355,19 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
-            if (useShadowBB)
+            auto bb = em->GetBoundingBox(entity);
+            if (drawingShadows && shadowBB && bb)
             {
-                auto shadowBB = em->GetDirectionalShadowBoundingBox(entity, lightDirection);
-                if (viewFrustum && shadowBB)
+                if (!shadowBB.value().Intersects(bb.value()))
                 {
-                    if (!viewFrustum.value().Intersects(shadowBB.value()))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
-            else
+            else  if (viewFrustum && bb)
             {
-                auto bb = em->GetBoundingBox(entity);
-                if (viewFrustum && bb)
+                if (!viewFrustum.value().Intersects(bb.value()))
                 {
-                    if (!viewFrustum.value().Intersects(bb.value()))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
             }
 

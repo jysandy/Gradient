@@ -17,6 +17,7 @@ namespace Gradient::Rendering
             DirectX::SimpleMath::Vector3 sceneCentre = DirectX::SimpleMath::Vector3::Zero);
 
         DirectX::SimpleMath::Matrix GetShadowTransform() const;
+        DirectX::BoundingOrientedBox GetShadowBB() const;
         
         // Colour must be in linear space.
         void SetColour(DirectX::SimpleMath::Color colour);
@@ -54,6 +55,8 @@ namespace Gradient::Rendering
         DirectX::SimpleMath::Matrix m_shadowMapView;
         DirectX::SimpleMath::Matrix m_shadowMapViewInverse;
         DirectX::SimpleMath::Matrix m_shadowMapProj;
+
+        DirectX::BoundingOrientedBox m_shadowBB;
 
     };
 }

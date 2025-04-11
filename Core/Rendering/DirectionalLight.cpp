@@ -156,7 +156,18 @@ namespace Gradient::Rendering
             3 * m_sceneRadius
         );
 
-        // TODO: Use this to make a bounding box for culling
+        {
+            // Stretch the bounding box out to include the light's 
+            // near plane. Add a bit of padding on the sides to prevent 
+            // false positives.
+
+            DirectX::BoundingBox temp;
+            DirectX::BoundingBox::CreateFromPoints(temp,
+                Vector3{ xBounds.x - 1, yBounds.x - 1, -m_sceneRadius },
+                Vector3{ xBounds.y + 1, yBounds.y + 1, -m_sceneRadius + 1 });
+        
+            DirectX::BoundingBox::CreateMerged(lightAABB, lightAABB, temp);
+        }
 
         DirectX::BoundingOrientedBox lightOBB;
         DirectX::BoundingOrientedBox::CreateFromBoundingBox(lightOBB,
@@ -164,6 +175,15 @@ namespace Gradient::Rendering
 
         DirectX::BoundingOrientedBox worldSpaceLightOBB;
         lightOBB.Transform(worldSpaceLightOBB, m_shadowMapViewInverse);
+
+        m_shadowBB = worldSpaceLightOBB;
+
+        worldSpaceLightOBB.GetCorners(corners.data());
+    }
+
+    DirectX::BoundingOrientedBox DirectionalLight::GetShadowBB() const
+    {
+        return m_shadowBB;
     }
 
     Color DirectionalLight::GetColour() const
