@@ -31,6 +31,14 @@ namespace Gradient
             0.1f,
             300.f
         );
+
+        // A shorter view distance is used for shadows.
+        m_shadowProjectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
+            m_fieldOfViewRadians,
+            m_aspectRatio,
+            0.1f,
+            100.f
+        );
     }
 
     // These arent' thread safe.
@@ -98,5 +106,10 @@ namespace Gradient
     DirectX::BoundingFrustum Camera::GetFrustum() const
     {
         return Math::MakeFrustum(GetViewMatrix(), m_projectionMatrix);
+    }
+
+    DirectX::BoundingFrustum Camera::GetShadowFrustum() const
+    {
+        return Math::MakeFrustum(GetViewMatrix(), m_shadowProjectionMatrix);
     }
 }

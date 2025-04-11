@@ -22,6 +22,10 @@ namespace Gradient::Rendering
         void SetColour(DirectX::SimpleMath::Color colour);
         void SetLightDirection(const DirectX::SimpleMath::Vector3& direction);
         void SetIrradiance(float irradiance);
+        // WIP
+        void SetCameraFrustum( 
+            const DirectX::BoundingFrustum& cameraFrustum);
+
         void ClearAndSetDSV(ID3D12GraphicsCommandList* cl);
         void TransitionToShaderResource(ID3D12GraphicsCommandList* cl);
 
@@ -45,8 +49,10 @@ namespace Gradient::Rendering
 
         DirectX::SimpleMath::Vector3 m_sceneCentre;
         float m_sceneRadius;
+        float m_width;
         DirectX::SimpleMath::Vector3 m_lightDirection;
         DirectX::SimpleMath::Matrix m_shadowMapView;
+        DirectX::SimpleMath::Matrix m_shadowMapViewInverse;
         DirectX::SimpleMath::Matrix m_shadowMapProj;
 
     };

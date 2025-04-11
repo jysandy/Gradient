@@ -188,7 +188,7 @@ float3 DirectionalLightContribution(float3 N,
     float4x4 shadowTransform,
     float3 worldPosition)
 {
-    float shadowFactor = calculateShadowFactorNoLargeKernel(shadowMap,
+    float shadowFactor = calculateShadowFactor(shadowMap,
         shadowMapSampler,
         shadowTransform,
         worldPosition);

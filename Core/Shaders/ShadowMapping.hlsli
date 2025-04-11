@@ -15,6 +15,14 @@ float calculateShadowFactor(
     
     shadowUV.xyz /= shadowUV.w;
     
+    if (shadowUV.x < 0
+        || shadowUV.x > 1
+        || shadowUV.y < 0
+        || shadowUV.y > 1)
+    {
+        return 1.f;
+    }
+    
     // DEBUG: Disabling PCF
     //return saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
     //        shadowUV.xy,
@@ -67,6 +75,14 @@ float calculateShadowFactorNoLargeKernel(
     float4 shadowUV = mul(float4(worldPosition, 1.f), shadowTransform);
     
     shadowUV.xyz /= shadowUV.w;
+    
+    if (shadowUV.x < 0 
+        || shadowUV.x > 1
+        || shadowUV.y < 0
+        || shadowUV.y > 1)
+    {
+        return 1.f;
+    }
     
     return saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
             shadowUV.xy,

@@ -36,12 +36,12 @@ namespace Gradient::Pipelines
 
         m_rootSignature.AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC(1,
             D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+            D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+            D3D12_TEXTURE_ADDRESS_MODE_BORDER,
             0,
             1,
-            D3D12_COMPARISON_FUNC_LESS),
+            D3D12_COMPARISON_FUNC_LESS_EQUAL),
             1,
             1);
 

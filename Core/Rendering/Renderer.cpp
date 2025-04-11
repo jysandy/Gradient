@@ -40,7 +40,7 @@ namespace Gradient::Rendering
         auto dlight = new Gradient::Rendering::DirectionalLight(
             device,
             { -0.7f, -0.3f, 0.7f },
-            100.f
+            200.f
         );
         DirectionalLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
         auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
@@ -153,6 +153,7 @@ namespace Gradient::Rendering
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Shadow Pass");
 
+        DirectionalLight->SetCameraFrustum(camera->GetShadowFrustum());
         DirectionalLight->ClearAndSetDSV(cl);
 
         HeightmapPipeline->SetCameraPosition(camera->GetPosition());

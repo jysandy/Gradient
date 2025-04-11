@@ -17,6 +17,9 @@ namespace Gradient
         DirectX::SimpleMath::Vector3 m_direction;
 
         DirectX::SimpleMath::Matrix m_projectionMatrix;
+
+        // A shorter view distance is used for shadows.
+        DirectX::SimpleMath::Matrix m_shadowProjectionMatrix;
         
         void CreateProjectionMatrix();
 
@@ -34,6 +37,7 @@ namespace Gradient
         DirectX::SimpleMath::Matrix GetViewMatrix() const;
         DirectX::SimpleMath::Matrix GetProjectionMatrix() const;
         DirectX::BoundingFrustum GetFrustum() const;
+        DirectX::BoundingFrustum GetShadowFrustum() const;
 
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);

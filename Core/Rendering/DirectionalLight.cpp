@@ -3,6 +3,8 @@
 #include "Core/Rendering/DirectionalLight.h"
 #include <directxtk12/DirectXHelpers.h>
 
+#include <array>
+
 namespace Gradient::Rendering
 {
     using namespace DirectX;
@@ -29,7 +31,8 @@ namespace Gradient::Rendering
             10 * sceneRadius
         );
 
-        const float shadowMapWidth = 8192.f;
+        const float shadowMapWidth = 4096.f;
+        m_width = shadowMapWidth;
 
         m_shadowMapViewport = {
             0.0f,
@@ -42,9 +45,9 @@ namespace Gradient::Rendering
 
         auto depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
             DXGI_FORMAT_R32_TYPELESS,
-            (UINT64)shadowMapWidth,
-            (UINT64)shadowMapWidth
-            );
+            (UINT64)shadowMapWidth + 1,
+            (UINT64)shadowMapWidth + 1
+        );
         depthStencilDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
         D3D12_CLEAR_VALUE depthClearValue = {};
@@ -92,11 +95,75 @@ namespace Gradient::Rendering
         m_shadowMapView = SimpleMath::Matrix::CreateLookAt(lightPosition,
             m_sceneCentre,
             SimpleMath::Vector3::UnitY);
+        m_shadowMapViewInverse = m_shadowMapView.Invert();
     }
 
     void DirectionalLight::SetIrradiance(float irradiance)
     {
         m_irradiance = irradiance;
+    }
+
+    void DirectionalLight::SetCameraFrustum(
+        const DirectX::BoundingFrustum& cameraFrustum)
+    {
+        DirectX::BoundingFrustum lightSpaceFrustum;
+        cameraFrustum.Transform(lightSpaceFrustum, m_shadowMapView);
+
+        std::array<DirectX::XMFLOAT3, lightSpaceFrustum.CORNER_COUNT> corners;
+        lightSpaceFrustum.GetCorners(corners.data());
+
+        DirectX::BoundingBox lightAABB;
+        DirectX::BoundingBox::CreateFromPoints(lightAABB,
+            corners.size(),
+            corners.data(),
+            sizeof(DirectX::XMFLOAT3));
+        
+        // Round the orthographic projection bounds to 
+        // texel-size extents, as described in 
+        // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps#techniques-to-improve-shadow-maps
+        // TODO: This doesn't seem to be working, figure out why
+        float worldUnitsPerTexelX = lightAABB.Extents.x / (m_width + 1);
+        float worldUnitsPerTexelY = lightAABB.Extents.y / (m_width + 1);
+
+        auto vxBounds = DirectX::XMVectorSet(lightAABB.Center.x - lightAABB.Extents.x,
+            lightAABB.Center.x + lightAABB.Extents.x, 0, 0);
+        vxBounds /= worldUnitsPerTexelX;
+        vxBounds = DirectX::XMVectorFloor(vxBounds);
+
+        DirectX::XMFLOAT2 foo;
+        DirectX::XMStoreFloat2(&foo, vxBounds);
+
+        vxBounds *= worldUnitsPerTexelX;
+        
+        DirectX::XMFLOAT2 xBounds;
+        DirectX::XMStoreFloat2(&xBounds, vxBounds);
+
+        auto vyBounds = DirectX::XMVectorSet(lightAABB.Center.y - lightAABB.Extents.y,
+            lightAABB.Center.y + lightAABB.Extents.y, 0, 0);
+        vyBounds /= worldUnitsPerTexelY;
+        vyBounds = DirectX::XMVectorFloor(vyBounds);
+        vyBounds *= worldUnitsPerTexelY;
+
+        DirectX::XMFLOAT2 yBounds;
+        DirectX::XMStoreFloat2(&yBounds, vyBounds);
+
+        m_shadowMapProj = SimpleMath::Matrix::CreateOrthographicOffCenter(
+            xBounds.x,
+            xBounds.y,
+            yBounds.x,
+            yBounds.y,
+            m_sceneRadius,
+            3 * m_sceneRadius
+        );
+
+        // TODO: Use this to make a bounding box for culling
+
+        DirectX::BoundingOrientedBox lightOBB;
+        DirectX::BoundingOrientedBox::CreateFromBoundingBox(lightOBB,
+            lightAABB);
+
+        DirectX::BoundingOrientedBox worldSpaceLightOBB;
+        lightOBB.Transform(worldSpaceLightOBB, m_shadowMapViewInverse);
     }
 
     Color DirectionalLight::GetColour() const
@@ -149,7 +216,7 @@ namespace Gradient::Rendering
         cl->ClearDepthStencilView(
             cpuHandle,
             D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-            1.f, 
+            1.f,
             0, 0, nullptr);
 
         cl->OMSetRenderTargets(
