@@ -87,7 +87,7 @@ namespace Gradient::Rendering
         m_lightDirection = lightDirection;
         m_lightDirection.Normalize();
 
-        auto lightPosition = -2 * m_sceneRadius * m_lightDirection;
+        auto lightPosition = m_sceneCentre - 2 * m_sceneRadius * m_lightDirection;
 
         m_shadowMapView = SimpleMath::Matrix::CreateLookAt(lightPosition,
             m_sceneCentre,
