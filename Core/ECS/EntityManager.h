@@ -34,6 +34,11 @@ namespace Gradient
 
         DirectX::SimpleMath::Matrix GetWorldMatrix(entt::entity entity) const;
         std::optional<DirectX::BoundingBox> GetBoundingBox(entt::entity entity) const;
+        
+        // Returns a bounding box that can be used to cull 
+        // the object when drawing directional shadows.
+        std::optional<DirectX::BoundingBox> GetDirectionalShadowBoundingBox(entt::entity entity,
+            DirectX::SimpleMath::Vector3 lightDirection) const;
 
         void SetRotation(entt::entity entity,
             float yaw, float pitch, float roll);

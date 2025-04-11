@@ -75,7 +75,7 @@ namespace Gradient::Pipelines
         void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
 
         void SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent);
-        void SetMaterial(Rendering::PBRMaterial material) override;
+        void SetMaterial(const Rendering::PBRMaterial& material) override;
 
 
         // TODO: Extract all of this junk into a single struct

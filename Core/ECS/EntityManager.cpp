@@ -191,4 +191,35 @@ namespace Gradient
 
         return out;
     }
+
+    std::optional<DirectX::BoundingBox> 
+        EntityManager::GetDirectionalShadowBoundingBox(entt::entity entity,
+            DirectX::SimpleMath::Vector3 lightDirection) const
+    {
+        using namespace DirectX::SimpleMath;
+
+        auto bb = GetBoundingBox(entity);
+        if (!bb)
+        {
+            return std::nullopt;
+        }
+
+        auto position = Vector3::Transform(Vector3::Zero, GetWorldMatrix(entity));
+
+        // Create a bounding box that contains 
+        // the area this object could cast a shadow on. 
+        // Add a point far from the object in the direction of the light.
+
+        auto p1 = position + 1000.f * lightDirection;
+        auto p2 = position + 1001.f * lightDirection;
+
+        DirectX::BoundingBox distantBox;
+        DirectX::BoundingBox::CreateFromPoints(distantBox,
+            p1, p2);
+
+        DirectX::BoundingBox out;
+        DirectX::BoundingBox::CreateMerged(out, bb.value(), distantBox);
+
+        return out;
+    }
 }

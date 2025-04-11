@@ -165,7 +165,7 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetView(DirectionalLight->GetView());
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
-        DrawAllEntities(cl, true);
+        DrawAllEntities(cl, true, camera->GetFrustum(), true, DirectionalLight->GetDirection());
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
         for (auto& entity : pointLightsView)
@@ -285,7 +285,9 @@ namespace Gradient::Rendering
 
     void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
         bool drawingShadows,
-        std::optional<DirectX::BoundingFrustum> viewFrustum)
+        std::optional<DirectX::BoundingFrustum> viewFrustum,
+        bool useShadowBB,
+        DirectX::SimpleMath::Vector3 lightDirection)
     {
         using namespace ECS::Components;
         auto em = EntityManager::Get();
@@ -309,20 +311,33 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
+            if (useShadowBB)
+            {
+                auto shadowBB = em->GetDirectionalShadowBoundingBox(entity, lightDirection);
+                if (viewFrustum && shadowBB)
+                {
+                    if (!viewFrustum.value().Intersects(shadowBB.value()))
+                    {
+                        continue;
+                    }
+                }
+            }
+            else
+            {
+                auto bb = em->GetBoundingBox(entity);
+                if (viewFrustum && bb)
+                {
+                    if (!viewFrustum.value().Intersects(bb.value()))
+                    {
+                        continue;
+                    }
+                }
+            }
+
             if (!drawingShadows)
                 PbrPipeline->SetMaterial(material.Material);
 
             auto world = em->GetWorldMatrix(entity);
-            auto bb = em->GetBoundingBox(entity);
-
-            if (viewFrustum && bb)
-            {
-                if (!viewFrustum.value().Intersects(bb.value()))
-                {
-                    continue;
-                }
-            }
-
             PbrPipeline->SetWorld(world);
             PbrPipeline->Apply(cl, true, drawingShadows);
 
@@ -347,18 +362,31 @@ namespace Gradient::Rendering
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
-            if (!drawingShadows)
-                InstancePipeline->SetMaterial(material.Material);
-
-            auto bb = em->GetBoundingBox(entity);
-
-            if (viewFrustum && bb)
+            if (useShadowBB)
             {
-                if (!viewFrustum.value().Intersects(bb.value()))
+                auto shadowBB = em->GetDirectionalShadowBoundingBox(entity, lightDirection);
+                if (viewFrustum && shadowBB)
                 {
-                    continue;
+                    if (!viewFrustum.value().Intersects(shadowBB.value()))
+                    {
+                        continue;
+                    }
                 }
             }
+            else
+            {
+                auto bb = em->GetBoundingBox(entity);
+                if (viewFrustum && bb)
+                {
+                    if (!viewFrustum.value().Intersects(bb.value()))
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            if (!drawingShadows)
+                InstancePipeline->SetMaterial(material.Material);
 
             InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
             InstancePipeline->SetInstanceData(instances);

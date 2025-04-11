@@ -165,7 +165,7 @@ namespace Gradient::Pipelines
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
-    void InstancedPBRPipeline::SetMaterial(Rendering::PBRMaterial material)
+    void InstancedPBRPipeline::SetMaterial(const Rendering::PBRMaterial& material)
     {
         m_material = material;
     }

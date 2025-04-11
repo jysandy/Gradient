@@ -231,7 +231,7 @@ namespace Gradient::Pipelines
         m_heightMapComponent = hmComponent;
     }
 
-    void HeightmapPipeline::SetMaterial(Rendering::PBRMaterial material)
+    void HeightmapPipeline::SetMaterial(const Rendering::PBRMaterial& material)
     {
         m_material = material;
     }

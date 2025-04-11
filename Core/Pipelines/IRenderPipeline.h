@@ -25,7 +25,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true, bool drawingShadows = false) = 0;
 
-        virtual void SetMaterial(Rendering::PBRMaterial material);
+        virtual void SetMaterial(const Rendering::PBRMaterial& material);
 
     protected:
         IRenderPipeline() = default;

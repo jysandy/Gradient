@@ -51,7 +51,7 @@ namespace Gradient::Pipelines
             bool multisampled = true, 
             bool drawingShadows = false) override;
 
-        virtual void SetMaterial(Rendering::PBRMaterial material);
+        virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
