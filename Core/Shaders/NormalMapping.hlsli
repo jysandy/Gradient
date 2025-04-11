@@ -26,7 +26,7 @@ float3 perturbNormal(
     float3 worldPosition, 
     float2 tex)
 {
-    float3 map = normalMap.SampleLevel(inSampler, tex, 0).xyz;
+    float3 map = normalMap.Sample(inSampler, tex).xyz;
     map.xy = map.xy * 2.f - 1.f;
     // Using right-handed coordinates, and assuming green up
     map.x = -map.x;
