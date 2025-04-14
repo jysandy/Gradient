@@ -45,26 +45,30 @@ float calculateShadowFactor(
     float constant = 1.f / (dpdx.x * dpdy.y - dpdy.x * dpdx.y);
     float2 zPartials = constant * mul(float2(dpdx.z, dpdy.z), right);
     
-    const float dx = 1.f / 1024.f;
-
-    const float2 offsets[9] =
+    // TODO: Pass the shadow map resolution through
+    const float dx = 1.f / 4096.f;
+    
+    // Use a dithered pattern to obtain a result similar to 16 
+    // samples per pixel.
+    // https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing
+    const float2 offsets[4] =
     {
-        float2(-dx, -dx), float2(0.f, -dx), float2(dx, -dx),
-        float2(-dx, 0.f), float2(0.f, 0.f), float2(dx, 0.f),
-        float2(-dx, +dx), float2(0.f, +dx), float2(dx, +dx)
+        float2(-1.5, 0.5), float2(0.5, 0.5),
+        float2(-1.5, -1.5), float2(0.5, -1.5)
     };
     
     float shadowFactor = 0.f;
     [unroll]
-    for (int i = 0; i < 9; ++i)
+    for (int i = 0; i < 4; ++i)
     {
+        float2 finalOffsets = offsets[i] * dx;
         shadowFactor += saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
-            shadowUV.xy + offsets[i],
-            shadowUV.z + dot(offsets[i], zPartials)
+            shadowUV.xy + finalOffsets,
+            shadowUV.z + dot(finalOffsets, zPartials)
         ).r);
     }
     
-    return shadowFactor / 9.f;
+    return shadowFactor / 4.f;
 }
 
 float calculateShadowFactorNoLargeKernel(
