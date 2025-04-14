@@ -685,7 +685,7 @@ namespace Gradient::Scene
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
-        std::vector<Vector2> treePositions 
+        std::vector<Vector2> treePositions
             = Math::GeneratePoissonDiskSamples(50, 75, 4.f);
 
         auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);

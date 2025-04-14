@@ -153,7 +153,7 @@ namespace Gradient::Rendering
             yBounds.x,
             yBounds.y,
             m_sceneRadius,
-            3 * m_sceneRadius
+            -lightAABB.Center.z + lightAABB.Extents.z
         );
 
         {
@@ -177,8 +177,6 @@ namespace Gradient::Rendering
         lightOBB.Transform(worldSpaceLightOBB, m_shadowMapViewInverse);
 
         m_shadowBB = worldSpaceLightOBB;
-
-        worldSpaceLightOBB.GetCorners(corners.data());
     }
 
     DirectX::BoundingOrientedBox DirectionalLight::GetShadowBB() const

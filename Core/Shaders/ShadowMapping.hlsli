@@ -18,7 +18,9 @@ float calculateShadowFactor(
     if (shadowUV.x < 0
         || shadowUV.x > 1
         || shadowUV.y < 0
-        || shadowUV.y > 1)
+        || shadowUV.y > 1
+        || shadowUV.z < 0 
+        || shadowUV.z > 1)
     {
         return 1.f;
     }
@@ -76,10 +78,12 @@ float calculateShadowFactorNoLargeKernel(
     
     shadowUV.xyz /= shadowUV.w;
     
-    if (shadowUV.x < 0 
+    if (shadowUV.x < 0
         || shadowUV.x > 1
         || shadowUV.y < 0
-        || shadowUV.y > 1)
+        || shadowUV.y > 1
+        || shadowUV.z < 0
+        || shadowUV.z > 1)
     {
         return 1.f;
     }
