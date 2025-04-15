@@ -47,8 +47,8 @@ namespace Gradient::Pipelines
         explicit PBRPipeline(ID3D12Device* device);
         virtual ~PBRPipeline() noexcept = default;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, 
-            bool multisampled = true, 
+        virtual void Apply(ID3D12GraphicsCommandList* cl,
+            bool multisampled = true,
             bool drawingShadows = false) override;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
@@ -73,10 +73,11 @@ namespace Gradient::Pipelines
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_unmaskedPipelineState;
         std::unique_ptr<PipelineState> m_maskedPipelineState;
-        std::unique_ptr<PipelineState> m_shadowPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
 
         Rendering::PBRMaterial m_material;
-        
+
         GraphicsMemoryManager::DescriptorView m_shadowMap;
         GraphicsMemoryManager::DescriptorView m_environmentMap;
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
@@ -87,7 +88,7 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Matrix m_shadowTransform;
 
         DirectX::SimpleMath::Vector3 m_cameraPosition;
-        
+
         // TODO: Get rid of this and store Params::DirectionalLight
         // instead
         LightCB m_dLightCBData;

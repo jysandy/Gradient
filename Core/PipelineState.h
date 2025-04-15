@@ -23,5 +23,7 @@ namespace Gradient
 
         Microsoft::WRL::ComPtr<ID3D12PipelineState> m_singleSampledPSO;
         Microsoft::WRL::ComPtr<ID3D12PipelineState> m_multisampledPSO;
+
+        bool m_isBuilt = false;
     };
 }

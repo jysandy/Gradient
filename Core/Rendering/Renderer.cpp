@@ -327,8 +327,7 @@ namespace Gradient::Rendering
                 }
             }
 
-            if (!drawingShadows)
-                PbrPipeline->SetMaterial(material.Material);
+            PbrPipeline->SetMaterial(material.Material);
 
             auto world = em->GetWorldMatrix(entity);
             PbrPipeline->SetWorld(world);
@@ -371,9 +370,7 @@ namespace Gradient::Rendering
                 }
             }
 
-            if (!drawingShadows)
-                InstancePipeline->SetMaterial(material.Material);
-
+            InstancePipeline->SetMaterial(material.Material);
             InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
             InstancePipeline->SetInstanceData(instances);
             InstancePipeline->Apply(cl, true, drawingShadows);

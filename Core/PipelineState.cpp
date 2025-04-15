@@ -13,6 +13,8 @@ namespace Gradient
 
     void PipelineState::Build(ID3D12Device* device)
     {
+        assert(!m_isBuilt);
+
         DX::ThrowIfFailed(
             device->CreateGraphicsPipelineState(&m_desc,
                 IID_PPV_ARGS(&m_singleSampledPSO)));
@@ -26,6 +28,8 @@ namespace Gradient
         DX::ThrowIfFailed(
             device->CreateGraphicsPipelineState(&multisampledPSODesc,
                 IID_PPV_ARGS(&m_multisampledPSO)));
+
+        m_isBuilt = true;
     }
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetDefaultDesc()
@@ -78,6 +82,8 @@ namespace Gradient
     void PipelineState::Set(ID3D12GraphicsCommandList* cl,
         bool multisampled)
     {
+        assert(m_isBuilt);
+
         if (multisampled)
             cl->SetPipelineState(m_multisampledPSO.Get());
         else

@@ -63,10 +63,15 @@ namespace Gradient::Pipelines
         psoDesc.InputLayout = VertexType::InputLayout;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.VS = { vsData.data(), vsData.size() };
-        // TODO: Set a PS to clip transparent pixels
 
-        m_shadowPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_shadowPipelineState->Build(device);
+        m_unmaskedShadowPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedShadowPipelineState->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedShadowPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_maskedShadowPipelineState->Build(device);
     }
 
     void InstancedPBRPipeline::InitializeRenderPSO(ID3D12Device* device)
@@ -94,7 +99,15 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
     {
-        m_shadowPipelineState->Set(cl, false);
+        if (m_material.Masked)
+        {
+            m_maskedShadowPipelineState->Set(cl, false);
+        }
+        else
+        {
+            m_unmaskedShadowPipelineState->Set(cl, false);
+        }
+
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
@@ -104,6 +117,7 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
         m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceHandle);
+        m_rootSignature.SetSRV(cl, 0, 1, m_material.Texture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
@@ -126,7 +140,7 @@ namespace Gradient::Pipelines
         {
             m_unmaskedPipelineState->Set(cl, multisampled);
         }
-        
+
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;

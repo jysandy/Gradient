@@ -76,7 +76,8 @@ namespace Gradient::Pipelines
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_unmaskedPipelineState;
         std::unique_ptr<PipelineState> m_maskedPipelineState;
-        std::unique_ptr<PipelineState> m_shadowPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
 
         Rendering::PBRMaterial m_material;
 
