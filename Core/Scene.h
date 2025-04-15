@@ -390,7 +390,9 @@ namespace Gradient::Scene
                 "leaf_normal",
                 "leaf_ao",
                 "defaultMetalness",
-                "leaf_roughness"
+                "leaf_roughness",
+                1.f,
+                true
             ));
 
         AttachInstances(leaves, leafData);
@@ -460,7 +462,9 @@ namespace Gradient::Scene
                 "leaf_normal",
                 "leaf_ao",
                 "defaultMetalness",
-                "leaf_roughness"
+                "leaf_roughness",
+                1.f,
+                true
             ));
 
         AttachInstances(leaves, leafData);

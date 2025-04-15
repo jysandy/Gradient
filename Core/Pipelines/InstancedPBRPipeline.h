@@ -74,7 +74,8 @@ namespace Gradient::Pipelines
         void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
 
         RootSignature m_rootSignature;
-        std::unique_ptr<PipelineState> m_pipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedPipelineState;
+        std::unique_ptr<PipelineState> m_maskedPipelineState;
         std::unique_ptr<PipelineState> m_shadowPipelineState;
 
         Rendering::PBRMaterial m_material;

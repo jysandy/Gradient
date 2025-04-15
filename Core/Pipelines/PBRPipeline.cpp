@@ -80,8 +80,14 @@ namespace Gradient::Pipelines
         psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
 
-        m_pipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_pipelineState->Build(device);
+        m_unmaskedPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPipelineState->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPipelineState->Build(device);
     }
 
     void PBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
@@ -109,7 +115,15 @@ namespace Gradient::Pipelines
             return;
         }
 
-        m_pipelineState->Set(cl, multisampled);
+        if (m_material.Masked)
+        {
+            m_maskedPipelineState->Set(cl, multisampled);
+        }
+        else
+        {
+            m_unmaskedPipelineState->Set(cl, multisampled);
+        }
+
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;

@@ -47,7 +47,6 @@ float4 main(InputType input) : SV_TARGET
     input.tex *= uvTiling;
     
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
-    clip(albedoSample.a - 0.01);
     
     input.normal = normalize(input.normal);
     
