@@ -234,10 +234,19 @@ namespace Gradient::Scene
             float colIndex = abs(rand()) % numCols;
             float rowIndex = abs(rand()) % numRows;
 
+            Matrix netTransform = billboardTransform
+                * Matrix::CreateFromQuaternion(transform.Rotation)
+                * Matrix::CreateTranslation(transform.Translation);
+
+            Vector3 netScale;
+            Quaternion netRotation;
+            Vector3 netTranslation;
+            netTransform.Decompose(netScale, netRotation, netTranslation);
+
             out.Instances.push_back({
-                    billboardTransform
-                        * Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
+                    netTranslation,
+                    1.f,
+                    netRotation,
                     Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
                     Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
                 });
@@ -278,10 +287,19 @@ namespace Gradient::Scene
             float colIndex = abs(rand()) % numCols;
             float rowIndex = abs(rand()) % numRows;
 
+            Matrix netTransform = billboardTransform
+                * Matrix::CreateFromQuaternion(transform.Rotation)
+                * Matrix::CreateTranslation(transform.Translation);
+
+            Vector3 netScale;
+            Quaternion netRotation;
+            Vector3 netTranslation;
+            netTransform.Decompose(netScale, netRotation, netTranslation);
+
             out.Instances.push_back({
-                    billboardTransform
-                        * Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
+                    netTranslation,
+                    1.f,
+                    netRotation,
                     Vector2{colIndex / numCols, (colIndex + 1.f) / numCols},
                     Vector2{rowIndex / numRows, (rowIndex + 1.f) / numRows}
                 });
@@ -309,8 +327,9 @@ namespace Gradient::Scene
         for (const auto& transform : trunk.GetLeafTransforms())
         {
             out.Instances.push_back({
-                    Matrix::CreateFromQuaternion(transform.Rotation)
-                        * Matrix::CreateTranslation(transform.Translation),
+                    transform.Translation,
+                    1.f,
+                    transform.Rotation,
                     Vector2{0, 1},
                     Vector2{0, 1}
                 });

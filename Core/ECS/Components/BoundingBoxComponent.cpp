@@ -2,6 +2,8 @@
 
 #include "Core/ECS/Components/BoundingBoxComponent.h"
 
+#include <directxtk12/SimpleMath.h>
+
 namespace Gradient::ECS::Components
 {
     void BoundingBoxComponent::Merge(const DirectX::BoundingBox& other,
@@ -20,11 +22,15 @@ namespace Gradient::ECS::Components
         const std::vector<BufferManager::InstanceData>& instances
     )
     {
+        using namespace DirectX::SimpleMath;
         auto mergedBox = BoundingBoxComponent{ instanceBox };
 
         for (const auto& instance : instances)
         {
-            mergedBox.Merge(instanceBox, instance.World);
+            Matrix transform = Matrix::CreateFromQuaternion(instance.RotationQuat)
+                * Matrix::CreateTranslation(instance.Position);
+
+            mergedBox.Merge(instanceBox, transform);
         }
 
         return mergedBox;

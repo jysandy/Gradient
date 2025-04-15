@@ -28,13 +28,6 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX proj;
         };
 
-        struct __declspec(align(16)) InstanceData
-        {
-            DirectX::XMMATRIX World;
-            DirectX::XMFLOAT2 TexcoordURange;
-            DirectX::XMFLOAT2 TexcoordVRange;
-        };
-
         struct __declspec(align(16)) PixelCB
         {
             DirectX::XMFLOAT3 cameraPosition;

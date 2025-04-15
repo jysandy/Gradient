@@ -29,20 +29,9 @@ namespace Gradient
         ID3D12CommandQueue* cq,
         const std::vector<InstanceData>& instanceData)
     {
-        std::vector<InstanceData> transposedInstanceData;
-
-        for (const auto& instance : instanceData)
-        {
-            transposedInstanceData.push_back({
-                DirectX::XMMatrixTranspose(instance.World),
-                instance.TexcoordURange,
-                instance.TexcoordVRange
-                });
-        }
-
         auto handle = m_instanceBuffers.Allocate({
             BarrierResource(),
-            static_cast<uint32_t>(transposedInstanceData.size())
+            static_cast<uint32_t>(instanceData.size())
             });
 
         auto entry = m_instanceBuffers.Get(handle);
@@ -55,8 +44,8 @@ namespace Gradient
         DX::ThrowIfFailed(
             DirectX::CreateStaticBuffer(device,
                 uploadBatch,
-                transposedInstanceData.data(),
-                transposedInstanceData.size(),
+                instanceData.data(),
+                instanceData.size(),
                 D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
                 entry->Resource.ReleaseAndGetAddressOf()));
         entry->Resource.SetState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);

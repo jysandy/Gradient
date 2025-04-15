@@ -1,3 +1,5 @@
+#include "Quaternion.hlsli"
+
 cbuffer MatrixBuffer : register(b0, space0)
 {
     matrix g_parentWorldMatrix;
@@ -7,7 +9,9 @@ cbuffer MatrixBuffer : register(b0, space0)
 
 struct InstanceData
 {
-    float4x4 WorldMatrix;
+    float3 LocalPosition;
+    float pad;
+    Quaternion RotationQuat;
     float2 TexcoordURange;
     float2 TexcoordVRange;
 };
@@ -29,15 +33,24 @@ struct OutputType
     float3 worldPosition : POSITION1;
 };
 
+float4x4 GetTransform(InstanceData instance)
+{
+    float4x4 transform = QuatTo4x4(instance.RotationQuat);
+    transform._41_42_43 = instance.LocalPosition;
+    
+    return transform;
+}
+
 OutputType main(InputType input, uint InstanceID : SV_InstanceID)
 {
     OutputType output;
     
-    float4x4 worldMatrix = mul(Instances[InstanceID].WorldMatrix, g_parentWorldMatrix);
+    float4x4 instanceTransform = GetTransform(Instances[InstanceID]);
+    float4x4 viewProjection = mul(g_viewMatrix, g_projectionMatrix);
+    float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
 
-    output.position = mul(float4(input.position, 1), worldMatrix);
-    output.position = mul(output.position, g_viewMatrix);
-    output.position = mul(output.position, g_projectionMatrix);
+    float4 worldPosHomo = mul(float4(input.position, 1), worldMatrix);
+    output.position = mul(worldPosHomo, viewProjection);
 
     // Resolve sub-UVs
     output.tex.x = lerp(Instances[InstanceID].TexcoordURange.x,
@@ -50,8 +63,6 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
     output.normal = mul(input.normal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 	
-    float4 worldPosHomo = mul(float4(input.position, 1), worldMatrix);
-    
     output.worldPosition = worldPosHomo.xyz / worldPosHomo.w;
 
     return output;

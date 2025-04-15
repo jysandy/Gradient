@@ -13,9 +13,13 @@ namespace Gradient
     class BufferManager
     {
     public:
+
         struct __declspec(align(16)) InstanceData
         {
-            DirectX::XMMATRIX World;
+            // Not supporting scale to save space
+            DirectX::XMFLOAT3 Position;
+            float pad;
+            DirectX::XMFLOAT4 RotationQuat;
             DirectX::XMFLOAT2 TexcoordURange;
             DirectX::XMFLOAT2 TexcoordVRange;
         };

@@ -276,6 +276,7 @@
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
     <None Include="CompressTex.ps1" />
+    <None Include="Core\Shaders\Quaternion.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
