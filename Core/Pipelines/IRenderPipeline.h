@@ -18,19 +18,12 @@ namespace Gradient::Pipelines
     class IRenderPipeline : public DirectX::IEffectMatrices
     {
     public:
-        enum class PassType
-        {
-            ShadowPass,
-            ZPrePass,
-            ForwardPass
-        };
-
         virtual ~IRenderPipeline() noexcept = default;
 
         IRenderPipeline(const IRenderPipeline&) = delete;
         IRenderPipeline& operator=(const IRenderPipeline&) = delete;
 
-        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true, PassType passType = PassType::ForwardPass) = 0;
+        virtual void Apply(ID3D12GraphicsCommandList* cl, bool multisampled = true, bool drawingShadows = false) = 0;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material);
 

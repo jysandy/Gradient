@@ -221,40 +221,7 @@ namespace Gradient::Rendering
         cl->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     }
 
-    void RenderTexture::Clear(ID3D12GraphicsCommandList* cl)
-    {
-        auto gmm = GraphicsMemoryManager::Get();
-
-        // TODO: Batch these barrier transitions
-        m_offscreenRT.Transition(cl, D3D12_RESOURCE_STATE_RENDER_TARGET);
-        m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-        auto rtvHandle = m_rtv->GetCPUHandle();
-        auto dsvHandle = m_dsv->GetCPUHandle();
-
-        cl->ClearRenderTargetView(rtvHandle,
-            DirectX::ColorsLinear::CornflowerBlue,
-            0, nullptr);
-
-        cl->ClearDepthStencilView(dsvHandle,
-            D3D12_CLEAR_FLAG_DEPTH,
-            1.0f,
-            0, 0, nullptr);
-
-        cl->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
-    }
-
-    void RenderTexture::SetDepthOnly(ID3D12GraphicsCommandList* cl)
-    {
-        auto gmm = GraphicsMemoryManager::Get();
-
-        m_depthBuffer.Transition(cl, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-        auto dsvHandle = m_dsv->GetCPUHandle();
-        cl->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
-    }
-
-    void RenderTexture::SetDepthAndRT(ID3D12GraphicsCommandList* cl)
+    void RenderTexture::SetAsTarget(ID3D12GraphicsCommandList* cl)
     {
         auto gmm = GraphicsMemoryManager::Get();
 

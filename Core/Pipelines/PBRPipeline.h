@@ -49,7 +49,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
-            PassType passType = PassType::ForwardPass) override;
+            bool drawingShadows = false) override;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 

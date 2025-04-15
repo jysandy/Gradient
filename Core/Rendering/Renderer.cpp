@@ -122,7 +122,7 @@ namespace Gradient::Rendering
     {
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Clear");
 
-        MultisampledRT->Clear(cl);
+        MultisampledRT->ClearAndSetAsTarget(cl);
         cl->RSSetViewports(1, &screenViewport);
 
         PIXEndEvent(cl);
@@ -166,7 +166,7 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetView(DirectionalLight->GetView());
         HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
 
-        DrawAllEntities(cl, PassType::ShadowPass, camera->GetFrustum(), DirectionalLight->GetShadowBB());
+        DrawAllEntities(cl, true, camera->GetFrustum(), DirectionalLight->GetShadowBB());
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
         for (auto& entity : pointLightsView)
@@ -188,7 +188,7 @@ namespace Gradient::Rendering
 
                     auto frustum = Math::MakeFrustum(view, proj);
 
-                    DrawAllEntities(cl, PassType::ShadowPass, frustum);
+                    DrawAllEntities(cl, true, frustum);
                 });
         }
 
@@ -212,11 +212,12 @@ namespace Gradient::Rendering
 
         Clear(cl, screenViewport);
 
-
+        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Render");
         SkyDomePipeline->SetSunCircleEnabled(true);
         SkyDomePipeline->SetProjection(camera->GetProjectionMatrix());
         SkyDomePipeline->SetView(camera->GetViewMatrix());
-
+        SkyDomePipeline->Apply(cl);
+        bm->GetMesh(SkyGeometry)->Draw(cl);
 
         // TODO: Batch these barrier transitions
         DirectionalLight->TransitionToShaderResource(cl);
@@ -257,21 +258,7 @@ namespace Gradient::Rendering
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
-        MultisampledRT->SetDepthOnly(cl);
-
-        DrawAllEntities(cl, PassType::ZPrePass, camera->GetPrepassFrustum());
-
-        PIXEndEvent(cl);
-
-
-        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");
-        MultisampledRT->SetDepthAndRT(cl);
-        
-        SkyDomePipeline->Apply(cl);
-        bm->GetMesh(SkyGeometry)->Draw(cl);
-
-        DrawAllEntities(cl, PassType::ForwardPass, camera->GetFrustum());
+        DrawAllEntities(cl, false, camera->GetFrustum());
 
         auto physicsEngine = Physics::PhysicsEngine::Get();
         // This is too slow for now and is hence commented out
@@ -298,7 +285,7 @@ namespace Gradient::Rendering
     }
 
     void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
-        PassType passType,
+        bool drawingShadows,
         std::optional<DirectX::BoundingFrustum> viewFrustum,
         std::optional<DirectX::BoundingOrientedBox> shadowBB)
     {
@@ -318,16 +305,14 @@ namespace Gradient::Rendering
 
             if (mesh == nullptr) continue;
 
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
+            if (drawingShadows && !drawable.CastsShadows) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
             auto bb = em->GetBoundingBox(entity);
-            if (passType == PassType::ShadowPass
-                && shadowBB && bb)
+            if (drawingShadows && shadowBB && bb)
             {
                 if (!shadowBB.value().Intersects(bb.value()))
                 {
@@ -346,7 +331,7 @@ namespace Gradient::Rendering
 
             auto world = em->GetWorldMatrix(entity);
             PbrPipeline->SetWorld(world);
-            PbrPipeline->Apply(cl, true, passType);
+            PbrPipeline->Apply(cl, true, drawingShadows);
 
             mesh->Draw(cl);
         }
@@ -363,16 +348,14 @@ namespace Gradient::Rendering
 
             if (mesh == nullptr) continue;
 
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
+            if (drawingShadows && !drawable.CastsShadows) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Default)
                 continue;
 
             auto bb = em->GetBoundingBox(entity);
-            if (passType == PassType::ShadowPass
-                && shadowBB && bb)
+            if (drawingShadows && shadowBB && bb)
             {
                 if (!shadowBB.value().Intersects(bb.value()))
                 {
@@ -390,7 +373,7 @@ namespace Gradient::Rendering
             InstancePipeline->SetMaterial(material.Material);
             InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
             InstancePipeline->SetInstanceData(instances);
-            InstancePipeline->Apply(cl, true, passType);
+            InstancePipeline->Apply(cl, true, drawingShadows);
 
             auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
 
@@ -411,10 +394,7 @@ namespace Gradient::Rendering
             auto mesh = bm->GetMesh(drawable.MeshHandle);
 
             if (mesh == nullptr) continue;
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
-
-            if (passType == PassType::ZPrePass) continue;
+            if (drawingShadows && !drawable.CastsShadows) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Heightmap)
@@ -423,7 +403,7 @@ namespace Gradient::Rendering
             HeightmapPipeline->SetMaterial(material.Material);
             HeightmapPipeline->SetHeightMapComponent(heightMap);
             HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
-            HeightmapPipeline->Apply(cl, true, passType);
+            HeightmapPipeline->Apply(cl, true, drawingShadows);
 
             mesh->Draw(cl);
         }
@@ -437,14 +417,14 @@ namespace Gradient::Rendering
             auto mesh = bm->GetMesh(drawable.MeshHandle);
 
             if (mesh == nullptr) continue;
-            if (passType != PassType::ForwardPass) continue;
+            if (drawingShadows) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Water)
                 continue;
 
             WaterPipeline->SetWorld(em->GetWorldMatrix(entity));
-            WaterPipeline->Apply(cl, true, passType);
+            WaterPipeline->Apply(cl, true, drawingShadows);
 
             mesh->Draw(cl);
         }

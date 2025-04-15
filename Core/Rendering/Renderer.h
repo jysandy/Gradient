@@ -3,7 +3,6 @@
 #include "pch.h"
 #include "Core/BarrierResource.h"
 #include "Core/Rendering/RenderTexture.h"
-#include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Pipelines/PBRPipeline.h"
 #include "Core/Pipelines/InstancedPBRPipeline.h"
 #include "Core/Pipelines/SkyDomePipeline.h"
@@ -22,8 +21,6 @@ namespace Gradient::Rendering
     class Renderer
     {
     public:
-        using PassType = Pipelines::IRenderPipeline::PassType;
-
         Renderer() = default;
 
         void CreateWindowSizeIndependentResources(ID3D12Device* device,
@@ -41,7 +38,7 @@ namespace Gradient::Rendering
             RenderTexture* finalRenderTarget);
 
         void DrawAllEntities(ID3D12GraphicsCommandList* cl,
-            PassType passType = PassType::ForwardPass,
+            bool drawingShadows = false,
             std::optional<DirectX::BoundingFrustum> viewFrustum = std::nullopt,
             std::optional<DirectX::BoundingOrientedBox> shadowBB = std::nullopt);
 

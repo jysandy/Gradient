@@ -97,16 +97,15 @@ namespace Gradient::Pipelines
         m_maskedPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl,
-        bool multisampled)
+    void InstancedPBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
     {
         if (m_material.Masked)
         {
-            m_maskedShadowPipelineState->Set(cl, multisampled);
+            m_maskedShadowPipelineState->Set(cl, false);
         }
         else
         {
-            m_unmaskedShadowPipelineState->Set(cl, multisampled);
+            m_unmaskedShadowPipelineState->Set(cl, false);
         }
 
         m_rootSignature.SetOnCommandList(cl);
@@ -125,18 +124,11 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        PassType passType)
+        bool drawingShadows)
     {
-        if (passType == PassType::ShadowPass)
+        if (drawingShadows)
         {
-            ApplyShadowPipeline(cl, false);
-            return;
-        }
-
-        // Use the same settings as shadows for now
-        if (passType == PassType::ZPrePass)
-        {
-            ApplyShadowPipeline(cl, multisampled);
+            ApplyShadowPipeline(cl);
             return;
         }
 

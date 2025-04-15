@@ -28,9 +28,7 @@ namespace Gradient::Rendering
         RECT GetOutputSize();
         void CopyToSingleSampled(ID3D12GraphicsCommandList* cl);
         void ClearAndSetAsTarget(ID3D12GraphicsCommandList* cl);
-        void Clear(ID3D12GraphicsCommandList* cl);
-        void SetDepthOnly(ID3D12GraphicsCommandList* cl);
-        void SetDepthAndRT(ID3D12GraphicsCommandList* cl);
+        void SetAsTarget(ID3D12GraphicsCommandList* cl);
         void DrawTo(ID3D12GraphicsCommandList* cl,
             RenderTexture* destination,
             TextureDrawer* texDrawer,
