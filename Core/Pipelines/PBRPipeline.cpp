@@ -121,9 +121,9 @@ namespace Gradient::Pipelines
 
     void PBRPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        bool drawingShadows)
+        PassType passType)
     {
-        if (drawingShadows)
+        if (passType == PassType::ShadowPass)
         {
             ApplyShadowPipeline(cl);
             return;

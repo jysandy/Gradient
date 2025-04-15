@@ -51,7 +51,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
-            bool drawingShadows = false) override;
+            PassType passType = PassType::ForwardPass) override;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 
@@ -71,7 +71,7 @@ namespace Gradient::Pipelines
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device* device);
         void InitializeRenderPSO(ID3D12Device* device);
-        void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
+        void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl, bool multisampled);
 
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_unmaskedPipelineState;
