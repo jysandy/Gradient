@@ -74,6 +74,15 @@ namespace Gradient
         return psoDesc;
     }
 
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetDepthWriteDisableDesc()
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        psoDesc.DepthStencilState = DirectX::CommonStates::DepthRead;
+
+        return psoDesc;
+    }
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetDesc()
     {
         return m_desc;

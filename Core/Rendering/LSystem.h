@@ -18,7 +18,8 @@ namespace Gradient::Rendering
         void AddRule(char lhs, const std::string& rhs);
 
         void Build(std::string startingRule,
-            int numGenerations);
+            int numGenerations,
+            int numVerticalSections = 6);
 
         const ProceduralMesh::MeshPart& GetTrunk() const;
 
@@ -35,7 +36,7 @@ namespace Gradient::Rendering
     private:
         bool m_isBuilt = false;
 
-        ProceduralMesh::MeshPart InterpretRule(const std::string& rule);
+        ProceduralMesh::MeshPart InterpretRule(const std::string& rule, int numVerticalSections);
         std::string ExpandRule(const std::string& startingRule,
             const std::unordered_map<char, std::string>& productionRules,
             int numGenerations);

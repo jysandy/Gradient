@@ -12,7 +12,8 @@ namespace Gradient::Pipelines
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
-        InitializeRenderPSO(device);
+        InitializePrepassPSO(device);
+        InitializeForwardPSO(device);
     }
 
     void InstancedPBRPipeline::InitializeRootSignature(ID3D12Device* device)
@@ -74,9 +75,9 @@ namespace Gradient::Pipelines
         m_maskedShadowPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializeRenderPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializeForwardPSO(ID3D12Device* device)
     {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
 
         auto vsData = DX::ReadData(L"Instanced_VS.cso");
         auto psData = DX::ReadData(L"PBR_PS.cso");
@@ -87,26 +88,62 @@ namespace Gradient::Pipelines
         psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
 
-        m_unmaskedPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_unmaskedPipelineState->Build(device);
+        m_unmaskedForwardPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedForwardPipelineState->Build(device);
 
         auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
-        m_maskedPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_maskedPipelineState->Build(device);
+        m_maskedForwardPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_maskedForwardPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl,
-        bool multisampled)
+    void InstancedPBRPipeline::InitializePrepassPSO(ID3D12Device* device)
     {
-        if (m_material.Masked)
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto vsData = DX::ReadData(L"Instanced_VS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+
+        m_unmaskedPrepassPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPrepassPipelineState->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedPrepassPipelineState = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPrepassPipelineState->Build(device);
+    }
+
+    void InstancedPBRPipeline::ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl,
+        bool multisampled,
+        PassType passType)
+    {
+        if (passType == PassType::ShadowPass)
         {
-            m_maskedShadowPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedShadowPipelineState->Set(cl, false);
+            }
+            else
+            {
+                m_unmaskedShadowPipelineState->Set(cl, false);
+            }
         }
         else
         {
-            m_unmaskedShadowPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedPrepassPipelineState->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPrepassPipelineState->Set(cl, multisampled);
+            }
         }
 
         m_rootSignature.SetOnCommandList(cl);
@@ -127,26 +164,19 @@ namespace Gradient::Pipelines
         bool multisampled,
         PassType passType)
     {
-        if (passType == PassType::ShadowPass)
+        if (passType != PassType::ForwardPass)
         {
-            ApplyShadowPipeline(cl, false);
-            return;
-        }
-
-        // Use the same settings as shadows for now
-        if (passType == PassType::ZPrePass)
-        {
-            ApplyShadowPipeline(cl, multisampled);
+            ApplyDepthOnlyPipeline(cl, multisampled, passType);
             return;
         }
 
         if (m_material.Masked)
         {
-            m_maskedPipelineState->Set(cl, multisampled);
+            m_maskedForwardPipelineState->Set(cl, multisampled);
         }
         else
         {
-            m_unmaskedPipelineState->Set(cl, multisampled);
+            m_unmaskedForwardPipelineState->Set(cl, multisampled);
         }
 
         m_rootSignature.SetOnCommandList(cl);

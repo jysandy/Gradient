@@ -10,6 +10,7 @@ namespace Gradient
         PipelineState(D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc);
 
         static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetDefaultDesc();
+        static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetDepthWriteDisableDesc();
         static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetDefaultShadowDesc();
 
         void Build(ID3D12Device* device);

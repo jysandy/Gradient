@@ -70,14 +70,18 @@ namespace Gradient::Pipelines
     private:
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device* device);
-        void InitializeRenderPSO(ID3D12Device* device);
-        void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl, bool multisampled);
+        void InitializeForwardPSO(ID3D12Device* device);
+        void InitializePrepassPSO(ID3D12Device* device);
+        void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, PassType passType);
 
         RootSignature m_rootSignature;
-        std::unique_ptr<PipelineState> m_unmaskedPipelineState;
-        std::unique_ptr<PipelineState> m_maskedPipelineState;
         std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedPrepassPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedForwardPipelineState;
+
         std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_maskedPrepassPipelineState;
+        std::unique_ptr<PipelineState> m_maskedForwardPipelineState;
 
         Rendering::PBRMaterial m_material;
 

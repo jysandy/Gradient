@@ -305,6 +305,9 @@ namespace Gradient::Scene
                 });
         }
 
+        // TODO: Sort instances by sub-UVs to maximise warp coherence
+        // TODO: Make the leaf texture smaller
+
         out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
             cq,
             out.Instances);
@@ -702,7 +705,7 @@ namespace Gradient::Scene
         treeBranch.AngleDegrees = 20.f;
         treeBranch.MoveDistance = 0.2f;
 
-        treeBranch.Build("X", 5);
+        treeBranch.Build("X", 5, 3);
 
         auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk());
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);

@@ -260,7 +260,7 @@ namespace Gradient::Rendering
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
         MultisampledRT->SetDepthOnly(cl);
 
-        DrawAllEntities(cl, PassType::ZPrePass, camera->GetPrepassFrustum());
+        DrawAllEntities(cl, PassType::ZPrePass, camera->GetFrustum());
 
         PIXEndEvent(cl);
 
@@ -320,6 +320,8 @@ namespace Gradient::Rendering
 
             if (passType == PassType::ShadowPass
                 && !drawable.CastsShadows) continue;
+
+            if (passType == PassType::ZPrePass) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Default)
