@@ -259,8 +259,9 @@ namespace Gradient::Rendering
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
         MultisampledRT->SetDepthOnly(cl);
+        m_prepassedEntities.clear();
 
-        DrawAllEntities(cl, PassType::ZPrepass, camera->GetFrustum());
+        DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
 
         PIXEndEvent(cl);
 
@@ -385,7 +386,7 @@ namespace Gradient::Rendering
                     continue;
                 }
             }
-            else  if (viewFrustum && bb)
+            else if (viewFrustum && bb)
             {
                 if (!viewFrustum.value().Intersects(bb.value()))
                 {
@@ -407,10 +408,18 @@ namespace Gradient::Rendering
 
             case PassType::ZPrepass:
                 drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
                 break;
 
             case PassType::ForwardPass:
-                drawType = DrawType::PixelDepthReadOnly;
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
                 break;
 
             default:
