@@ -22,7 +22,13 @@ namespace Gradient::Rendering
     class Renderer
     {
     public:
-        using PassType = Pipelines::IRenderPipeline::PassType;
+        using DrawType = Pipelines::IRenderPipeline::DrawType;
+        enum class PassType
+        {
+            ShadowPass,
+            ZPrepass,
+            ForwardPass
+        };
 
         Renderer() = default;
 

@@ -144,15 +144,15 @@ namespace Gradient::Pipelines
 
     void HeightmapPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        PassType passType)
+        DrawType passType)
     {
-        if (passType == PassType::ShadowPass)
+        if (passType == DrawType::ShadowPass)
         {
             ApplyShadowPipeline(cl);
             return;
         }
 
-        if (passType == PassType::ZPrePass) return;
+        if (passType == DrawType::DepthWriteOnly) return;
 
         m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);

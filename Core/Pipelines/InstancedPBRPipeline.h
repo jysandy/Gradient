@@ -51,7 +51,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
-            PassType passType = PassType::ForwardPass) override;
+            DrawType passType = DrawType::PixelDepthReadWrite) override;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 
@@ -70,18 +70,21 @@ namespace Gradient::Pipelines
     private:
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device* device);
-        void InitializeForwardPSO(ID3D12Device* device);
-        void InitializePrepassPSO(ID3D12Device* device);
-        void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, PassType passType);
+        void InitializePixelDepthReadPSO(ID3D12Device* device);
+        void InitializePixelDepthReadWritePSO(ID3D12Device* device);
+        void InitializeDepthWritePSO(ID3D12Device* device);
+        void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, DrawType passType);
 
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
-        std::unique_ptr<PipelineState> m_unmaskedPrepassPipelineState;
-        std::unique_ptr<PipelineState> m_unmaskedForwardPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadPSO;
+        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadWritePSO;
 
         std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
-        std::unique_ptr<PipelineState> m_maskedPrepassPipelineState;
-        std::unique_ptr<PipelineState> m_maskedForwardPipelineState;
+        std::unique_ptr<PipelineState> m_maskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_maskedPixelDepthReadPSO;
+        std::unique_ptr<PipelineState> m_maskedPixelDepthReadWritePSO;
 
         Rendering::PBRMaterial m_material;
 

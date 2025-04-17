@@ -12,8 +12,9 @@ namespace Gradient::Pipelines
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
-        InitializePrepassPSO(device);
-        InitializeForwardPSO(device);
+        InitializeDepthWritePSO(device);
+        InitializePixelDepthReadPSO(device);
+        InitializePixelDepthReadWritePSO(device);
     }
 
     void InstancedPBRPipeline::InitializeRootSignature(ID3D12Device* device)
@@ -75,7 +76,7 @@ namespace Gradient::Pipelines
         m_maskedShadowPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializeForwardPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializePixelDepthReadPSO(ID3D12Device* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
 
@@ -88,17 +89,40 @@ namespace Gradient::Pipelines
         psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
 
-        m_unmaskedForwardPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_unmaskedForwardPipelineState->Build(device);
+        m_unmaskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPixelDepthReadPSO->Build(device);
 
         auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
-        m_maskedForwardPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_maskedForwardPipelineState->Build(device);
+        m_maskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPixelDepthReadPSO->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializePrepassPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializePixelDepthReadWritePSO(ID3D12Device* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto vsData = DX::ReadData(L"Instanced_VS.cso");
+        auto psData = DX::ReadData(L"PBR_PS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+
+        m_unmaskedPixelDepthReadWritePSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPixelDepthReadWritePSO->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedPixelDepthReadWritePSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPixelDepthReadWritePSO->Build(device);
+    }
+
+    void InstancedPBRPipeline::InitializeDepthWritePSO(ID3D12Device* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
@@ -109,21 +133,21 @@ namespace Gradient::Pipelines
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.VS = { vsData.data(), vsData.size() };
 
-        m_unmaskedPrepassPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_unmaskedPrepassPipelineState->Build(device);
+        m_unmaskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedDepthWriteOnlyPSO->Build(device);
 
         auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
-        m_maskedPrepassPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_maskedPrepassPipelineState->Build(device);
+        m_maskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedDepthWriteOnlyPSO->Build(device);
     }
 
     void InstancedPBRPipeline::ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        PassType passType)
+        DrawType passType)
     {
-        if (passType == PassType::ShadowPass)
+        if (passType == DrawType::ShadowPass)
         {
             if (m_material.Masked)
             {
@@ -134,15 +158,15 @@ namespace Gradient::Pipelines
                 m_unmaskedShadowPipelineState->Set(cl, false);
             }
         }
-        else
+        else if (passType == DrawType::DepthWriteOnly)
         {
             if (m_material.Masked)
             {
-                m_maskedPrepassPipelineState->Set(cl, multisampled);
+                m_maskedDepthWriteOnlyPSO->Set(cl, multisampled);
             }
             else
             {
-                m_unmaskedPrepassPipelineState->Set(cl, multisampled);
+                m_unmaskedDepthWriteOnlyPSO->Set(cl, multisampled);
             }
         }
 
@@ -162,22 +186,36 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        PassType passType)
+        DrawType passType)
     {
-        if (passType != PassType::ForwardPass)
+        if (passType == DrawType::ShadowPass || passType == DrawType::DepthWriteOnly)
         {
             ApplyDepthOnlyPipeline(cl, multisampled, passType);
             return;
         }
+        else if (passType == DrawType::PixelDepthReadOnly)
+        {
+            if (m_material.Masked)
+            {
+                m_maskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
+        }
+        else if (passType == DrawType::PixelDepthReadWrite)
+        {
+            if (m_material.Masked)
+            {
+                m_maskedPixelDepthReadWritePSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPixelDepthReadWritePSO->Set(cl, multisampled);
+            }
+        }
 
-        if (m_material.Masked)
-        {
-            m_maskedForwardPipelineState->Set(cl, multisampled);
-        }
-        else
-        {
-            m_unmaskedForwardPipelineState->Set(cl, multisampled);
-        }
 
         m_rootSignature.SetOnCommandList(cl);
 
