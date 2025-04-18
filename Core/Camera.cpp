@@ -39,6 +39,14 @@ namespace Gradient
             0.1f,
             70.f
         );
+
+        // An even shorter view distance is used for the Z prepass.
+        m_prepassProjectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
+            m_fieldOfViewRadians,
+            m_aspectRatio,
+            0.1f,
+            20.f
+        );
     }
 
     // These arent' thread safe.
@@ -111,5 +119,10 @@ namespace Gradient
     DirectX::BoundingFrustum Camera::GetShadowFrustum() const
     {
         return Math::MakeFrustum(GetViewMatrix(), m_shadowProjectionMatrix);
+    }
+
+    DirectX::BoundingFrustum Camera::GetPrepassFrustum() const
+    {
+        return Math::MakeFrustum(GetViewMatrix(), m_prepassProjectionMatrix);
     }
 }

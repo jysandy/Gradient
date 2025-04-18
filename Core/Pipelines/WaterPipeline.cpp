@@ -107,9 +107,9 @@ namespace Gradient::Pipelines
 
     void WaterPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        bool drawingShadows)
+        PassType passType)
     {
-        if (drawingShadows) return;
+        if (passType != PassType::ForwardPass) return;
 
         m_pso->Set(cl, multisampled);
         m_rootSignature.SetOnCommandList(cl);

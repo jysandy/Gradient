@@ -208,7 +208,7 @@ void Game::Render()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    m_tonemappedRenderTexture->SetAsTarget(cl);
+    m_tonemappedRenderTexture->SetDepthAndRT(cl);
 
     m_perfWindow.Draw();
 

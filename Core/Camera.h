@@ -20,6 +20,9 @@ namespace Gradient
 
         // A shorter view distance is used for shadows.
         DirectX::SimpleMath::Matrix m_shadowProjectionMatrix;
+
+        // An even shorter view distance is used for the Z prepass.
+        DirectX::SimpleMath::Matrix m_prepassProjectionMatrix;
         
         void CreateProjectionMatrix();
 
@@ -38,6 +41,7 @@ namespace Gradient
         DirectX::SimpleMath::Matrix GetProjectionMatrix() const;
         DirectX::BoundingFrustum GetFrustum() const;
         DirectX::BoundingFrustum GetShadowFrustum() const;
+        DirectX::BoundingFrustum GetPrepassFrustum() const;
 
         void SetFieldOfView(float const& fovRadians);
         void SetAspectRatio(float const& aspectRatio);
