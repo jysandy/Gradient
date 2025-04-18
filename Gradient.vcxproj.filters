@@ -298,5 +298,7 @@
     <FxCompile Include="Core\Shaders\Heightmap_DS.hlsl" />
     <FxCompile Include="Core\Shaders\Heightmap_PS.hlsl" />
     <FxCompile Include="Core\Shaders\Instanced_VS.hlsl" />
+    <FxCompile Include="Core\Shaders\PBR_Masked_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\Shadow_Masked_PS.hlsl" />
   </ItemGroup>
 </Project>

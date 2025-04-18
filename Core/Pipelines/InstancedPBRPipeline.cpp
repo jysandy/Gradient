@@ -12,7 +12,9 @@ namespace Gradient::Pipelines
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
-        InitializeRenderPSO(device);
+        InitializeDepthWritePSO(device);
+        InitializePixelDepthReadPSO(device);
+        InitializePixelDepthReadWritePSO(device);
     }
 
     void InstancedPBRPipeline::InitializeRootSignature(ID3D12Device* device)
@@ -74,7 +76,30 @@ namespace Gradient::Pipelines
         m_maskedShadowPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializeRenderPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializePixelDepthReadPSO(ID3D12Device* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
+
+        auto vsData = DX::ReadData(L"Instanced_VS.cso");
+        auto psData = DX::ReadData(L"PBR_PS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+
+        m_unmaskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPixelDepthReadPSO->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPixelDepthReadPSO->Build(device);
+    }
+
+    void InstancedPBRPipeline::InitializePixelDepthReadWritePSO(ID3D12Device* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
@@ -87,34 +112,69 @@ namespace Gradient::Pipelines
         psoDesc.VS = { vsData.data(), vsData.size() };
         psoDesc.PS = { psData.data(), psData.size() };
 
-        m_unmaskedPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_unmaskedPipelineState->Build(device);
+        m_unmaskedPixelDepthReadWritePSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPixelDepthReadWritePSO->Build(device);
 
         auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
-        m_maskedPipelineState = std::make_unique<PipelineState>(psoDesc);
-        m_maskedPipelineState->Build(device);
+        m_maskedPixelDepthReadWritePSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPixelDepthReadWritePSO->Build(device);
     }
 
-    void InstancedPBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl,
-        bool multisampled)
+    void InstancedPBRPipeline::InitializeDepthWritePSO(ID3D12Device* device)
     {
-        if (m_material.Masked)
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto vsData = DX::ReadData(L"Instanced_VS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+
+        m_unmaskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedDepthWriteOnlyPSO->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedDepthWriteOnlyPSO->Build(device);
+    }
+
+    void InstancedPBRPipeline::ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl,
+        bool multisampled,
+        DrawType passType)
+    {
+        if (passType == DrawType::ShadowPass)
         {
-            m_maskedShadowPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedShadowPipelineState->Set(cl, false);
+            }
+            else
+            {
+                m_unmaskedShadowPipelineState->Set(cl, false);
+            }
         }
-        else
+        else if (passType == DrawType::DepthWriteOnly)
         {
-            m_unmaskedShadowPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedDepthWriteOnlyPSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedDepthWriteOnlyPSO->Set(cl, multisampled);
+            }
         }
 
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
-        vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
-        vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+        vertexConstants.viewProj = DirectX::XMMatrixTranspose(m_view * m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
         m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceHandle);
@@ -125,36 +185,42 @@ namespace Gradient::Pipelines
 
     void InstancedPBRPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
-        PassType passType)
+        DrawType passType)
     {
-        if (passType == PassType::ShadowPass)
+        if (passType == DrawType::ShadowPass || passType == DrawType::DepthWriteOnly)
         {
-            ApplyShadowPipeline(cl, false);
+            ApplyDepthOnlyPipeline(cl, multisampled, passType);
             return;
         }
-
-        // Use the same settings as shadows for now
-        if (passType == PassType::ZPrePass)
+        else if (passType == DrawType::PixelDepthReadOnly)
         {
-            ApplyShadowPipeline(cl, multisampled);
-            return;
+            if (m_material.Masked)
+            {
+                m_maskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
+        }
+        else if (passType == DrawType::PixelDepthReadWrite)
+        {
+            if (m_material.Masked)
+            {
+                m_maskedPixelDepthReadWritePSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPixelDepthReadWritePSO->Set(cl, multisampled);
+            }
         }
 
-        if (m_material.Masked)
-        {
-            m_maskedPipelineState->Set(cl, multisampled);
-        }
-        else
-        {
-            m_unmaskedPipelineState->Set(cl, multisampled);
-        }
 
         m_rootSignature.SetOnCommandList(cl);
 
         VertexCB vertexConstants;
         vertexConstants.world = DirectX::XMMatrixTranspose(m_world);
-        vertexConstants.view = DirectX::XMMatrixTranspose(m_view);
-        vertexConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+        vertexConstants.viewProj = DirectX::XMMatrixTranspose(m_view * m_proj);
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
         m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, m_instanceHandle);

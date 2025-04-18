@@ -17,12 +17,22 @@
 #include "Core/BufferManager.h"
 #include "Core/Camera.h"
 
+#include <entt/entt.hpp>
+
+#include <set>
+
 namespace Gradient::Rendering
 {
     class Renderer
     {
     public:
-        using PassType = Pipelines::IRenderPipeline::PassType;
+        using DrawType = Pipelines::IRenderPipeline::DrawType;
+        enum class PassType
+        {
+            ShadowPass,
+            ZPrepass,
+            ForwardPass
+        };
 
         Renderer() = default;
 
@@ -62,5 +72,7 @@ namespace Gradient::Rendering
 
         std::unique_ptr<Gradient::Rendering::DirectionalLight> DirectionalLight;
         std::unique_ptr<Gradient::Rendering::DepthCubeArray> ShadowCubeArray;
+
+        std::set<entt::entity> m_prepassedEntities;
     };
 }

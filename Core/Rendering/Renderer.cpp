@@ -257,12 +257,15 @@ namespace Gradient::Rendering
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
-        MultisampledRT->SetDepthOnly(cl);
+        // The Z pre-pass is not worth it for the time being
 
-        DrawAllEntities(cl, PassType::ZPrePass, camera->GetPrepassFrustum());
+        //PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
+        //MultisampledRT->SetDepthOnly(cl);
+        //m_prepassedEntities.clear();
 
-        PIXEndEvent(cl);
+        //DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
+
+        //PIXEndEvent(cl);
 
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");
@@ -321,6 +324,9 @@ namespace Gradient::Rendering
             if (passType == PassType::ShadowPass
                 && !drawable.CastsShadows) continue;
 
+            // TODO: Support the z pre-pass for non-instanced entities
+            if (passType == PassType::ZPrepass) continue;
+
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Default)
                 continue;
@@ -346,7 +352,10 @@ namespace Gradient::Rendering
 
             auto world = em->GetWorldMatrix(entity);
             PbrPipeline->SetWorld(world);
-            PbrPipeline->Apply(cl, true, passType);
+
+            auto drawType = passType == PassType::ShadowPass ? DrawType::ShadowPass : DrawType::PixelDepthReadWrite;
+
+            PbrPipeline->Apply(cl, true, drawType);
 
             mesh->Draw(cl);
         }
@@ -379,7 +388,7 @@ namespace Gradient::Rendering
                     continue;
                 }
             }
-            else  if (viewFrustum && bb)
+            else if (viewFrustum && bb)
             {
                 if (!viewFrustum.value().Intersects(bb.value()))
                 {
@@ -390,7 +399,37 @@ namespace Gradient::Rendering
             InstancePipeline->SetMaterial(material.Material);
             InstancePipeline->SetWorld(em->GetWorldMatrix(entity));
             InstancePipeline->SetInstanceData(instances);
-            InstancePipeline->Apply(cl, true, passType);
+
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
+
+            InstancePipeline->Apply(cl, true, drawType);
 
             auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
 
@@ -414,16 +453,18 @@ namespace Gradient::Rendering
             if (passType == PassType::ShadowPass
                 && !drawable.CastsShadows) continue;
 
-            if (passType == PassType::ZPrePass) continue;
+            if (passType == PassType::ZPrepass) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Heightmap)
                 continue;
 
+            auto drawType = passType == PassType::ShadowPass ? DrawType::ShadowPass : DrawType::PixelDepthReadWrite;
+
             HeightmapPipeline->SetMaterial(material.Material);
             HeightmapPipeline->SetHeightMapComponent(heightMap);
             HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
-            HeightmapPipeline->Apply(cl, true, passType);
+            HeightmapPipeline->Apply(cl, true, drawType);
 
             mesh->Draw(cl);
         }
@@ -444,7 +485,7 @@ namespace Gradient::Rendering
                 continue;
 
             WaterPipeline->SetWorld(em->GetWorldMatrix(entity));
-            WaterPipeline->Apply(cl, true, passType);
+            WaterPipeline->Apply(cl, true, DrawType::PixelDepthReadWrite);
 
             mesh->Draw(cl);
         }

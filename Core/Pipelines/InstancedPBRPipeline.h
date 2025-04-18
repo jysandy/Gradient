@@ -24,8 +24,7 @@ namespace Gradient::Pipelines
         struct __declspec(align(16)) VertexCB
         {
             DirectX::XMMATRIX world;
-            DirectX::XMMATRIX view;
-            DirectX::XMMATRIX proj;
+            DirectX::XMMATRIX viewProj;
         };
 
         struct __declspec(align(16)) PixelCB
@@ -51,7 +50,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
-            PassType passType = PassType::ForwardPass) override;
+            DrawType passType = DrawType::PixelDepthReadWrite) override;
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 
@@ -70,14 +69,21 @@ namespace Gradient::Pipelines
     private:
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device* device);
-        void InitializeRenderPSO(ID3D12Device* device);
-        void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl, bool multisampled);
+        void InitializePixelDepthReadPSO(ID3D12Device* device);
+        void InitializePixelDepthReadWritePSO(ID3D12Device* device);
+        void InitializeDepthWritePSO(ID3D12Device* device);
+        void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, DrawType passType);
 
         RootSignature m_rootSignature;
-        std::unique_ptr<PipelineState> m_unmaskedPipelineState;
-        std::unique_ptr<PipelineState> m_maskedPipelineState;
         std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadPSO;
+        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadWritePSO;
+
         std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_maskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_maskedPixelDepthReadPSO;
+        std::unique_ptr<PipelineState> m_maskedPixelDepthReadWritePSO;
 
         Rendering::PBRMaterial m_material;
 

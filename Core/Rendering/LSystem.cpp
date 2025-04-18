@@ -106,7 +106,8 @@ namespace Gradient::Rendering
     }
 
     void LSystem::Build(std::string startingRule,
-        int numGenerations)
+        int numGenerations,
+        int numVerticalSections)
     {
         if (m_isBuilt) return;
 
@@ -114,7 +115,7 @@ namespace Gradient::Rendering
             m_productionRules,
             numGenerations);
 
-        m_trunkPart = InterpretRule(rule);
+        m_trunkPart = InterpretRule(rule, numVerticalSections);
         m_isBuilt = true;
     }
 
@@ -206,9 +207,9 @@ namespace Gradient::Rendering
         return previousRule;
     }
 
-    ProceduralMesh::MeshPart LSystem::InterpretRule(const std::string& rule)
+    ProceduralMesh::MeshPart LSystem::InterpretRule(const std::string& rule,
+        int numVerticalSections)
     {
-        const int numVerticalSections = 6;
 
         std::vector<char> ruleCharacters(rule.begin(), rule.end());
 

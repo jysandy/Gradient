@@ -72,7 +72,7 @@ namespace Gradient::Pipelines
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
-            PassType passType = PassType::ForwardPass) override;
+            DrawType passType = DrawType::PixelDepthReadWrite) override;
 
         void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
         void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
