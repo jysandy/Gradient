@@ -257,13 +257,15 @@ namespace Gradient::Rendering
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
-        MultisampledRT->SetDepthOnly(cl);
-        m_prepassedEntities.clear();
+        // The Z pre-pass is not worth it for the time being
 
-        DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
+        //PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
+        //MultisampledRT->SetDepthOnly(cl);
+        //m_prepassedEntities.clear();
 
-        PIXEndEvent(cl);
+        //DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
+
+        //PIXEndEvent(cl);
 
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");

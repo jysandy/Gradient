@@ -9,6 +9,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		GpuTrace|x64 = GpuTrace|x64
+		GpuTrace|x86 = GpuTrace|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -17,6 +19,10 @@ Global
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Debug|x64.Build.0 = Debug|x64
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Debug|x86.ActiveCfg = Debug|Win32
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Debug|x86.Build.0 = Debug|Win32
+		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.GpuTrace|x64.ActiveCfg = GpuTrace|x64
+		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.GpuTrace|x64.Build.0 = GpuTrace|x64
+		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.GpuTrace|x86.ActiveCfg = GpuTrace|Win32
+		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.GpuTrace|x86.Build.0 = GpuTrace|Win32
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Release|x64.ActiveCfg = Release|x64
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Release|x64.Build.0 = Release|x64
 		{19B3811C-041B-446C-B65F-0BF7766BBA5B}.Release|x86.ActiveCfg = Release|Win32
