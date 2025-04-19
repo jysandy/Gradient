@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+
 #include "Core/Pipelines/IRenderPipeline.h"
 #include "Core/Pipelines/BufferStructs.h"
 #include "Core/Rendering/DirectionalLight.h"
@@ -16,15 +17,25 @@
 
 namespace Gradient::Pipelines
 {
-    class InstancedPBRPipeline : public IRenderPipeline
+    class BillboardPipeline : public IRenderPipeline
     {
     public:
         static const size_t MAX_POINT_LIGHTS = 8;
 
-        struct __declspec(align(16)) VertexCB
+        struct __declspec(align(16)) MatrixCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX viewProj;
+        };
+
+        struct __declspec(align(16)) DrawParamsCB
+        {
+            DirectX::XMFLOAT3 cameraPosition;
+            float cardWidth;
+            DirectX::XMFLOAT3 cameraDirection;
+            float cardHeight;
+            uint32_t numInstances;
+            float pad[3];
         };
 
         struct __declspec(align(16)) PixelCB
@@ -45,26 +56,43 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit InstancedPBRPipeline(ID3D12Device2* device);
-        virtual ~InstancedPBRPipeline() noexcept = default;
+        explicit BillboardPipeline(ID3D12Device2* device);
+        virtual ~BillboardPipeline() noexcept = default;
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
             bool multisampled = true,
             DrawType passType = DrawType::PixelDepthReadWrite) override;
 
-        virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
+        Rendering::PBRMaterial Material;
 
-        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value);
-        void XM_CALLCONV SetView(DirectX::FXMMATRIX value);
-        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value);
-        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection);
+        GraphicsMemoryManager::DescriptorView EnvironmentMap;
 
-        void SetInstanceData(const ECS::Components::InstanceDataComponent& instanceComponent);
-        void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
+        BufferManager::InstanceBufferHandle InstanceHandle;
+        uint32_t InstanceCount;
+        DirectX::XMFLOAT2 CardDimensions;
+
+        DirectX::SimpleMath::Matrix World;
+        DirectX::SimpleMath::Matrix View;
+        DirectX::SimpleMath::Matrix Proj;
+
+        DirectX::SimpleMath::Vector3 CameraPosition;
+        DirectX::SimpleMath::Vector3 CameraDirection;
+
+        // TODO: Extract this into Params::DirectionalLight
+        struct DirectionalLightParams
+        {
+            DirectX::SimpleMath::Color   DirectionalLightColour;
+            DirectX::SimpleMath::Vector3 LightDirection;
+            float LightIrradiance;
+            DirectX::SimpleMath::Matrix ShadowTransform;
+            GraphicsMemoryManager::DescriptorView ShadowMap;
+        };
+
+        DirectionalLightParams SunlightParams;
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
-        void SetPointLights(std::vector<Params::PointLight> pointLights);
-        void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
-        void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
+
+        std::vector<Params::PointLight> PointLights;
+        GraphicsMemoryManager::DescriptorView ShadowCubeArray;
 
     private:
         void InitializeRootSignature(ID3D12Device2* device);
@@ -75,34 +103,11 @@ namespace Gradient::Pipelines
         void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, DrawType passType);
 
         RootSignature m_rootSignature;
-        std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
-        std::unique_ptr<PipelineState> m_unmaskedDepthWriteOnlyPSO;
-        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadPSO;
-        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadWritePSO;
 
-        std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
+        // All billboards are assumed to be masked
+        std::unique_ptr<PipelineState> m_maskedShadowPSO;
         std::unique_ptr<PipelineState> m_maskedDepthWriteOnlyPSO;
         std::unique_ptr<PipelineState> m_maskedPixelDepthReadPSO;
         std::unique_ptr<PipelineState> m_maskedPixelDepthReadWritePSO;
-
-        Rendering::PBRMaterial m_material;
-
-        GraphicsMemoryManager::DescriptorView m_shadowMap;
-        GraphicsMemoryManager::DescriptorView m_environmentMap;
-        GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
-
-        BufferManager::InstanceBufferHandle m_instanceHandle;
-        DirectX::SimpleMath::Matrix m_world;
-        DirectX::SimpleMath::Matrix m_view;
-        DirectX::SimpleMath::Matrix m_proj;
-        DirectX::SimpleMath::Matrix m_shadowTransform;
-
-        DirectX::SimpleMath::Vector3 m_cameraPosition;
-
-        // TODO: Get rid of this and store Params::DirectionalLight
-        // instead
-        LightCB m_dLightCBData;
-
-        std::vector<Params::PointLight> m_pointLights;
     };
 }

@@ -315,6 +315,7 @@
     <ClInclude Include="Core\Physics\Conversions.h" />
     <ClInclude Include="Core\Physics\DebugRenderer.h" />
     <ClInclude Include="Core\PipelineState.h" />
+    <ClInclude Include="Core\Pipelines\BillboardPipeline.h" />
     <ClInclude Include="Core\Pipelines\BufferStructs.h" />
     <ClInclude Include="Core\Pipelines\HeightmapPipeline.h" />
     <ClInclude Include="Core\Pipelines\InstancedPBRPipeline.h" />
@@ -368,6 +369,7 @@
     <ClCompile Include="Core\Math.cpp" />
     <ClCompile Include="Core\Physics\DebugRenderer.cpp" />
     <ClCompile Include="Core\PipelineState.cpp" />
+    <ClCompile Include="Core\Pipelines\BillboardPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\HeightmapPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\InstancedPBRPipeline.cpp" />
     <ClCompile Include="Core\Pipelines\IRenderPipeline.cpp" />
@@ -462,6 +464,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="CompileShaders.ps1" />
     <None Include="CompressTex.ps1" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
     <None Include="Core\Shaders\LightStructs.hlsli" />
@@ -488,6 +491,11 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\Billboard_MS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Mesh</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Mesh</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Mesh</ShaderType>
     </FxCompile>
     <FxCompile Include="Core\Shaders\BrightnessFilter_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

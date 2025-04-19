@@ -5,7 +5,7 @@
 
 namespace Gradient::Pipelines
 {
-    SkyDomePipeline::SkyDomePipeline(ID3D12Device* device)
+    SkyDomePipeline::SkyDomePipeline(ID3D12Device2* device)
     {
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);

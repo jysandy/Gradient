@@ -8,7 +8,7 @@
 
 namespace Gradient::Pipelines
 {
-    InstancedPBRPipeline::InstancedPBRPipeline(ID3D12Device* device)
+    InstancedPBRPipeline::InstancedPBRPipeline(ID3D12Device2* device)
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
@@ -17,7 +17,7 @@ namespace Gradient::Pipelines
         InitializePixelDepthReadWritePSO(device);
     }
 
-    void InstancedPBRPipeline::InitializeRootSignature(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializeRootSignature(ID3D12Device2* device)
     {
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);
@@ -55,7 +55,7 @@ namespace Gradient::Pipelines
         m_rootSignature.Build(device);
     }
 
-    void InstancedPBRPipeline::InitializeShadowPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializeShadowPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
 
@@ -76,7 +76,7 @@ namespace Gradient::Pipelines
         m_maskedShadowPipelineState->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializePixelDepthReadPSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializePixelDepthReadPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
 
@@ -99,7 +99,7 @@ namespace Gradient::Pipelines
         m_maskedPixelDepthReadPSO->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializePixelDepthReadWritePSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializePixelDepthReadWritePSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
@@ -122,7 +122,7 @@ namespace Gradient::Pipelines
         m_maskedPixelDepthReadWritePSO->Build(device);
     }
 
-    void InstancedPBRPipeline::InitializeDepthWritePSO(ID3D12Device* device)
+    void InstancedPBRPipeline::InitializeDepthWritePSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 

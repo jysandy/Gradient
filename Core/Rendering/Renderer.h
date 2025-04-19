@@ -9,6 +9,7 @@
 #include "Core/Pipelines/SkyDomePipeline.h"
 #include "Core/Pipelines/WaterPipeline.h"
 #include "Core/Pipelines/HeightmapPipeline.h"
+#include "Core/Pipelines/BillboardPipeline.h"
 #include "Core/Rendering/DirectionalLight.h"
 #include "Core/Rendering/PointLight.h"
 #include "Core/Rendering/BloomProcessor.h"
@@ -36,7 +37,7 @@ namespace Gradient::Rendering
 
         Renderer() = default;
 
-        void CreateWindowSizeIndependentResources(ID3D12Device* device,
+        void CreateWindowSizeIndependentResources(ID3D12Device2* device,
             ID3D12CommandQueue* cq);
         void CreateWindowSizeDependentResources(ID3D12Device* device,
             ID3D12CommandQueue* cq,
@@ -45,15 +46,21 @@ namespace Gradient::Rendering
         void Clear(ID3D12GraphicsCommandList* cl, D3D12_VIEWPORT screenViewport);
         std::vector<Gradient::Params::PointLight> PointLightParams();
 
-        void Render(ID3D12GraphicsCommandList* cl,
+        void Render(ID3D12GraphicsCommandList6* cl,
             D3D12_VIEWPORT screenViewport,
             Camera* camera,
             RenderTexture* finalRenderTarget);
 
-        void DrawAllEntities(ID3D12GraphicsCommandList* cl,
+        void DrawAllEntities(ID3D12GraphicsCommandList6* cl,
             PassType passType = PassType::ForwardPass,
             std::optional<DirectX::BoundingFrustum> viewFrustum = std::nullopt,
             std::optional<DirectX::BoundingOrientedBox> shadowBB = std::nullopt);
+
+        void SetShadowViewProj(const Camera* camera, 
+            const DirectX::SimpleMath::Matrix& view, 
+            const DirectX::SimpleMath::Matrix& proj);
+
+        void SetFrameParameters(const Camera* camera);
 
         std::unique_ptr<DirectX::CommonStates> m_states;
 
@@ -62,6 +69,7 @@ namespace Gradient::Rendering
         std::unique_ptr<Gradient::Pipelines::WaterPipeline> WaterPipeline;
         std::unique_ptr<Gradient::Pipelines::HeightmapPipeline> HeightmapPipeline;
         std::unique_ptr<Gradient::Pipelines::SkyDomePipeline> SkyDomePipeline;
+        std::unique_ptr<Gradient::Pipelines::BillboardPipeline> BillboardPipeline;
 
         std::unique_ptr<Gradient::Rendering::RenderTexture> MultisampledRT;
         std::unique_ptr<Gradient::Rendering::BloomProcessor> BloomProcessor;

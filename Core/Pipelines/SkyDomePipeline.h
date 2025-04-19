@@ -36,17 +36,17 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit SkyDomePipeline(ID3D12Device* device);
+        explicit SkyDomePipeline(ID3D12Device2* device);
         virtual ~SkyDomePipeline() noexcept = default;
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, 
             bool multisampled = true,
             DrawType passType = DrawType::PixelDepthReadWrite) override;
 
-        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
+        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetView(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection);
 
         void SetDirectionalLight(Gradient::Rendering::DirectionalLight* dlight);
         void SetSunCircleEnabled(bool enabled);

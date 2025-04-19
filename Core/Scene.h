@@ -89,10 +89,50 @@ namespace Gradient::Scene
             instancedMeshHandle);
     }
 
+    void AttachBillboards(entt::entity entity,
+        BufferManager::InstanceBufferHandle instanceBufferHandle,
+        const std::vector<BufferManager::InstanceData>& instances,
+        DirectX::XMFLOAT2 dimensions)
+    {
+        using namespace Gradient::ECS::Components;
+        auto em = EntityManager::Get();
+        auto bm = BufferManager::Get();
+
+        auto& leavesInstance
+            = em->Registry.emplace<InstanceDataComponent>(
+                entity,
+                instanceBufferHandle);
+
+        DirectX::BoundingBox bb;
+        DirectX::BoundingBox::CreateFromPoints(bb,
+            DirectX::SimpleMath::Vector3(-dimensions.x / 2.f, 0, -dimensions.y / 2.f),
+            DirectX::SimpleMath::Vector3(dimensions.x / 2.f, 0, dimensions.y / 2.f));
+
+        em->Registry.emplace<BoundingBoxComponent>(
+            entity,
+            BoundingBoxComponent::CreateFromInstanceData(
+                bb,
+                instances
+            ));
+
+        em->Registry.emplace<DrawableComponent>(entity,
+            BufferManager::MeshHandle(),
+            DrawableComponent::ShadingModel::Billboard,
+            true,
+            dimensions);
+    }
+
     void AttachInstances(entt::entity entity,
         const InstanceEntityData& data)
     {
         AttachInstances(entity, data.MeshHandle, data.InstanceBufferHandle, data.Instances);
+    }
+
+    void AttachBillboards(entt::entity entity,
+        const InstanceEntityData& data,
+        float width)
+    {
+        AttachBillboards(entity, data.InstanceBufferHandle, data.Instances, DirectX::XMFLOAT2(width, width));
     }
 
     entt::entity AddSphere(ID3D12Device* device, ID3D12CommandQueue* cq,
@@ -256,11 +296,6 @@ namespace Gradient::Scene
             cq,
             out.Instances);
 
-        out.MeshHandle = bm->CreateBillboard(device,
-            cq,
-            leafWidth,
-            leafWidth);
-
         return out;
     }
 
@@ -312,11 +347,6 @@ namespace Gradient::Scene
             cq,
             out.Instances);
 
-        out.MeshHandle = bm->CreateBillboard(device,
-            cq,
-            leafWidth,
-            leafWidth);
-
         return out;
     }
 
@@ -351,7 +381,8 @@ namespace Gradient::Scene
         const std::string& name,
         const DirectX::SimpleMath::Vector3& position,
         BufferManager::MeshHandle trunkMeshHandle,
-        const InstanceEntityData& leafData)
+        const InstanceEntityData& leafData,
+        const float leafWidth = 0.5f)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -398,7 +429,7 @@ namespace Gradient::Scene
                 true
             ));
 
-        AttachInstances(leaves, leafData);
+        AttachBillboards(leaves, leafData, leafWidth);
 
         return tree;
     }
@@ -408,7 +439,8 @@ namespace Gradient::Scene
         const DirectX::SimpleMath::Vector3& position,
         BufferManager::MeshHandle trunkMeshHandle,
         const InstanceEntityData& branchData,
-        const InstanceEntityData& leafData)
+        const InstanceEntityData& leafData,
+        const float leafWidth = 0.5f)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -470,7 +502,7 @@ namespace Gradient::Scene
                 true
             ));
 
-        AttachInstances(leaves, leafData);
+        AttachBillboards(leaves, leafData, leafWidth);
 
         return tree;
     }
@@ -729,7 +761,8 @@ namespace Gradient::Scene
                     0.02),
                 trunkMesh,
                 branchData,
-                leafData);
+                leafData,
+                0.20f);
         }
 
         Rendering::LSystem bushSystem;
@@ -765,7 +798,7 @@ namespace Gradient::Scene
                     hfWorld,
                     bushPositions[i],
                     0.02),
-                bushTrunkMesh, bushLeafData);
+                bushTrunkMesh, bushLeafData, 0.06f);
         }
     }
 }

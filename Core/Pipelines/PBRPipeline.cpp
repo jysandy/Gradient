@@ -8,7 +8,7 @@
 
 namespace Gradient::Pipelines
 {
-    PBRPipeline::PBRPipeline(ID3D12Device* device)
+    PBRPipeline::PBRPipeline(ID3D12Device2* device)
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
@@ -52,7 +52,7 @@ namespace Gradient::Pipelines
         m_rootSignature.Build(device);
     }
 
-    void PBRPipeline::InitializeShadowPSO(ID3D12Device* device)
+    void PBRPipeline::InitializeShadowPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
 
@@ -73,7 +73,7 @@ namespace Gradient::Pipelines
         m_maskedShadowPipelineState->Build(device);
     }
 
-    void PBRPipeline::InitializeRenderPSO(ID3D12Device* device)
+    void PBRPipeline::InitializeRenderPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 

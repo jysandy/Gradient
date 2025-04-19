@@ -62,17 +62,17 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit HeightmapPipeline(ID3D12Device* device);
+        explicit HeightmapPipeline(ID3D12Device2* device);
         virtual ~HeightmapPipeline() noexcept = default;
 
         virtual void Apply(ID3D12GraphicsCommandList* cl, 
             bool multisampled = true,
             DrawType passType = DrawType::PixelDepthReadWrite) override;
 
-        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
+        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetView(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection);
 
         void SetHeightMapComponent(const ECS::Components::HeightMapComponent& hmComponent);
         void SetMaterial(const Rendering::PBRMaterial& material) override;
@@ -88,8 +88,8 @@ namespace Gradient::Pipelines
 
     private:
         void InitializeRootSignature(ID3D12Device* device);
-        void InitializeShadowPSO(ID3D12Device* device);
-        void InitializeRenderPSO(ID3D12Device* device);
+        void InitializeShadowPSO(ID3D12Device2* device);
+        void InitializeRenderPSO(ID3D12Device2* device);
         void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
 
         RootSignature m_rootSignature;

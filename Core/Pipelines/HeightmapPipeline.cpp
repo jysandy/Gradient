@@ -4,7 +4,7 @@
 
 namespace Gradient::Pipelines
 {
-    HeightmapPipeline::HeightmapPipeline(ID3D12Device* device)
+    HeightmapPipeline::HeightmapPipeline(ID3D12Device2* device)
     {
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
@@ -49,7 +49,7 @@ namespace Gradient::Pipelines
         m_rootSignature.Build(device);
     }
 
-    void HeightmapPipeline::InitializeRenderPSO(ID3D12Device* device)
+    void HeightmapPipeline::InitializeRenderPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
 
@@ -78,7 +78,7 @@ namespace Gradient::Pipelines
         m_pso->Build(device);
     }
 
-    void HeightmapPipeline::InitializeShadowPSO(ID3D12Device* device)
+    void HeightmapPipeline::InitializeShadowPSO(ID3D12Device2* device)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultShadowDesc();
 

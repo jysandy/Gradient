@@ -8,7 +8,7 @@
 
 namespace Gradient::Pipelines
 {
-    WaterPipeline::WaterPipeline(ID3D12Device* device)
+    WaterPipeline::WaterPipeline(ID3D12Device2* device)
     {
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);

@@ -44,7 +44,7 @@ namespace Gradient::Pipelines
 
         using VertexType = DirectX::VertexPositionNormalTexture;
 
-        explicit PBRPipeline(ID3D12Device* device);
+        explicit PBRPipeline(ID3D12Device2* device);
         virtual ~PBRPipeline() noexcept = default;
 
         virtual void Apply(ID3D12GraphicsCommandList* cl,
@@ -53,10 +53,10 @@ namespace Gradient::Pipelines
 
         virtual void SetMaterial(const Rendering::PBRMaterial& material) override;
 
-        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetView(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value) override;
-        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection) override;
+        void XM_CALLCONV SetWorld(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetView(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetProjection(DirectX::FXMMATRIX value);
+        void XM_CALLCONV SetMatrices(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX projection);
 
         void SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition);
         void SetDirectionalLight(Rendering::DirectionalLight* dlight);
@@ -66,8 +66,8 @@ namespace Gradient::Pipelines
 
     private:
         void InitializeRootSignature(ID3D12Device* device);
-        void InitializeShadowPSO(ID3D12Device* device);
-        void InitializeRenderPSO(ID3D12Device* device);
+        void InitializeShadowPSO(ID3D12Device2* device);
+        void InitializeRenderPSO(ID3D12Device2* device);
         void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
 
         RootSignature m_rootSignature;

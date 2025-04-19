@@ -20,7 +20,14 @@
 namespace Gradient::Rendering
 {
 
-    void Renderer::CreateWindowSizeIndependentResources(ID3D12Device* device,
+    // An integer version of ceil(value / divisor)
+    template <typename T, typename U>
+    T DivRoundUp(T value, U divisor)
+    {
+        return (value + divisor - 1) / divisor;
+    }
+
+    void Renderer::CreateWindowSizeIndependentResources(ID3D12Device2* device,
         ID3D12CommandQueue* cq)
     {
         auto bm = BufferManager::Get();
@@ -30,6 +37,7 @@ namespace Gradient::Rendering
         InstancePipeline = std::make_unique<Pipelines::InstancedPBRPipeline>(device);
         WaterPipeline = std::make_unique<Pipelines::WaterPipeline>(device);
         HeightmapPipeline = std::make_unique<Pipelines::HeightmapPipeline>(device);
+        BillboardPipeline = std::make_unique<Pipelines::BillboardPipeline>(device);
         Tonemapper = std::make_unique<Rendering::TextureDrawer>(
             device,
             cq,
@@ -128,7 +136,71 @@ namespace Gradient::Rendering
         PIXEndEvent(cl);
     }
 
-    void Renderer::Render(ID3D12GraphicsCommandList* cl,
+    void Renderer::SetShadowViewProj(const Camera* camera,
+        const DirectX::SimpleMath::Matrix& view,
+        const DirectX::SimpleMath::Matrix& proj)
+    {
+        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
+        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
+        BillboardPipeline->CameraPosition = camera->GetPosition();
+        BillboardPipeline->CameraDirection = camera->GetDirection();
+
+        PbrPipeline->SetView(DirectionalLight->GetView());
+        PbrPipeline->SetProjection(DirectionalLight->GetProjection());
+        InstancePipeline->SetView(DirectionalLight->GetView());
+        InstancePipeline->SetProjection(DirectionalLight->GetProjection());
+        BillboardPipeline->View = DirectionalLight->GetView();
+        BillboardPipeline->Proj = DirectionalLight->GetProjection();
+        HeightmapPipeline->SetView(DirectionalLight->GetView());
+        HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
+    }
+
+    void Renderer::SetFrameParameters(const Camera* camera)
+    {
+        PbrPipeline->SetCameraPosition(camera->GetPosition());
+        PbrPipeline->SetDirectionalLight(DirectionalLight.get());
+        PbrPipeline->SetView(camera->GetViewMatrix());
+        PbrPipeline->SetProjection(camera->GetProjectionMatrix());
+        PbrPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
+        PbrPipeline->SetPointLights(PointLightParams());
+        PbrPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+
+        InstancePipeline->SetCameraPosition(camera->GetPosition());
+        InstancePipeline->SetDirectionalLight(DirectionalLight.get());
+        InstancePipeline->SetView(camera->GetViewMatrix());
+        InstancePipeline->SetProjection(camera->GetProjectionMatrix());
+        InstancePipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
+        InstancePipeline->SetPointLights(PointLightParams());
+        InstancePipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+
+        BillboardPipeline->CameraPosition = camera->GetPosition();
+        BillboardPipeline->CameraDirection = camera->GetDirection();
+        BillboardPipeline->View = camera->GetViewMatrix();
+        BillboardPipeline->Proj = camera->GetProjectionMatrix();
+        BillboardPipeline->SetDirectionalLight(DirectionalLight.get());
+        BillboardPipeline->EnvironmentMap = EnvironmentMap->GetSRV();
+        BillboardPipeline->ShadowCubeArray = ShadowCubeArray->GetSRV();
+
+        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
+        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
+        HeightmapPipeline->SetDirectionalLight(DirectionalLight.get());
+        HeightmapPipeline->SetView(camera->GetViewMatrix());
+        HeightmapPipeline->SetProjection(camera->GetProjectionMatrix());
+        HeightmapPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
+        HeightmapPipeline->SetPointLights(PointLightParams());
+        HeightmapPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+
+        WaterPipeline->SetCameraPosition(camera->GetPosition());
+        WaterPipeline->SetCameraDirection(camera->GetDirection());
+        WaterPipeline->SetDirectionalLight(DirectionalLight.get());
+        WaterPipeline->SetView(camera->GetViewMatrix());
+        WaterPipeline->SetProjection(camera->GetProjectionMatrix());
+        WaterPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
+        WaterPipeline->SetPointLights(PointLightParams());
+        WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+    }
+
+    void Renderer::Render(ID3D12GraphicsCommandList6* cl,
         D3D12_VIEWPORT screenViewport,
         Camera* camera,
         RenderTexture* finalRenderTarget)
@@ -156,15 +228,9 @@ namespace Gradient::Rendering
         DirectionalLight->SetCameraFrustum(camera->GetShadowFrustum());
         DirectionalLight->ClearAndSetDSV(cl);
 
-        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
-        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
-
-        PbrPipeline->SetView(DirectionalLight->GetView());
-        PbrPipeline->SetProjection(DirectionalLight->GetProjection());
-        InstancePipeline->SetView(DirectionalLight->GetView());
-        InstancePipeline->SetProjection(DirectionalLight->GetProjection());
-        HeightmapPipeline->SetView(DirectionalLight->GetView());
-        HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
+        SetShadowViewProj(camera,
+            DirectionalLight->GetView(),
+            DirectionalLight->GetProjection());
 
         DrawAllEntities(cl, PassType::ShadowPass, camera->GetFrustum(), DirectionalLight->GetShadowBB());
 
@@ -181,10 +247,7 @@ namespace Gradient::Rendering
                 light.PointLight.MaxRange,
                 [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
                 {
-                    PbrPipeline->SetView(view);
-                    PbrPipeline->SetProjection(proj);
-                    HeightmapPipeline->SetView(view);
-                    HeightmapPipeline->SetProjection(proj);
+                    SetShadowViewProj(camera, view, proj);
 
                     auto frustum = Math::MakeFrustum(view, proj);
 
@@ -223,39 +286,7 @@ namespace Gradient::Rendering
         EnvironmentMap->TransitionToShaderResource(cl);
         ShadowCubeArray->TransitionToShaderResource(cl);
 
-        PbrPipeline->SetCameraPosition(camera->GetPosition());
-        PbrPipeline->SetDirectionalLight(DirectionalLight.get());
-        PbrPipeline->SetView(camera->GetViewMatrix());
-        PbrPipeline->SetProjection(camera->GetProjectionMatrix());
-        PbrPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
-        PbrPipeline->SetPointLights(PointLightParams());
-        PbrPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
-
-        InstancePipeline->SetCameraPosition(camera->GetPosition());
-        InstancePipeline->SetDirectionalLight(DirectionalLight.get());
-        InstancePipeline->SetView(camera->GetViewMatrix());
-        InstancePipeline->SetProjection(camera->GetProjectionMatrix());
-        InstancePipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
-        InstancePipeline->SetPointLights(PointLightParams());
-        InstancePipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
-
-        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
-        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
-        HeightmapPipeline->SetDirectionalLight(DirectionalLight.get());
-        HeightmapPipeline->SetView(camera->GetViewMatrix());
-        HeightmapPipeline->SetProjection(camera->GetProjectionMatrix());
-        HeightmapPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
-        HeightmapPipeline->SetPointLights(PointLightParams());
-        HeightmapPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
-
-        WaterPipeline->SetCameraPosition(camera->GetPosition());
-        WaterPipeline->SetCameraDirection(camera->GetDirection());
-        WaterPipeline->SetDirectionalLight(DirectionalLight.get());
-        WaterPipeline->SetView(camera->GetViewMatrix());
-        WaterPipeline->SetProjection(camera->GetProjectionMatrix());
-        WaterPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
-        WaterPipeline->SetPointLights(PointLightParams());
-        WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
+        SetFrameParameters(camera);
 
         // The Z pre-pass is not worth it for the time being
 
@@ -270,7 +301,7 @@ namespace Gradient::Rendering
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");
         MultisampledRT->SetDepthAndRT(cl);
-        
+
         SkyDomePipeline->Apply(cl);
         bm->GetMesh(SkyGeometry)->Draw(cl);
 
@@ -300,7 +331,7 @@ namespace Gradient::Rendering
             screenViewport);
     }
 
-    void Renderer::DrawAllEntities(ID3D12GraphicsCommandList* cl,
+    void Renderer::DrawAllEntities(ID3D12GraphicsCommandList6* cl,
         PassType passType,
         std::optional<DirectX::BoundingFrustum> viewFrustum,
         std::optional<DirectX::BoundingOrientedBox> shadowBB)
@@ -436,6 +467,86 @@ namespace Gradient::Rendering
             if (bufferEntry)
             {
                 mesh->Draw(cl, bufferEntry->InstanceCount);
+            }
+        }
+
+        // Billboard shading model with instancing
+        auto billboardView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            MaterialComponent,
+            InstanceDataComponent>();
+        for (auto entity : billboardView)
+        {
+            auto [drawable, transform, material, instances] = billboardView.get(entity);
+
+            if (passType == PassType::ShadowPass
+                && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Billboard)
+                continue;
+
+            auto bb = em->GetBoundingBox(entity);
+            if (passType == PassType::ShadowPass
+                && shadowBB && bb)
+            {
+                if (!shadowBB.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+            else if (viewFrustum && bb)
+            {
+                if (!viewFrustum.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+
+            BillboardPipeline->Material = material.Material;
+            BillboardPipeline->World = em->GetWorldMatrix(entity);
+            BillboardPipeline->InstanceHandle = instances.BufferHandle;
+
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
+
+            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+
+            if (bufferEntry)
+            {
+                BillboardPipeline->CardDimensions = drawable.BillboardDimensions;
+                BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
+                BillboardPipeline->Apply(cl, true, drawType);
+
+                uint32_t foo = DivRoundUp(bufferEntry->InstanceCount, 4u);
+
+                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 4u), 1, 1);
             }
         }
 

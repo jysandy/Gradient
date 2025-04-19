@@ -15,7 +15,7 @@ namespace Gradient::Pipelines
     // Abstract class representing a rendering pipeline, 
     // which includes shaders, fixed-function states and 
     // other configuration.
-    class IRenderPipeline : public DirectX::IEffectMatrices
+    class IRenderPipeline
     {
     public:
         enum class DrawType

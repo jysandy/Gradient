@@ -13,11 +13,13 @@ namespace Gradient::ECS::Components
         {
             Default,
             Water,
-            Heightmap
+            Heightmap,
+            Billboard
         };
 
         BufferManager::MeshHandle MeshHandle;
         ShadingModel ShadingModel = ShadingModel::Default;
         bool CastsShadows = true;
+        DirectX::XMFLOAT2 BillboardDimensions;
     };
 }
