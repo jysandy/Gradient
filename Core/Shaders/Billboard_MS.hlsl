@@ -62,26 +62,30 @@ static const uint3 bbIndices[] =
 };
 
 
-[numthreads(32, 1, 1)]
+#define NUM_THREADS 32
+#define VERTS_PER_INSTANCE 4
+#define TRIS_PER_INSTANCE 2
+
+[numthreads(NUM_THREADS, 1, 1)]
 [outputtopology("triangle")]
 void main( 
     in uint gtid : SV_GroupThreadID,
     in uint gid : SV_GroupID,
-    out indices uint3 tris[16],         // 2 tris per mesh * 8 meshes
-    out vertices VertexType verts[32])  // 4 verts per mesh * 8 meshes 
+    out indices uint3 tris[NUM_THREADS / 2], // 2 tris per mesh * 8 meshes
+    out vertices VertexType verts[NUM_THREADS])  // 4 verts per mesh * 8 meshes 
 {
-    const uint instancesPerGroup = 8;
-    const uint numTris = 16;
+    const uint instancesPerGroup = NUM_THREADS / VERTS_PER_INSTANCE;
+    const uint numTris = NUM_THREADS / 2;
     
-    const uint trianglesPerInstance = 2;
-    const uint vertsPerInstance = 4;
+    const uint trianglesPerInstance = TRIS_PER_INSTANCE;
+    const uint vertsPerInstance = VERTS_PER_INSTANCE;
     
     // Set the output count -- this is not allowed to be divergent. Probably    
     uint numInstancesEmitted = min(instancesPerGroup, g_numInstances - gid * instancesPerGroup);
     SetMeshOutputCounts(vertsPerInstance * numInstancesEmitted,
         trianglesPerInstance * numInstancesEmitted);
     
-    uint threadsPerInstance = 32 / instancesPerGroup;
+    uint threadsPerInstance = NUM_THREADS / instancesPerGroup;
     
     // TODO: Rewrite using SV_GroupIndex or whatever
     uint localInstanceIndex = gtid / threadsPerInstance;
@@ -148,7 +152,7 @@ void main(
         // Emit indices
         if (gtid < numTris)
         {
-            uint indexThreadsPerInstance = 16 / instancesPerGroup;
+            uint indexThreadsPerInstance = numTris / instancesPerGroup;
             uint localInstanceIndex = gtid / indexThreadsPerInstance;
             uint instanceIndex = gid * instancesPerGroup + localInstanceIndex;
             
