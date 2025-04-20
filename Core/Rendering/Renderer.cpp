@@ -136,23 +136,29 @@ namespace Gradient::Rendering
         PIXEndEvent(cl);
     }
 
+    // TODO: Change this to be different for orthographic vs 
+    // perspective
     void Renderer::SetShadowViewProj(const Camera* camera,
         const DirectX::SimpleMath::Matrix& view,
         const DirectX::SimpleMath::Matrix& proj)
     {
         HeightmapPipeline->SetCameraPosition(camera->GetPosition());
         HeightmapPipeline->SetCameraDirection(camera->GetDirection());
-        BillboardPipeline->CameraPosition = camera->GetPosition();
-        BillboardPipeline->CameraDirection = camera->GetDirection();
 
-        PbrPipeline->SetView(DirectionalLight->GetView());
-        PbrPipeline->SetProjection(DirectionalLight->GetProjection());
-        InstancePipeline->SetView(DirectionalLight->GetView());
-        InstancePipeline->SetProjection(DirectionalLight->GetProjection());
-        BillboardPipeline->View = DirectionalLight->GetView();
-        BillboardPipeline->Proj = DirectionalLight->GetProjection();
-        HeightmapPipeline->SetView(DirectionalLight->GetView());
-        HeightmapPipeline->SetProjection(DirectionalLight->GetProjection());
+        // TODO: Get these as parameters
+        // TODO: Make the BillboardPipeline accept an orthographic vs perspective parameter 
+        // for backface culling
+        BillboardPipeline->CameraPosition = camera->GetPosition();
+        BillboardPipeline->CameraDirection = DirectionalLight->GetDirection();
+
+        PbrPipeline->SetView(view);
+        PbrPipeline->SetProjection(proj);
+        InstancePipeline->SetView(view);
+        InstancePipeline->SetProjection(proj);
+        BillboardPipeline->View = view;
+        BillboardPipeline->Proj = proj;
+        HeightmapPipeline->SetView(view);
+        HeightmapPipeline->SetProjection(proj);
     }
 
     void Renderer::SetFrameParameters(const Camera* camera)
@@ -544,9 +550,7 @@ namespace Gradient::Rendering
                 BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
                 BillboardPipeline->Apply(cl, true, drawType);
 
-                uint32_t foo = DivRoundUp(bufferEntry->InstanceCount, 4u);
-
-                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 4u), 1, 1);
+                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 8u), 1, 1);
             }
         }
 

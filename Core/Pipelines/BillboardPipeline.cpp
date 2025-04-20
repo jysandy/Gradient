@@ -148,6 +148,10 @@ namespace Gradient::Pipelines
         drawConstants.cardWidth = CardDimensions.x;
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
+        if (passType == DrawType::ShadowPass)
+        {
+            drawConstants.useCameraDirectionForCulling = 1;
+        }
         m_rootSignature.SetCBV(cl, 1, 0, drawConstants);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

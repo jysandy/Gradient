@@ -35,7 +35,8 @@ namespace Gradient::Pipelines
             DirectX::XMFLOAT3 cameraDirection;
             float cardHeight;
             uint32_t numInstances;
-            float pad[3];
+            uint32_t useCameraDirectionForCulling = 0;
+            float pad[2];
         };
 
         struct __declspec(align(16)) PixelCB
