@@ -33,6 +33,7 @@ namespace Gradient::Rendering
         DirectX::SimpleMath::Color GetColour() const;
         float GetIrradiance() const;
         DirectX::SimpleMath::Vector3 GetDirection() const;
+        DirectX::SimpleMath::Vector3 GetPosition() const;
 
         DirectX::SimpleMath::Matrix GetView() const;
         DirectX::SimpleMath::Matrix GetProjection() const;
@@ -57,6 +58,7 @@ namespace Gradient::Rendering
         DirectX::SimpleMath::Matrix m_shadowMapProj;
 
         DirectX::BoundingOrientedBox m_shadowBB;
+        DirectX::SimpleMath::Vector3 m_lightPosition; // the effective position that the shadow is cast from
 
     };
 }

@@ -13,7 +13,7 @@ namespace Gradient::Rendering
     class DepthCubeArray
     {
     public:
-        using DrawFn = std::function<void(DirectX::SimpleMath::Matrix, DirectX::SimpleMath::Matrix)>;
+        using DrawFn = std::function<void(DirectX::SimpleMath::Matrix, DirectX::SimpleMath::Matrix, DirectX::SimpleMath::Vector3)>;
 
         DepthCubeArray(ID3D12Device* device,
             int width,

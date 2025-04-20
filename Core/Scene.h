@@ -690,7 +690,7 @@ namespace Gradient::Scene
         JPH::BodyInterface& bodyInterface
             = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
 
-        //CreatePointLights(device, cq, true);
+        CreatePointLights(device, cq, true);
         //CreateDemoObjects(device, cq);
 
         auto water = AddEntity("water");

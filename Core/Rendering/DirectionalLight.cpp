@@ -176,7 +176,17 @@ namespace Gradient::Rendering
         DirectX::BoundingOrientedBox worldSpaceLightOBB;
         lightOBB.Transform(worldSpaceLightOBB, m_shadowMapViewInverse);
 
+        Vector3 lightSpacePosition{ lightAABB.Center.x,
+            lightAABB.Center.y,
+            lightAABB.Center.z + lightAABB.Extents.z };
+
         m_shadowBB = worldSpaceLightOBB;
+        m_lightPosition = Vector3::Transform(lightSpacePosition, m_shadowMapViewInverse);
+    }
+
+    DirectX::SimpleMath::Vector3 DirectionalLight::GetPosition() const
+    {
+        return m_lightPosition;
     }
 
     DirectX::BoundingOrientedBox DirectionalLight::GetShadowBB() const

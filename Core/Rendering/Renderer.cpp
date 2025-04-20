@@ -138,18 +138,22 @@ namespace Gradient::Rendering
 
     // TODO: Change this to be different for orthographic vs 
     // perspective
-    void Renderer::SetShadowViewProj(const Camera* camera,
+    // Camera position and direction are assumed to be 
+    // from the eye and are used for culling, not LOD
+    void Renderer::SetShadowViewProj(
+        const DirectX::SimpleMath::Vector3& cameraPosition,
+        const DirectX::SimpleMath::Vector3& cameraDirection,
         const DirectX::SimpleMath::Matrix& view,
-        const DirectX::SimpleMath::Matrix& proj)
+        const DirectX::SimpleMath::Matrix& proj,
+        bool isOrthographic)
     {
-        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
-        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
+        // TODO: Set a separate lodPosition on the heightmap if/when drawing shadoes
+        HeightmapPipeline->SetCameraPosition(cameraPosition);
+        HeightmapPipeline->SetCameraDirection(cameraDirection);
 
-        // TODO: Get these as parameters
-        // TODO: Make the BillboardPipeline accept an orthographic vs perspective parameter 
-        // for backface culling
-        BillboardPipeline->CameraPosition = camera->GetPosition();
-        BillboardPipeline->CameraDirection = DirectionalLight->GetDirection();
+        BillboardPipeline->CameraPosition = cameraPosition;
+        BillboardPipeline->CameraDirection = cameraDirection;
+        BillboardPipeline->UsingOrthographic = isOrthographic;
 
         PbrPipeline->SetView(view);
         PbrPipeline->SetProjection(proj);
@@ -186,6 +190,8 @@ namespace Gradient::Rendering
         BillboardPipeline->SetDirectionalLight(DirectionalLight.get());
         BillboardPipeline->EnvironmentMap = EnvironmentMap->GetSRV();
         BillboardPipeline->ShadowCubeArray = ShadowCubeArray->GetSRV();
+        BillboardPipeline->PointLights = PointLightParams();
+        BillboardPipeline->UsingOrthographic = false;
 
         HeightmapPipeline->SetCameraPosition(camera->GetPosition());
         HeightmapPipeline->SetCameraDirection(camera->GetDirection());
@@ -234,9 +240,12 @@ namespace Gradient::Rendering
         DirectionalLight->SetCameraFrustum(camera->GetShadowFrustum());
         DirectionalLight->ClearAndSetDSV(cl);
 
-        SetShadowViewProj(camera,
+        // Position should be ignored here since projection is orthographic
+        SetShadowViewProj(DirectionalLight->GetPosition(),
+            DirectionalLight->GetDirection(),
             DirectionalLight->GetView(),
-            DirectionalLight->GetProjection());
+            DirectionalLight->GetProjection(),
+            true);
 
         DrawAllEntities(cl, PassType::ShadowPass, camera->GetFrustum(), DirectionalLight->GetShadowBB());
 
@@ -251,9 +260,13 @@ namespace Gradient::Rendering
                 transform.GetTranslation(),
                 light.PointLight.MinRange,
                 light.PointLight.MaxRange,
-                [=](SimpleMath::Matrix view, SimpleMath::Matrix proj)
+                [=](SimpleMath::Matrix view, SimpleMath::Matrix proj, SimpleMath::Vector3 lookDir)
                 {
-                    SetShadowViewProj(camera, view, proj);
+                    SetShadowViewProj(transform.GetTranslation(),
+                        lookDir,
+                        view, 
+                        proj,
+                        false);
 
                     auto frustum = Math::MakeFrustum(view, proj);
 
@@ -345,6 +358,84 @@ namespace Gradient::Rendering
         using namespace ECS::Components;
         auto em = EntityManager::Get();
         auto bm = BufferManager::Get();
+
+        // Billboard shading model with instancing
+        auto billboardView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            MaterialComponent,
+            InstanceDataComponent>();
+        for (auto entity : billboardView)
+        {
+            auto [drawable, transform, material, instances] = billboardView.get(entity);
+
+            if (passType == PassType::ShadowPass
+                && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Billboard)
+                continue;
+
+            auto bb = em->GetBoundingBox(entity);
+            if (passType == PassType::ShadowPass
+                && shadowBB && bb)
+            {
+                if (!shadowBB.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+            else if (viewFrustum && bb)
+            {
+                if (!viewFrustum.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+
+            BillboardPipeline->Material = material.Material;
+            BillboardPipeline->World = em->GetWorldMatrix(entity);
+            BillboardPipeline->InstanceHandle = instances.BufferHandle;
+
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
+
+            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+
+            if (bufferEntry)
+            {
+                BillboardPipeline->CardDimensions = drawable.BillboardDimensions;
+                BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
+                BillboardPipeline->Apply(cl, true, drawType);
+
+                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 8u), 1, 1);
+            }
+        }
 
         // Default shading model without instancing
         auto defaultView = em->Registry.view<DrawableComponent,
@@ -473,84 +564,6 @@ namespace Gradient::Rendering
             if (bufferEntry)
             {
                 mesh->Draw(cl, bufferEntry->InstanceCount);
-            }
-        }
-
-        // Billboard shading model with instancing
-        auto billboardView = em->Registry.view<DrawableComponent,
-            TransformComponent,
-            MaterialComponent,
-            InstanceDataComponent>();
-        for (auto entity : billboardView)
-        {
-            auto [drawable, transform, material, instances] = billboardView.get(entity);
-
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
-
-            if (drawable.ShadingModel
-                != DrawableComponent::ShadingModel::Billboard)
-                continue;
-
-            auto bb = em->GetBoundingBox(entity);
-            if (passType == PassType::ShadowPass
-                && shadowBB && bb)
-            {
-                if (!shadowBB.value().Intersects(bb.value()))
-                {
-                    continue;
-                }
-            }
-            else if (viewFrustum && bb)
-            {
-                if (!viewFrustum.value().Intersects(bb.value()))
-                {
-                    continue;
-                }
-            }
-
-            BillboardPipeline->Material = material.Material;
-            BillboardPipeline->World = em->GetWorldMatrix(entity);
-            BillboardPipeline->InstanceHandle = instances.BufferHandle;
-
-            DrawType drawType;
-
-            switch (passType)
-            {
-            case PassType::ShadowPass:
-                drawType = DrawType::ShadowPass;
-                break;
-
-            case PassType::ZPrepass:
-                drawType = DrawType::DepthWriteOnly;
-                m_prepassedEntities.insert(entity);
-                break;
-
-            case PassType::ForwardPass:
-                if (m_prepassedEntities.contains(entity))
-                {
-                    drawType = DrawType::PixelDepthReadOnly;
-                }
-                else
-                {
-                    drawType = DrawType::PixelDepthReadWrite;
-                }
-                break;
-
-            default:
-                drawType = DrawType::PixelDepthReadWrite;
-                break;
-            }
-
-            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
-
-            if (bufferEntry)
-            {
-                BillboardPipeline->CardDimensions = drawable.BillboardDimensions;
-                BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
-                BillboardPipeline->Apply(cl, true, drawType);
-
-                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 8u), 1, 1);
             }
         }
 

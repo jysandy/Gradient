@@ -56,9 +56,11 @@ namespace Gradient::Rendering
             std::optional<DirectX::BoundingFrustum> viewFrustum = std::nullopt,
             std::optional<DirectX::BoundingOrientedBox> shadowBB = std::nullopt);
 
-        void SetShadowViewProj(const Camera* camera, 
-            const DirectX::SimpleMath::Matrix& view, 
-            const DirectX::SimpleMath::Matrix& proj);
+        void SetShadowViewProj(const DirectX::SimpleMath::Vector3& cameraPosition,
+            const DirectX::SimpleMath::Vector3& cameraDirection,
+            const DirectX::SimpleMath::Matrix& view,
+            const DirectX::SimpleMath::Matrix& proj,
+            bool isOrthographic);
 
         void SetFrameParameters(const Camera* camera);
 

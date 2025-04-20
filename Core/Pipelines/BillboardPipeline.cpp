@@ -148,9 +148,13 @@ namespace Gradient::Pipelines
         drawConstants.cardWidth = CardDimensions.x;
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
-        if (passType == DrawType::ShadowPass)
+        if (UsingOrthographic)
         {
             drawConstants.useCameraDirectionForCulling = 1;
+        }
+        else
+        {
+            drawConstants.useCameraDirectionForCulling = 0;
         }
         m_rootSignature.SetCBV(cl, 1, 0, drawConstants);
 
@@ -191,6 +195,14 @@ namespace Gradient::Pipelines
         drawConstants.cardWidth = CardDimensions.x;
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
+        if (UsingOrthographic)
+        {
+            drawConstants.useCameraDirectionForCulling = 1;
+        }
+        else
+        {
+            drawConstants.useCameraDirectionForCulling = 0;
+        }
         m_rootSignature.SetCBV(cl, 1, 0, drawConstants);
 
         LightCB lightBufferData;

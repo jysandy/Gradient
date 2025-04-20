@@ -130,7 +130,7 @@ namespace Gradient::Rendering
 
             auto viewMatrix = Matrix::CreateLookAt(origin,
                 origin + look, up[i]);
-            fn(viewMatrix, projectionMatrix);
+            fn(viewMatrix, projectionMatrix, look);
         }
     }
 

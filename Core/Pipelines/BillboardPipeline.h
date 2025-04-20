@@ -79,6 +79,8 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Vector3 CameraPosition;
         DirectX::SimpleMath::Vector3 CameraDirection;
 
+        bool UsingOrthographic = false;
+
         // TODO: Extract this into Params::DirectionalLight
         struct DirectionalLightParams
         {
