@@ -433,7 +433,8 @@ namespace Gradient::Rendering
                 BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
                 BillboardPipeline->Apply(cl, true, drawType);
 
-                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 8u), 1, 1);
+                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 
+                    BillboardPipeline->InstancesPerThreadGroup), 1, 1);
             }
         }
 

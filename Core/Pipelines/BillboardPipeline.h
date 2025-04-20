@@ -64,6 +64,8 @@ namespace Gradient::Pipelines
             bool multisampled = true,
             DrawType passType = DrawType::PixelDepthReadWrite) override;
 
+        const uint32_t InstancesPerThreadGroup = 32u;
+
         Rendering::PBRMaterial Material;
 
         GraphicsMemoryManager::DescriptorView EnvironmentMap;

@@ -66,50 +66,38 @@ static const uint3 bbIndices[] =
 #define VERTS_PER_INSTANCE 4
 #define TRIS_PER_INSTANCE 2
 
+// 1 instance per thread!
 [numthreads(NUM_THREADS, 1, 1)]
 [outputtopology("triangle")]
 void main( 
     in uint gtid : SV_GroupThreadID,
     in uint gid : SV_GroupID,
-    out indices uint3 tris[NUM_THREADS / 2], // 2 tris per mesh * 8 meshes
-    out vertices VertexType verts[NUM_THREADS])  // 4 verts per mesh * 8 meshes 
+    out indices uint3 tris[NUM_THREADS * TRIS_PER_INSTANCE],
+    out vertices VertexType verts[NUM_THREADS * VERTS_PER_INSTANCE])
 {
-    const uint instancesPerGroup = NUM_THREADS / VERTS_PER_INSTANCE;
-    const uint numTris = NUM_THREADS / 2;
+    const uint instancesPerGroup = NUM_THREADS;
+    const uint numTris = NUM_THREADS * TRIS_PER_INSTANCE;
     
     const uint trianglesPerInstance = TRIS_PER_INSTANCE;
     const uint vertsPerInstance = VERTS_PER_INSTANCE;
     
-    // Set the output count -- this is not allowed to be divergent. Probably    
+    // Set the output count -- this is not allowed to be divergent    
     uint numInstancesEmitted = min(instancesPerGroup, g_numInstances - gid * instancesPerGroup);
     SetMeshOutputCounts(vertsPerInstance * numInstancesEmitted,
         trianglesPerInstance * numInstancesEmitted);
     
-    uint threadsPerInstance = NUM_THREADS / instancesPerGroup;
-    
     // TODO: Rewrite using SV_GroupIndex or whatever
-    uint localInstanceIndex = gtid / threadsPerInstance;
+    uint localInstanceIndex = gtid;
     uint instanceIndex = gid * instancesPerGroup + localInstanceIndex;
     
     if (instanceIndex < g_numInstances)
     {
-        uint vertIndex = gtid % vertsPerInstance;
-        
-        VertexType output;
-        output.worldPosition = bbVertices[vertIndex] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
-        output.tex = bbTexCoords[vertIndex];
-        //output.normal = vertIndex < 4 ? float3(0, 1, 0) : float3(0, -1, 0);
-        
-        // TODO: should this go into groupshared memory?
         InstanceData instance = Instances[instanceIndex];
         
-        // Apply transforms
+        // Get transform and determine if we're front-facing
         float4x4 instanceTransform = QuatTo4x4(Instances[instanceIndex].RotationQuat);
         instanceTransform._41_42_43 = Instances[instanceIndex].LocalPositionWithPad.xyz;
         float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
-       
-        output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
-        output.position = mul(float4(output.worldPosition, 1), g_viewProj);
         
         float3 rotatedFrontNormal = mul(float4(0, 1, 0, 0), worldMatrix).xyz;
         
@@ -119,65 +107,75 @@ void main(
         
         if (frontFacing)
         {
-            // Resolve sub-UVs
-            output.tex.x = lerp(instance.TexcoordUAndVRange.x,
-            instance.TexcoordUAndVRange.y,
-            output.tex.x);
-            output.tex.y = lerp(instance.TexcoordUAndVRange.z,
-            instance.TexcoordUAndVRange.w,
-            output.tex.y);
+            // Emit vertices
+            [unroll]
+            for (int i = 0; i < vertsPerInstance; i++)
+            {
+                VertexType output;
+                output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
+                output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
+                output.position = mul(float4(output.worldPosition, 1), g_viewProj);
+            
+                output.tex = bbTexCoords[i];
+                // Resolve sub-UVs
+                output.tex.x = lerp(instance.TexcoordUAndVRange.x,
+                    instance.TexcoordUAndVRange.y,
+                    output.tex.x);
+                output.tex.y = lerp(instance.TexcoordUAndVRange.z,
+                    instance.TexcoordUAndVRange.w,
+                    output.tex.y);
 
+                output.normal = rotatedFrontNormal;
+        
+                verts[gtid * vertsPerInstance + i] = output;
+            }
+            
+            // Emit indices
+            [unroll]
+            for (int j = 0; j < trianglesPerInstance; j++)
+            {
+                tris[gtid * trianglesPerInstance + j] = 
+                    // Indices need to be offset by the vertices 
+                    // emitted before
+                    (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
+                    + bbIndices[j];
+            }
 
-            output.normal = rotatedFrontNormal;
-        
-        
-            verts[gtid] = output;
         }
         else
         {
-            // Resolve sub-UVs, flipped laterally
-            output.tex.x = lerp(instance.TexcoordUAndVRange.x,
+            // Emit vertices
+            [unroll]
+            for (int i = 0; i < vertsPerInstance; i++)
+            {
+                VertexType output;
+                output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
+                output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
+                output.position = mul(float4(output.worldPosition, 1), g_viewProj);
+            
+                output.tex = bbTexCoords[i];
+                // Resolve sub-UVs, flipped laterally
+                output.tex.x = lerp(instance.TexcoordUAndVRange.x,
                                 instance.TexcoordUAndVRange.y,
                                 1 - output.tex.x);
-            output.tex.y = lerp(instance.TexcoordUAndVRange.z,
+                output.tex.y = lerp(instance.TexcoordUAndVRange.z,
                                 instance.TexcoordUAndVRange.w,
                                 output.tex.y);
             
-            output.normal = -rotatedFrontNormal;
+                output.normal = -rotatedFrontNormal;
         
-            verts[gtid] = output;
-        }
-
-        
-        // Emit indices
-        if (gtid < numTris)
-        {
-            uint indexThreadsPerInstance = numTris / instancesPerGroup;
-            uint localInstanceIndex = gtid / indexThreadsPerInstance;
-            uint instanceIndex = gid * instancesPerGroup + localInstanceIndex;
-            
-            InstanceData instance = Instances[instanceIndex];
-            
-            // Apply transforms
-            float4x4 instanceTransform = QuatTo4x4(Instances[instanceIndex].RotationQuat);
-            instanceTransform._41_42_43 = Instances[instanceIndex].LocalPositionWithPad.xyz;
-            float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
-       
-            float3 rotatedFrontNormal = mul(float4(0, 1, 0, 0), worldMatrix).xyz;
-        
-            bool frontFacing = g_useCameraDirectionForCulling ?
-                dot(rotatedFrontNormal, g_cameraDirection) < 0.f :
-                dot(rotatedFrontNormal, worldMatrix._41_42_43 - g_cameraPosition) < 0.f;
-
-            if (frontFacing)
-            {
-                tris[gtid] = (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
-                    + bbIndices[gtid % trianglesPerInstance];
+                verts[gtid * vertsPerInstance + i] = output;
             }
-            else
+            
+            // Emit indices
+            [unroll]
+            for (int j = 0; j < trianglesPerInstance; j++)
             {
-                tris[gtid] = (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
-                    + bbIndices[gtid % trianglesPerInstance].xzy;
+                tris[gtid * trianglesPerInstance + j] =
+                    // Indices need to be offset by the vertices 
+                    // emitted before
+                    (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
+                    + bbIndices[j].xzy; // change the winding order for the back indices
             }
         }
     }
