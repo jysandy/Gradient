@@ -24,7 +24,7 @@ cbuffer DrawParams : register(b1, space0)
     float g_cardHeight;
     uint g_numInstances;
     uint g_useCameraDirectionForCulling;
-    float pad[2];
+    float2 pad;
     float4 g_cullingFrustumPlanes[6];
 };
 
@@ -73,8 +73,7 @@ bool IsVisible(BoundingSphere bs)
     float3 center = bs.xyz;
     float radius = bs.w;
 
-    [unroll]
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < 6; i++)
     {
         float signedDistance = dot(float4(center, 1), g_cullingFrustumPlanes[i]);
         if (!isnan(signedDistance) && signedDistance < -radius)
@@ -90,12 +89,13 @@ bool IsVisible(BoundingSphere bs)
 #define VERTS_PER_INSTANCE 4
 #define TRIS_PER_INSTANCE 2
 
+
 // 1 instance per thread!
 [numthreads(NUM_THREADS, 1, 1)]
 [outputtopology("triangle")]
 void main(
-    in uint gtid : SV_GroupThreadID,
-    in uint gid : SV_GroupID,
+    in uint gtid : SV_GroupIndex,
+    in uint3 gid : SV_GroupID,
     out indices uint3 tris[NUM_THREADS * TRIS_PER_INSTANCE],
     out vertices VertexType verts[NUM_THREADS * VERTS_PER_INSTANCE])
 {
@@ -106,7 +106,7 @@ void main(
     const uint vertsPerInstance = VERTS_PER_INSTANCE;
     
     uint localInstanceIndex = gtid;
-    uint instanceIndex = gid * instancesPerGroup + localInstanceIndex;
+    uint instanceIndex = gid.x * instancesPerGroup + localInstanceIndex;
     
     VertexType outputVerts[vertsPerInstance];
     uint3 outputTris[trianglesPerInstance];
@@ -135,13 +135,12 @@ void main(
             float3 rotatedFrontNormal = mul(float4(0, 1, 0, 0), worldMatrix).xyz;
         
             bool frontFacing = g_useCameraDirectionForCulling ?
-            dot(rotatedFrontNormal, g_cameraDirection) < 0.f :
-            dot(rotatedFrontNormal, worldMatrix._41_42_43 - g_cameraPosition) < 0.f;
+                dot(rotatedFrontNormal, g_cameraDirection) < 0.f :
+                dot(rotatedFrontNormal, worldMatrix._41_42_43 - g_cameraPosition) < 0.f;
             
             if (frontFacing)
             {
                 // Emit vertices
-                [unroll]
                 for (int i = 0; i < vertsPerInstance; i++)
                 {
                     VertexType output;
@@ -164,7 +163,6 @@ void main(
                 }
             
                 // Emit indices
-                [unroll]
                 for (int j = 0; j < trianglesPerInstance; j++)
                 {
                     outputTris[j] = bbIndices[j];
@@ -173,7 +171,6 @@ void main(
             else
             {
                 // Emit vertices
-                [unroll]
                 for (int i = 0; i < vertsPerInstance; i++)
                 {
                     VertexType output;
@@ -196,7 +193,6 @@ void main(
                 }
             
                 // Emit indices
-                [unroll]
                 for (int j = 0; j < trianglesPerInstance; j++)
                 {
                     outputTris[j] = bbIndices[j].xzy; // change the winding order for the back indices
@@ -221,8 +217,6 @@ void main(
     {
         // Copy the data to the correct output index            
         uint index = WavePrefixCountBits(visible);
-        
-        //uint index = 0;
         
         for (int i = 0; i < vertsPerInstance; i++)
         {

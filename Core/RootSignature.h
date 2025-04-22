@@ -81,7 +81,7 @@ namespace Gradient
         assert(rpIndex != UINT32_MAX);
 
         auto gmm = GraphicsMemoryManager::Get();
-        auto cbv = gmm->AllocateConstant(data);
-        cl->SetGraphicsRootConstantBufferView(rpIndex, cbv.GpuAddress());
+        auto cbvAddress = gmm->AllocateConstant(data);
+        cl->SetGraphicsRootConstantBufferView(rpIndex, cbvAddress);
     }
 }

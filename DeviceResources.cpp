@@ -210,6 +210,22 @@ else
     m_d3dFeatureLevel = m_d3dMinFeatureLevel;
 }
 
+D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { D3D_SHADER_MODEL_6_7 };
+if (FAILED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
+    || (shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_7))
+{
+    OutputDebugStringA("ERROR: Shader Model 6.7 is not supported\n");
+    throw std::exception("Shader Model 6.7 is not supported");
+}
+
+D3D12_FEATURE_DATA_D3D12_OPTIONS7 features = {};
+if (FAILED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &features, sizeof(features)))
+    || (features.MeshShaderTier == D3D12_MESH_SHADER_TIER_NOT_SUPPORTED))
+{
+    OutputDebugStringA("ERROR: Mesh Shaders aren't supported!\n");
+    throw std::exception("Mesh Shaders aren't supported!");
+}
+
 // Create the command queue.
 D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;

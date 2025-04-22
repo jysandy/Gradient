@@ -49,10 +49,7 @@ namespace Gradient
         static GraphicsMemoryManager* Get();
 
         template <typename T>
-        inline DirectX::GraphicsResource AllocateConstant(const T& data);
-
-        template <typename T>
-        inline DirectX::GraphicsResource AllocateStructuredBuffer(const std::vector<T>& data);
+        inline D3D12_GPU_VIRTUAL_ADDRESS AllocateConstant(const T& data);
 
         void Commit(ID3D12CommandQueue* cq);
 
@@ -130,6 +127,8 @@ namespace Gradient
         std::set<DescriptorIndex> m_freeRTVIndices;
         std::set<DescriptorIndex> m_freeDSVIndices;
 
+        std::vector<DirectX::GraphicsResource> m_frameGraphicsResources;
+
         struct DescriptorHandleHash
         {
             std::size_t operator()(const D3D12_CPU_DESCRIPTOR_HANDLE& h) const noexcept
@@ -155,17 +154,9 @@ namespace Gradient
     };
 
     template <typename T>
-    inline DirectX::GraphicsResource GraphicsMemoryManager::AllocateConstant(const T& data)
+    inline D3D12_GPU_VIRTUAL_ADDRESS GraphicsMemoryManager::AllocateConstant(const T& data)
     {
-        return m_graphicsMemory->AllocateConstant(data);
-    }
-
-    template <typename T>
-    inline DirectX::GraphicsResource GraphicsMemoryManager::AllocateStructuredBuffer(const std::vector<T>& data)
-    {
-        auto bufferMemory = m_graphicsMemory->Allocate(sizeof(T) * data.size());
-        memcpy(bufferMemory.Memory(), data.data(), sizeof(T) * data.size());
-
-        return bufferMemory;
+        m_frameGraphicsResources.push_back(m_graphicsMemory->AllocateConstant(data));
+        return m_frameGraphicsResources.back().GpuAddress();
     }
 }

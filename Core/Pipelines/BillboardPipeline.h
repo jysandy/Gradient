@@ -24,13 +24,13 @@ namespace Gradient::Pipelines
     public:
         static const size_t MAX_POINT_LIGHTS = 8;
 
-        struct __declspec(align(256)) MatrixCB
+        struct __declspec(align(16)) MatrixCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX viewProj;
         };
 
-        struct __declspec(align(256)) DrawParamsCB
+        struct __declspec(align(16)) DrawParamsCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float cardWidth;
@@ -38,11 +38,11 @@ namespace Gradient::Pipelines
             float cardHeight;
             uint32_t numInstances;
             uint32_t useCameraDirectionForCulling = 0;
-            float pad[2];
+            DirectX::XMFLOAT2 pad;
             DirectX::XMFLOAT4 cullingFrustumPlanes[6];
         };
 
-        struct __declspec(align(256)) PixelCB
+        struct __declspec(align(16)) PixelCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float tiling;
@@ -51,7 +51,7 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX shadowTransform;
         };
 
-        struct __declspec(align(256)) LightCB
+        struct __declspec(align(16)) LightCB
         {
             AlignedDirectionalLight directionalLight;
             AlignedPointLight pointLights[MAX_POINT_LIGHTS];

@@ -24,6 +24,7 @@ namespace Gradient
 
     void GraphicsMemoryManager::Commit(ID3D12CommandQueue* cq)
     {
+        m_frameGraphicsResources.clear();
         m_graphicsMemory->Commit(cq);
     }
 
