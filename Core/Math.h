@@ -32,8 +32,6 @@ namespace Gradient::Math
         const DirectX::SimpleMath::Vector3& point3,
         const DirectX::SimpleMath::Vector3& pointOnPositiveSide)
     {
-        assert(point1 != point2 && point2 != point3 && point1 != point3);
-
         DirectX::SimpleMath::Plane out(point1, point2, point3);
 
         if (out.DotCoordinate(pointOnPositiveSide) < 0)
@@ -107,8 +105,6 @@ namespace Gradient::Math
             corners[bottomRightNear],
             corners[bottomRightFar],
             centroid);
-
-        assert(out[5].x != -107374176.00);
 
         return out;
     }
