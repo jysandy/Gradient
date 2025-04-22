@@ -14,7 +14,7 @@ cbuffer SunBuffer : register(b0, space1)
     float g_ambientIrradiance;
 };
 
-float4 main(VSOutput input) : SV_TARGET
+float4 Skydome_PS(VSOutput input) : SV_TARGET
 {
     float3 up = float3(0, 1, 0);
     float3 L = -normalize(g_lightdirection);

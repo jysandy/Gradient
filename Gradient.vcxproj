@@ -486,6 +486,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ACESTonemapper_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">ACESTonemapper_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ACESTonemapper_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\AdditiveBlend_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -494,11 +497,17 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdditiveBlend_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">AdditiveBlend_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdditiveBlend_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Billboard_MS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Mesh</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Mesh</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Mesh</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Billboard_MS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Billboard_MS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Billboard_MS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\BrightnessFilter_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -507,6 +516,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BrightnessFilter_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">BrightnessFilter_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BrightnessFilter_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_DS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
@@ -518,6 +530,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Domain</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Heightmap_DS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Heightmap_DS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Heightmap_DS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_HS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
@@ -529,6 +544,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Hull</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Heightmap_HS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Heightmap_HS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Heightmap_HS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -537,11 +555,17 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Heightmap_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Heightmap_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Heightmap_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Heightmap_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Heightmap_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Heightmap_VS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Instanced_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -550,6 +574,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Instanced_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Instanced_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Instanced_VS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\PBR_Masked_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -558,14 +585,20 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PBR_Masked_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">PBR_Masked_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PBR_Masked_PS</EntryPointName>
     </FxCompile>
-    <FxCompile Include="Core\Shaders\Shadow_Masked_PS.hlsl">
+    <FxCompile Include="Core\Shaders\MaskedDepth_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaskedDepth_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">MaskedDepth_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaskedDepth_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Water_HS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
@@ -582,6 +615,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DisableOptimizations>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">false</DisableOptimizations>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Water_HS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Water_HS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Water_HS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Water_DS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
@@ -596,6 +632,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Water_DS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Water_DS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Water_DS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\GaussianHorizontal_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -607,6 +646,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.7</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GaussianHorizontal_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GaussianHorizontal_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GaussianHorizontal_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\GaussianVertical_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -615,6 +657,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GaussianVertical_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GaussianVertical_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GaussianVertical_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Passthrough_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -626,14 +671,17 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Passthrough_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Passthrough_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Passthrough_VS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\PBR_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PBR_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">PBR_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PBR_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Skydome_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -642,6 +690,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Skydome_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Skydome_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Skydome_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Skydome_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -650,6 +701,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Skydome_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Skydome_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Skydome_VS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Water_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -658,9 +712,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.7</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Water_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Water_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Water_PS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Water_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -669,17 +723,17 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.7</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Water_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Water_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Water_VS</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\WVP_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.7</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">6.7</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.7</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WVP_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">WVP_VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WVP_VS</EntryPointName>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

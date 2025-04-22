@@ -38,7 +38,7 @@ struct OutputType
 //    return transform;
 //}
 
-OutputType main(InputType input, uint InstanceID : SV_InstanceID)
+OutputType Instanced_VS(InputType input, uint InstanceID : SV_InstanceID)
 {
     OutputType output;
     

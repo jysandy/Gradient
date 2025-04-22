@@ -66,7 +66,7 @@ namespace Gradient::Pipelines
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.MS = { msData.data(), msData.size() };
 
-        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+        auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
         m_maskedShadowPSO = std::make_unique<PipelineState>(psoDesc);
@@ -109,7 +109,7 @@ namespace Gradient::Pipelines
         D3DX12_MESH_SHADER_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultMeshDesc();
 
         auto msData = DX::ReadData(L"Billboard_MS.cso");
-        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+        auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
 
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;

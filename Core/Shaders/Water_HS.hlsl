@@ -99,7 +99,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
-HS_CONTROL_POINT_OUTPUT main( 
+HS_CONTROL_POINT_OUTPUT Water_HS( 
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip, 
 	uint i : SV_OutputControlPointID,
 	uint PatchID : SV_PrimitiveID )

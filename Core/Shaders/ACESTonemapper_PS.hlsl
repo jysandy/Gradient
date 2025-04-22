@@ -13,7 +13,7 @@ float3 ACESFilm(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-float4 main(float4 color : COLOR0,
+float4 ACESTonemapper_PS(float4 color : COLOR0,
     float2 texCoord : TEXCOORD0) : SV_Target0
 {
     float4 outputColor;

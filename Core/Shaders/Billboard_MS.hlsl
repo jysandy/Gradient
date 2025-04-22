@@ -72,7 +72,7 @@ static const uint3 bbIndices[] =
 // 1 instance per thread!
 [numthreads(NUM_THREADS, 1, 1)]
 [outputtopology("triangle")]
-void main(
+void Billboard_MS(
     in uint gtid : SV_GroupIndex,
     in uint3 gid : SV_GroupID,
     out indices uint3 tris[NUM_THREADS * TRIS_PER_INSTANCE],

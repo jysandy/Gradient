@@ -19,7 +19,7 @@ struct OutputType
     float3 worldPosition : POSITION1;
 };
 
-OutputType main(InputType input)
+OutputType WVP_VS(InputType input)
 {
     OutputType output;
 

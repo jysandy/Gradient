@@ -42,7 +42,7 @@ struct InputType
     float3 worldPosition : POSITION1;
 };
 
-float4 main(InputType input) : SV_TARGET
+float4 PBR_PS(InputType input) : SV_TARGET
 {
     input.tex *= uvTiling;
     

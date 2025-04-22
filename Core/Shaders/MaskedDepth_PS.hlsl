@@ -11,10 +11,8 @@ struct InputType
 
 // This shader only exists to clip masked pixels 
 // when drawing shadows.
-float4 main(InputType input) : SV_TARGET
+void MaskedDepth_PS(InputType input)
 {
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
     clip(albedoSample.a - 0.01);
-	
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }

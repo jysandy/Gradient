@@ -5,7 +5,7 @@ struct InputType
     float2 tex : TEXCOORD;
 };
 
-InputType main(InputType input)
+InputType Passthrough_VS(InputType input)
 {
     return input;
 }

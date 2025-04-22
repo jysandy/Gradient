@@ -52,7 +52,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 #define NUM_CONTROL_POINTS 3
 
 [domain("tri")]
-DS_OUTPUT main(
+DS_OUTPUT Heightmap_DS(
 	HS_CONSTANT_DATA_OUTPUT input,
 	float3 domain : SV_DomainLocation,
 	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)

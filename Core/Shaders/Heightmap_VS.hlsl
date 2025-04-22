@@ -15,7 +15,7 @@ struct InputType
     float2 tex : TEXCOORD;
 };
 
-InputType main(InputType input)
+InputType Heightmap_VS(InputType input)
 {
     float displacement = heightmap.SampleLevel(linearSampler, input.tex, 0).r
         * g_hmHeight;

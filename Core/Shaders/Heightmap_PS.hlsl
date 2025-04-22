@@ -43,7 +43,7 @@ struct InputType
     float3 worldPosition : POSITION1;
 };
 
-float4 main(InputType input) : SV_TARGET
+float4 Heightmap_PS(InputType input) : SV_TARGET
 {
     //return float4(1, 1, 1, 1);
     

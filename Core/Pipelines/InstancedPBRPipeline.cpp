@@ -69,7 +69,7 @@ namespace Gradient::Pipelines
         m_unmaskedShadowPipelineState = std::make_unique<PipelineState>(psoDesc);
         m_unmaskedShadowPipelineState->Build(device);
 
-        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+        auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
         m_maskedShadowPipelineState = std::make_unique<PipelineState>(psoDesc);
@@ -136,7 +136,7 @@ namespace Gradient::Pipelines
         m_unmaskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
         m_unmaskedDepthWriteOnlyPSO->Build(device);
 
-        auto maskedPSData = DX::ReadData(L"Shadow_Masked_PS.cso");
+        auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
 
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
         m_maskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);

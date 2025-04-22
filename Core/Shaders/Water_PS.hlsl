@@ -37,7 +37,7 @@ struct InputType
     float3 worldPosition : POSITION1;
 };
 
-float4 main(InputType input) : SV_TARGET
+float4 Water_PS(InputType input) : SV_TARGET
 {
     float3 N = normalize(input.normal);
     

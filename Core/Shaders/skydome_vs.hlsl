@@ -18,7 +18,7 @@ cbuffer MatrixBuffer : register(b0, space0)
     matrix projectionMatrix;
 };
 
-VSOutput main(InputType input)
+VSOutput Skydome_VS(InputType input)
 {
     VSOutput vout;
 

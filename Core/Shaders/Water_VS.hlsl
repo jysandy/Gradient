@@ -17,7 +17,7 @@ struct InputType
     float2 tex : TEXCOORD;
 };
 
-InputType main(InputType input)
+InputType Water_VS(InputType input)
 {
     uint numWaves = min(MAX_WAVES, g_numWaves);
     for (int i = 0; i < g_numWaves; i++)
