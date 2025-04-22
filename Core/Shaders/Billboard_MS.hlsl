@@ -1,5 +1,5 @@
 #include "Quaternion.hlsli"
-//#include "Culling.hlsli"
+#include "Culling.hlsli"
 
 cbuffer MatrixBuffer : register(b0, space0)
 {
@@ -63,27 +63,6 @@ static const uint3 bbIndices[] =
     uint3(1, 3, 2),
 };
               
-typedef float4 BoundingSphere;
-
-// TODO: Leaves are flickering in and out sometimes when drawing shadows
-// TODO: Put this back into Culling.hlsli
-// The bounding sphere is expected to be the correct size and in world space
-bool IsVisible(BoundingSphere bs)
-{
-    float3 center = bs.xyz;
-    float radius = bs.w;
-
-    for (int i = 0; i < 6; i++)
-    {
-        float signedDistance = dot(float4(center, 1), g_cullingFrustumPlanes[i]);
-        if (!isnan(signedDistance) && signedDistance < -radius)
-        {
-            return false;
-        }
-    }
-    
-    return true;
-}
 
 #define NUM_THREADS 32
 #define VERTS_PER_INSTANCE 4
@@ -128,7 +107,7 @@ void main(
         // Radius is the length of the diagonal
         bs.w = length(float3(g_cardWidth, 0, g_cardHeight));
         
-        visible = IsVisible(bs);
+        visible = IsVisible(bs, g_cullingFrustumPlanes);
         
         if (visible)
         {
