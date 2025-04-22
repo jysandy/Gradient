@@ -17,14 +17,14 @@ namespace Gradient::Pipelines
     class SkyDomePipeline : public IRenderPipeline
     {
     public:
-        struct __declspec(align(16)) VertexCB
+        struct __declspec(align(256)) VertexCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
         };
 
-        struct __declspec(align(16)) PixelCB
+        struct __declspec(align(256)) PixelCB
         {
             DirectX::XMFLOAT3 sunColour;
             float sunExp;

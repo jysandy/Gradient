@@ -1,4 +1,5 @@
 #include "Quaternion.hlsli"
+//#include "Culling.hlsli"
 
 cbuffer MatrixBuffer : register(b0, space0)
 {
@@ -24,6 +25,7 @@ cbuffer DrawParams : register(b1, space0)
     uint g_numInstances;
     uint g_useCameraDirectionForCulling;
     float pad[2];
+    float4 g_cullingFrustumPlanes[6];
 };
 
 struct VertexType
@@ -37,10 +39,10 @@ struct VertexType
 static const float3 bbVertices[] =
 {
     // Upward face    
-    float3(-0.5, 0, 0.5),   // Bottom left
-    float3(0.5, 0, 0.5),    // Bottom right
-    float3(0.5, 0, -0.5),   // Top right
-    float3(-0.5, 0, -0.5),   // Top left
+    float3(-0.5, 0, 0.5), // Bottom left
+    float3(0.5, 0, 0.5), // Bottom right
+    float3(0.5, 0, -0.5), // Top right
+    float3(-0.5, 0, -0.5), // Top left
 };
 
 static const float2 bbTexCoords[] =
@@ -60,7 +62,29 @@ static const uint3 bbIndices[] =
     uint3(0, 3, 1),
     uint3(1, 3, 2),
 };
+              
+typedef float4 BoundingSphere;
 
+// TODO: Leaves are flickering in and out sometimes when drawing shadows
+// TODO: Put this back into Culling.hlsli
+// The bounding sphere is expected to be the correct size and in world space
+bool IsVisible(BoundingSphere bs)
+{
+    float3 center = bs.xyz;
+    float radius = bs.w;
+
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        float signedDistance = dot(float4(center, 1), g_cullingFrustumPlanes[i]);
+        if (!isnan(signedDistance) && signedDistance < -radius)
+        {
+            return false;
+        }
+    }
+    
+    return true;
+}
 
 #define NUM_THREADS 32
 #define VERTS_PER_INSTANCE 4
@@ -69,7 +93,7 @@ static const uint3 bbIndices[] =
 // 1 instance per thread!
 [numthreads(NUM_THREADS, 1, 1)]
 [outputtopology("triangle")]
-void main( 
+void main(
     in uint gtid : SV_GroupThreadID,
     in uint gid : SV_GroupID,
     out indices uint3 tris[NUM_THREADS * TRIS_PER_INSTANCE],
@@ -81,14 +105,14 @@ void main(
     const uint trianglesPerInstance = TRIS_PER_INSTANCE;
     const uint vertsPerInstance = VERTS_PER_INSTANCE;
     
-    // Set the output count -- this is not allowed to be divergent    
-    uint numInstancesEmitted = min(instancesPerGroup, g_numInstances - gid * instancesPerGroup);
-    SetMeshOutputCounts(vertsPerInstance * numInstancesEmitted,
-        trianglesPerInstance * numInstancesEmitted);
-    
-    // TODO: Rewrite using SV_GroupIndex or whatever
     uint localInstanceIndex = gtid;
     uint instanceIndex = gid * instancesPerGroup + localInstanceIndex;
+    
+    VertexType outputVerts[vertsPerInstance];
+    uint3 outputTris[trianglesPerInstance];
+    
+    // Default to true to avoid flickering
+    bool visible = true;
     
     if (instanceIndex < g_numInstances)
     {
@@ -99,84 +123,116 @@ void main(
         instanceTransform._41_42_43 = Instances[instanceIndex].LocalPositionWithPad.xyz;
         float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
         
-        float3 rotatedFrontNormal = mul(float4(0, 1, 0, 0), worldMatrix).xyz;
+        BoundingSphere bs;
+        bs.xyz = mul(float4(0, 0, 0, 1), worldMatrix).xyz;
+        // Radius is the length of the diagonal
+        bs.w = length(float3(g_cardWidth, 0, g_cardHeight));
         
-        bool frontFacing = g_useCameraDirectionForCulling ? 
-            dot(rotatedFrontNormal, g_cameraDirection) < 0.f :            
-            dot(rotatedFrontNormal, worldMatrix._41_42_43 - g_cameraPosition) < 0.f;
+        visible = IsVisible(bs);
         
-        if (frontFacing)
+        if (visible)
         {
-            // Emit vertices
-            [unroll]
-            for (int i = 0; i < vertsPerInstance; i++)
-            {
-                VertexType output;
-                output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
-                output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
-                output.position = mul(float4(output.worldPosition, 1), g_viewProj);
+            float3 rotatedFrontNormal = mul(float4(0, 1, 0, 0), worldMatrix).xyz;
+        
+            bool frontFacing = g_useCameraDirectionForCulling ?
+            dot(rotatedFrontNormal, g_cameraDirection) < 0.f :
+            dot(rotatedFrontNormal, worldMatrix._41_42_43 - g_cameraPosition) < 0.f;
             
-                output.tex = bbTexCoords[i];
-                // Resolve sub-UVs
-                output.tex.x = lerp(instance.TexcoordUAndVRange.x,
+            if (frontFacing)
+            {
+                // Emit vertices
+                [unroll]
+                for (int i = 0; i < vertsPerInstance; i++)
+                {
+                    VertexType output;
+                    output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
+                    output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
+                    output.position = mul(float4(output.worldPosition, 1), g_viewProj);
+            
+                    output.tex = bbTexCoords[i];
+                    // Resolve sub-UVs
+                    output.tex.x = lerp(instance.TexcoordUAndVRange.x,
                     instance.TexcoordUAndVRange.y,
                     output.tex.x);
-                output.tex.y = lerp(instance.TexcoordUAndVRange.z,
+                    output.tex.y = lerp(instance.TexcoordUAndVRange.z,
                     instance.TexcoordUAndVRange.w,
                     output.tex.y);
 
-                output.normal = rotatedFrontNormal;
+                    output.normal = rotatedFrontNormal;
         
-                verts[gtid * vertsPerInstance + i] = output;
-            }
+                    outputVerts[i] = output;
+                }
             
-            // Emit indices
-            [unroll]
-            for (int j = 0; j < trianglesPerInstance; j++)
-            {
-                tris[gtid * trianglesPerInstance + j] = 
-                    // Indices need to be offset by the vertices 
-                    // emitted before
-                    (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
-                    + bbIndices[j];
+                // Emit indices
+                [unroll]
+                for (int j = 0; j < trianglesPerInstance; j++)
+                {
+                    outputTris[j] = bbIndices[j];
+                }
             }
-
-        }
-        else
-        {
-            // Emit vertices
-            [unroll]
-            for (int i = 0; i < vertsPerInstance; i++)
+            else
             {
-                VertexType output;
-                output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
-                output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
-                output.position = mul(float4(output.worldPosition, 1), g_viewProj);
+                // Emit vertices
+                [unroll]
+                for (int i = 0; i < vertsPerInstance; i++)
+                {
+                    VertexType output;
+                    output.worldPosition = bbVertices[i] * float3(g_cardWidth, 1, g_cardHeight); // scale the position by the card scale
+                    output.worldPosition = mul(float4(output.worldPosition, 1), worldMatrix).xyz;
+                    output.position = mul(float4(output.worldPosition, 1), g_viewProj);
             
-                output.tex = bbTexCoords[i];
-                // Resolve sub-UVs, flipped laterally
-                output.tex.x = lerp(instance.TexcoordUAndVRange.x,
+                    output.tex = bbTexCoords[i];
+                    // Resolve sub-UVs, flipped laterally
+                    output.tex.x = lerp(instance.TexcoordUAndVRange.x,
                                 instance.TexcoordUAndVRange.y,
                                 1 - output.tex.x);
-                output.tex.y = lerp(instance.TexcoordUAndVRange.z,
+                    output.tex.y = lerp(instance.TexcoordUAndVRange.z,
                                 instance.TexcoordUAndVRange.w,
                                 output.tex.y);
             
-                output.normal = -rotatedFrontNormal;
+                    output.normal = -rotatedFrontNormal;
         
-                verts[gtid * vertsPerInstance + i] = output;
-            }
+                    outputVerts[i] = output;
+                }
             
-            // Emit indices
-            [unroll]
-            for (int j = 0; j < trianglesPerInstance; j++)
-            {
-                tris[gtid * trianglesPerInstance + j] =
-                    // Indices need to be offset by the vertices 
-                    // emitted before
-                    (vertsPerInstance * uint3(localInstanceIndex, localInstanceIndex, localInstanceIndex))
-                    + bbIndices[j].xzy; // change the winding order for the back indices
+                // Emit indices
+                [unroll]
+                for (int j = 0; j < trianglesPerInstance; j++)
+                {
+                    outputTris[j] = bbIndices[j].xzy; // change the winding order for the back indices
+                }
             }
+        }
+    }
+    else
+    {
+        visible = false;
+    }
+    
+    // Set the output count based on the visible instances 
+    // This must be called by every thread, even if its 
+    // instance is culled
+    uint numInstancesEmitted = WaveActiveCountBits(visible);
+    
+    SetMeshOutputCounts(vertsPerInstance * numInstancesEmitted,
+                        trianglesPerInstance * numInstancesEmitted);
+    
+    if (visible && instanceIndex < g_numInstances)
+    {
+        // Copy the data to the correct output index            
+        uint index = WavePrefixCountBits(visible);
+        
+        //uint index = 0;
+        
+        for (int i = 0; i < vertsPerInstance; i++)
+        {
+            verts[index * vertsPerInstance + i] = outputVerts[i];
+        }
+        for (int j = 0; j < trianglesPerInstance; j++)
+        {
+            // Indices need to be offset by the vertices 
+            // emitted before
+            tris[index * trianglesPerInstance + j] = outputTris[j] + (vertsPerInstance * uint3(index, index, index));
         }
     }
 }

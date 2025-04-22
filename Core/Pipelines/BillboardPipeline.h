@@ -15,6 +15,8 @@
 #include <directxtk12/BufferHelpers.h>
 #include <directxtk12/CommonStates.h>
 
+#include <array>
+
 namespace Gradient::Pipelines
 {
     class BillboardPipeline : public IRenderPipeline
@@ -22,13 +24,13 @@ namespace Gradient::Pipelines
     public:
         static const size_t MAX_POINT_LIGHTS = 8;
 
-        struct __declspec(align(16)) MatrixCB
+        struct __declspec(align(256)) MatrixCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX viewProj;
         };
 
-        struct __declspec(align(16)) DrawParamsCB
+        struct __declspec(align(256)) DrawParamsCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float cardWidth;
@@ -37,9 +39,10 @@ namespace Gradient::Pipelines
             uint32_t numInstances;
             uint32_t useCameraDirectionForCulling = 0;
             float pad[2];
+            DirectX::XMFLOAT4 cullingFrustumPlanes[6];
         };
 
-        struct __declspec(align(16)) PixelCB
+        struct __declspec(align(256)) PixelCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float tiling;
@@ -48,7 +51,7 @@ namespace Gradient::Pipelines
             DirectX::XMMATRIX shadowTransform;
         };
 
-        struct __declspec(align(16)) LightCB
+        struct __declspec(align(256)) LightCB
         {
             AlignedDirectionalLight directionalLight;
             AlignedPointLight pointLights[MAX_POINT_LIGHTS];
@@ -73,6 +76,7 @@ namespace Gradient::Pipelines
         BufferManager::InstanceBufferHandle InstanceHandle;
         uint32_t InstanceCount;
         DirectX::XMFLOAT2 CardDimensions;
+        std::array<DirectX::XMFLOAT4, 6> CullingFrustumPlanes;
 
         DirectX::SimpleMath::Matrix World;
         DirectX::SimpleMath::Matrix View;

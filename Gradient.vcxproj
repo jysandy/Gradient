@@ -467,6 +467,9 @@
     <None Include="CompileShaders.ps1" />
     <None Include="CompressTex.ps1" />
     <None Include="Core\Shaders\CubeMap.hlsli" />
+    <None Include="Core\Shaders\Culling.hlsli">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Core\Shaders\LightStructs.hlsli" />
     <None Include="Core\Shaders\NormalMapping.hlsli" />
     <None Include="Core\Shaders\PBRLighting.hlsli" />
@@ -496,6 +499,8 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Mesh</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Mesh</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Mesh</ShaderType>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">true</DisableOptimizations>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
     </FxCompile>
     <FxCompile Include="Core\Shaders\BrightnessFilter_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

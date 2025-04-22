@@ -22,14 +22,14 @@ namespace Gradient::Pipelines
     public:
         static const size_t MAX_POINT_LIGHTS = 8;
 
-        struct __declspec(align(16)) MatrixCB
+        struct __declspec(align(256)) MatrixCB
         {
             DirectX::XMMATRIX world;
             DirectX::XMMATRIX view;
             DirectX::XMMATRIX proj;
         };
 
-        struct __declspec(align(16)) LodCB
+        struct __declspec(align(256)) LodCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float minLodDistance;
@@ -39,21 +39,21 @@ namespace Gradient::Pipelines
             float pad[3];
         };
 
-        struct __declspec(align(16)) HeightMapParamsCB
+        struct __declspec(align(256)) HeightMapParamsCB
         {
             float height;
             float gridWidth;
             float pad[2];
         };
 
-        struct __declspec(align(16)) LightCB
+        struct __declspec(align(256)) LightCB
         {
             AlignedDirectionalLight directionalLight;
             AlignedPointLight pointLights[MAX_POINT_LIGHTS];
             uint32_t numPointLights;
         };
 
-        struct __declspec(align(16)) PixelParamCB
+        struct __declspec(align(256)) PixelParamCB
         {
             DirectX::XMFLOAT3 cameraPosition;
             float tiling;

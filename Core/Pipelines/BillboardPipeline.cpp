@@ -156,6 +156,10 @@ namespace Gradient::Pipelines
         {
             drawConstants.useCameraDirectionForCulling = 0;
         }
+        for (int i = 0; i < 6; i++)
+        {
+            drawConstants.cullingFrustumPlanes[i] = CullingFrustumPlanes[i];
+        }
         m_rootSignature.SetCBV(cl, 1, 0, drawConstants);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -202,6 +206,10 @@ namespace Gradient::Pipelines
         else
         {
             drawConstants.useCameraDirectionForCulling = 0;
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            drawConstants.cullingFrustumPlanes[i] = CullingFrustumPlanes[i];
         }
         m_rootSignature.SetCBV(cl, 1, 0, drawConstants);
 

@@ -247,6 +247,8 @@ namespace Gradient::Rendering
             DirectionalLight->GetProjection(),
             true);
 
+        BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(DirectionalLight->GetShadowBB());
+
         DrawAllEntities(cl, PassType::ShadowPass, camera->GetFrustum(), DirectionalLight->GetShadowBB());
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
@@ -269,6 +271,8 @@ namespace Gradient::Rendering
                         false);
 
                     auto frustum = Math::MakeFrustum(view, proj);
+
+                    BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(frustum);
 
                     DrawAllEntities(cl, PassType::ShadowPass, frustum);
                 });
@@ -313,6 +317,7 @@ namespace Gradient::Rendering
         //MultisampledRT->SetDepthOnly(cl);
         //m_prepassedEntities.clear();
 
+        //BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(camera->GetPrepassFrustum());
         //DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
 
         //PIXEndEvent(cl);
@@ -323,6 +328,8 @@ namespace Gradient::Rendering
 
         SkyDomePipeline->Apply(cl);
         bm->GetMesh(SkyGeometry)->Draw(cl);
+
+        BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(camera->GetFrustum());
 
         DrawAllEntities(cl, PassType::ForwardPass, camera->GetFrustum());
 
