@@ -1112,16 +1112,6 @@ namespace Gradient::Rendering
             outIndices.resize(newIndexCount);
         }
 
-        size_t newVertexCount =
-            meshopt_optimizeVertexFetch(outVertices.data(),
-                outIndices.data(),
-                outIndices.size(),
-                outVertices.data(),
-                outVertices.size(),
-                sizeof(ProceduralMesh::VertexType));
-
-        outVertices.resize(newVertexCount);
-
         meshopt_optimizeVertexCache(outIndices.data(),
             outIndices.data(),
             outIndices.size(),
@@ -1133,6 +1123,14 @@ namespace Gradient::Rendering
             outVertices.size(),
             sizeof(ProceduralMesh::VertexType),
             1.05f);
+
+        size_t newVertexCount =
+            meshopt_optimizeVertexFetch(outVertices.data(),
+                outIndices.data(),
+                outIndices.size(),
+                outVertices.data(),
+                outVertices.size(),
+                sizeof(ProceduralMesh::VertexType));
 
         outVertices.resize(newVertexCount);
 
