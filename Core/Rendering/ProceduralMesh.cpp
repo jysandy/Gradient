@@ -1107,12 +1107,16 @@ namespace Gradient::Rendering
             outVertices.size(),
             sizeof(ProceduralMesh::VertexType),
             1.05f);
-        meshopt_optimizeVertexFetch(outVertices.data(),
-            outIndices.data(),
-            outIndices.size(),
-            outVertices.data(),
-            outVertices.size(),
-            sizeof(ProceduralMesh::VertexType));
+        
+        size_t newVertexCount = 
+            meshopt_optimizeVertexFetch(outVertices.data(),
+                outIndices.data(),
+                outIndices.size(),
+                outVertices.data(),
+                outVertices.size(),
+                sizeof(ProceduralMesh::VertexType));
+
+        outVertices.resize(newVertexCount);
 
         return std::make_tuple(outVertices, outIndices);
     }
