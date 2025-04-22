@@ -82,9 +82,11 @@ private:
     void StartPlaying();
     void StartEditing();
     void TogglePlaying(float currentTime);
+    void ToggleDebugMode(float currentTime);
     Gradient::Camera GetFrameCamera();
 
     float m_timeWhenToggleEnabled = 0.f;
+    float m_timeWhenDebugToggleEnabled = 0.f;
 
     // Device resources.
     std::unique_ptr<DX::DeviceResources>        m_deviceResources;
@@ -96,6 +98,9 @@ private:
 
     Gradient::FreeMoveCamera m_camera;
     std::unique_ptr<Gradient::PlayerCharacter> m_character;
+
+    Gradient::Camera m_debugSavedCamera;
+    bool m_debugMode = false;
 
     Gradient::GUI::PhysicsWindow m_physicsWindow;
     Gradient::GUI::RenderingWindow m_renderingWindow;

@@ -165,48 +165,48 @@ namespace Gradient::Rendering
         HeightmapPipeline->SetProjection(proj);
     }
 
-    void Renderer::SetFrameParameters(const Camera* camera)
+    void Renderer::SetFrameParameters(const Camera* viewingCamera)
     {
-        PbrPipeline->SetCameraPosition(camera->GetPosition());
+        PbrPipeline->SetCameraPosition(viewingCamera->GetPosition());
         PbrPipeline->SetDirectionalLight(DirectionalLight.get());
-        PbrPipeline->SetView(camera->GetViewMatrix());
-        PbrPipeline->SetProjection(camera->GetProjectionMatrix());
+        PbrPipeline->SetView(viewingCamera->GetViewMatrix());
+        PbrPipeline->SetProjection(viewingCamera->GetProjectionMatrix());
         PbrPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
         PbrPipeline->SetPointLights(PointLightParams());
         PbrPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        InstancePipeline->SetCameraPosition(camera->GetPosition());
+        InstancePipeline->SetCameraPosition(viewingCamera->GetPosition());
         InstancePipeline->SetDirectionalLight(DirectionalLight.get());
-        InstancePipeline->SetView(camera->GetViewMatrix());
-        InstancePipeline->SetProjection(camera->GetProjectionMatrix());
+        InstancePipeline->SetView(viewingCamera->GetViewMatrix());
+        InstancePipeline->SetProjection(viewingCamera->GetProjectionMatrix());
         InstancePipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
         InstancePipeline->SetPointLights(PointLightParams());
         InstancePipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        BillboardPipeline->CameraPosition = camera->GetPosition();
-        BillboardPipeline->CameraDirection = camera->GetDirection();
-        BillboardPipeline->View = camera->GetViewMatrix();
-        BillboardPipeline->Proj = camera->GetProjectionMatrix();
+        BillboardPipeline->CameraPosition = viewingCamera->GetPosition();
+        BillboardPipeline->CameraDirection = viewingCamera->GetDirection();
+        BillboardPipeline->View = viewingCamera->GetViewMatrix();
+        BillboardPipeline->Proj = viewingCamera->GetProjectionMatrix();
         BillboardPipeline->SetDirectionalLight(DirectionalLight.get());
         BillboardPipeline->EnvironmentMap = EnvironmentMap->GetSRV();
         BillboardPipeline->ShadowCubeArray = ShadowCubeArray->GetSRV();
         BillboardPipeline->PointLights = PointLightParams();
         BillboardPipeline->UsingOrthographic = false;
 
-        HeightmapPipeline->SetCameraPosition(camera->GetPosition());
-        HeightmapPipeline->SetCameraDirection(camera->GetDirection());
+        HeightmapPipeline->SetCameraPosition(viewingCamera->GetPosition());
+        HeightmapPipeline->SetCameraDirection(viewingCamera->GetDirection());
         HeightmapPipeline->SetDirectionalLight(DirectionalLight.get());
-        HeightmapPipeline->SetView(camera->GetViewMatrix());
-        HeightmapPipeline->SetProjection(camera->GetProjectionMatrix());
+        HeightmapPipeline->SetView(viewingCamera->GetViewMatrix());
+        HeightmapPipeline->SetProjection(viewingCamera->GetProjectionMatrix());
         HeightmapPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
         HeightmapPipeline->SetPointLights(PointLightParams());
         HeightmapPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
 
-        WaterPipeline->SetCameraPosition(camera->GetPosition());
-        WaterPipeline->SetCameraDirection(camera->GetDirection());
+        WaterPipeline->SetCameraPosition(viewingCamera->GetPosition());
+        WaterPipeline->SetCameraDirection(viewingCamera->GetDirection());
         WaterPipeline->SetDirectionalLight(DirectionalLight.get());
-        WaterPipeline->SetView(camera->GetViewMatrix());
-        WaterPipeline->SetProjection(camera->GetProjectionMatrix());
+        WaterPipeline->SetView(viewingCamera->GetViewMatrix());
+        WaterPipeline->SetProjection(viewingCamera->GetProjectionMatrix());
         WaterPipeline->SetEnvironmentMap(EnvironmentMap->GetSRV());
         WaterPipeline->SetPointLights(PointLightParams());
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
@@ -214,7 +214,8 @@ namespace Gradient::Rendering
 
     void Renderer::Render(ID3D12GraphicsCommandList6* cl,
         D3D12_VIEWPORT screenViewport,
-        Camera* camera,
+        Camera* viewingCamera,
+        Camera* cullingCamera,
         RenderTexture* finalRenderTarget)
     {
         using namespace DirectX;
@@ -237,7 +238,7 @@ namespace Gradient::Rendering
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Shadow Pass");
 
-        DirectionalLight->SetCameraFrustum(camera->GetShadowFrustum());
+        DirectionalLight->SetCameraFrustum(cullingCamera->GetShadowFrustum());
         DirectionalLight->ClearAndSetDSV(cl);
 
         // Position should be ignored here since projection is orthographic
@@ -249,7 +250,7 @@ namespace Gradient::Rendering
 
         BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(DirectionalLight->GetShadowBB());
 
-        DrawAllEntities(cl, PassType::ShadowPass, camera->GetFrustum(), DirectionalLight->GetShadowBB());
+        DrawAllEntities(cl, PassType::ShadowPass, cullingCamera->GetFrustum(), DirectionalLight->GetShadowBB());
 
         auto pointLightsView = entityManager->Registry.view<TransformComponent, PointLightComponent>();
         for (auto& entity : pointLightsView)
@@ -300,8 +301,8 @@ namespace Gradient::Rendering
 
 
         SkyDomePipeline->SetSunCircleEnabled(true);
-        SkyDomePipeline->SetProjection(camera->GetProjectionMatrix());
-        SkyDomePipeline->SetView(camera->GetViewMatrix());
+        SkyDomePipeline->SetProjection(viewingCamera->GetProjectionMatrix());
+        SkyDomePipeline->SetView(viewingCamera->GetViewMatrix());
 
 
         // TODO: Batch these barrier transitions
@@ -309,7 +310,7 @@ namespace Gradient::Rendering
         EnvironmentMap->TransitionToShaderResource(cl);
         ShadowCubeArray->TransitionToShaderResource(cl);
 
-        SetFrameParameters(camera);
+        SetFrameParameters(viewingCamera);
 
         // The Z pre-pass is not worth it for the time being
 
@@ -329,9 +330,9 @@ namespace Gradient::Rendering
         SkyDomePipeline->Apply(cl);
         bm->GetMesh(SkyGeometry)->Draw(cl);
 
-        BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(camera->GetFrustum());
+        BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(cullingCamera->GetFrustum());
 
-        DrawAllEntities(cl, PassType::ForwardPass, camera->GetFrustum());
+        DrawAllEntities(cl, PassType::ForwardPass, cullingCamera->GetFrustum());
 
         auto physicsEngine = Physics::PhysicsEngine::Get();
         // This is too slow for now and is hence commented out

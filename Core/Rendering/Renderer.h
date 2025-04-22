@@ -48,7 +48,8 @@ namespace Gradient::Rendering
 
         void Render(ID3D12GraphicsCommandList6* cl,
             D3D12_VIEWPORT screenViewport,
-            Camera* camera,
+            Camera* viewingCamera,
+            Camera* cullingCamera,
             RenderTexture* finalRenderTarget);
 
         void DrawAllEntities(ID3D12GraphicsCommandList6* cl,

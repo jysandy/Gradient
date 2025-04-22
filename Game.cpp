@@ -77,6 +77,7 @@ bool Game::IsPlayingGame()
 
 void Game::StartPlaying()
 {
+    m_debugMode = false;
     m_camera.Deactivate();
     m_character->Activate();
     m_physicsWindow.UnpauseSimulation();
@@ -84,6 +85,7 @@ void Game::StartPlaying()
 
 void Game::StartEditing()
 {
+    m_debugMode = false;
     m_character->Deactivate();
     m_camera.Activate();
     m_physicsWindow.PauseSimulation();
@@ -179,7 +181,34 @@ void Game::Update(DX::StepTimer const& timer)
     {
         TogglePlaying(timer.GetTotalSeconds());
     }
+    else if (kb.Tab)
+    {
+        ToggleDebugMode(timer.GetTotalSeconds());
+    }
 }
+
+void Game::ToggleDebugMode(float currentTime)
+{
+    if (currentTime < m_timeWhenDebugToggleEnabled) return;
+
+    DirectX::Keyboard::Get().Reset();
+
+    if (!IsPlayingGame())
+    {
+        if (m_debugMode)
+        {
+            m_debugMode = false;
+        }
+        else
+        {
+            m_debugSavedCamera = m_camera.GetCamera();
+            m_debugMode = true;
+        }
+    }
+
+    m_timeWhenDebugToggleEnabled = currentTime + 0.5;
+}
+
 #pragma endregion
 
 #pragma region Frame Render
@@ -199,9 +228,17 @@ void Game::Render()
 
     auto frameCamera = GetFrameCamera();
 
+    Gradient::Camera* cullingCamera = &frameCamera;
+
+    if (!IsPlayingGame() && m_debugMode)
+    {
+        cullingCamera = &m_debugSavedCamera;
+    }
+
     m_renderer->Render(cl,
         m_deviceResources->GetScreenViewport(),
         &frameCamera,
+        cullingCamera,
         m_tonemappedRenderTexture.get());
 
     ImGui_ImplDX12_NewFrame();
