@@ -179,10 +179,12 @@ namespace Gradient
     BufferManager::MeshHandle BufferManager::CreateFromPart(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
-        const Rendering::ProceduralMesh::MeshPart& part)
+        const Rendering::ProceduralMesh::MeshPart& part,
+        float simplificationRate,
+        float errorRate)
     {
         return AddMesh(Rendering::ProceduralMesh::CreateFromPart(
-            device, cq, part
+            device, cq, part, simplificationRate, errorRate
         ));
     }
 

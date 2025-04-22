@@ -372,7 +372,7 @@ namespace Gradient::Scene
             cq,
             out.Instances);
 
-        out.MeshHandle = bm->CreateFromPart(device, cq, branches.GetTrunk());
+        out.MeshHandle = bm->CreateFromPart(device, cq, branches.GetTrunk(), 0.7f, 0.5f);
 
         return out;
     }
@@ -739,7 +739,7 @@ namespace Gradient::Scene
 
         treeBranch.Build("X", 5, 3);
 
-        auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk());
+        auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk(), 0.1f, 0.1f);
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
@@ -775,9 +775,9 @@ namespace Gradient::Scene
         bushSystem.AngleDegrees = 25.7f;
         bushSystem.MoveDistance = 0.05f;
 
-        bushSystem.Build("T", 6);
+        bushSystem.Build("T", 6, 3);
 
-        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk());
+        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.7f, 0.3f);
         auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
 
         std::vector<Vector2> bushPositions = {

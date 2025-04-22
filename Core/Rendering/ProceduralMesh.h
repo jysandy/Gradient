@@ -100,13 +100,17 @@ namespace Gradient::Rendering
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const VertexCollection& vertices,
-            const IndexCollection& indices
+            const IndexCollection& indices,
+            float simplificationRate = 0.f,
+            float errorRate = 0.1f
         );
 
         static ProceduralMesh CreateFromPart(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
-            const MeshPart& part
+            const MeshPart& part,
+            float simplificationRate = 0.f,
+            float errorRate = 0.1f
         );
 
     private:
@@ -115,7 +119,9 @@ namespace Gradient::Rendering
         void Initialize(ID3D12Device* device,
             ID3D12CommandQueue* cq,
             const VertexCollection& vertices,
-            const IndexCollection& indices);
+            const IndexCollection& indices,
+            float simplificationRate = 0.f,
+            float errorRate = 0.1f);
 
         Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
         Microsoft::WRL::ComPtr<ID3D12Resource> m_indexBuffer;

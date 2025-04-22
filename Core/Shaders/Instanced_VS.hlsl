@@ -59,11 +59,11 @@ OutputType main(InputType input, uint InstanceID : SV_InstanceID)
     
     float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
 
-    float4 worldPosHomo = mul(float4(input.position, 1), worldMatrix);
-    output.position = mul(worldPosHomo, g_viewProj);
+    float4 worldPosition = mul(float4(input.position, 1), worldMatrix);
+    output.normal = mul(float4(input.normal, 0), worldMatrix);
+    output.worldPosition = worldPosition.xyz;
     
-    output.normal = mul(input.normal, (float3x3) worldMatrix);
-    output.worldPosition = worldPosHomo.xyz;
+    output.position = mul(worldPosition, g_viewProj);
 
     return output;
 }

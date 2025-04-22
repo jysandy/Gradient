@@ -112,7 +112,9 @@ namespace Gradient
         MeshHandle CreateFromPart(
             ID3D12Device* device,
             ID3D12CommandQueue* cq,
-            const Rendering::ProceduralMesh::MeshPart& part
+            const Rendering::ProceduralMesh::MeshPart& part,
+            float simplificationRate = 0.f,
+            float errorRate = 0.1f
         );
 
 #pragma endregion

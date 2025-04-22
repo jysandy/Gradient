@@ -1012,7 +1012,7 @@ namespace Gradient::Rendering
             indices.push_back(1);
             indices.push_back(1);
             indices.push_back(3);
-            indices.push_back(2);                        
+            indices.push_back(2);
         }
 
         // Downward face
@@ -1071,8 +1071,10 @@ namespace Gradient::Rendering
     }
 
     std::tuple<ProceduralMesh::VertexCollection, ProceduralMesh::IndexCollection>
-        OptimizeMesh(const ProceduralMesh::VertexCollection& vertices, 
-        const ProceduralMesh::IndexCollection& indices)
+        OptimizeMesh(const ProceduralMesh::VertexCollection& vertices,
+            const ProceduralMesh::IndexCollection& indices,
+            float simplificationRate = 0.0f,
+            float errorRate = 0.1f)
     {
         std::vector<unsigned int> remap(vertices.size());
         auto vertexCount = meshopt_generateVertexRemap(&remap[0],
@@ -1096,6 +1098,30 @@ namespace Gradient::Rendering
             sizeof(ProceduralMesh::VertexType),
             remap.data());
 
+        if (simplificationRate > 0.f)
+        {
+            ProceduralMesh::IndexCollection simplifiedIndices(indices.size());
+
+            float error = 0.f;
+            size_t newIndexCount = meshopt_simplify(simplifiedIndices.data(), outIndices.data(), outIndices.size(),
+                &outVertices[0].position.x, outVertices.size(), sizeof(ProceduralMesh::VertexType),
+                (1.f - simplificationRate) * outIndices.size(), errorRate, meshopt_SimplifyPrune, &error);
+
+            simplifiedIndices.resize(newIndexCount);
+            outIndices = simplifiedIndices;
+            outIndices.resize(newIndexCount);
+        }
+
+        size_t newVertexCount =
+            meshopt_optimizeVertexFetch(outVertices.data(),
+                outIndices.data(),
+                outIndices.size(),
+                outVertices.data(),
+                outVertices.size(),
+                sizeof(ProceduralMesh::VertexType));
+
+        outVertices.resize(newVertexCount);
+
         meshopt_optimizeVertexCache(outIndices.data(),
             outIndices.data(),
             outIndices.size(),
@@ -1107,14 +1133,6 @@ namespace Gradient::Rendering
             outVertices.size(),
             sizeof(ProceduralMesh::VertexType),
             1.05f);
-        
-        size_t newVertexCount = 
-            meshopt_optimizeVertexFetch(outVertices.data(),
-                outIndices.data(),
-                outIndices.size(),
-                outVertices.data(),
-                outVertices.size(),
-                sizeof(ProceduralMesh::VertexType));
 
         outVertices.resize(newVertexCount);
 
@@ -1124,10 +1142,11 @@ namespace Gradient::Rendering
     void ProceduralMesh::Initialize(ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const VertexCollection& vertices,
-        const IndexCollection& indices)
+        const IndexCollection& indices,
+        float simplificationRate, 
+        float errorRate)
     {
-        auto [optimizedVertices, optimizedIndices] 
-            = OptimizeMesh(vertices, indices);
+        auto [optimizedVertices, optimizedIndices] = OptimizeMesh(vertices, indices, simplificationRate, errorRate);
 
         NarrowIndexCollection narrowIndices;
 
@@ -1348,7 +1367,9 @@ namespace Gradient::Rendering
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
         const VertexCollection& vertices,
-        const IndexCollection& indices
+        const IndexCollection& indices,
+        float simplificationRate,
+        float errorRate
     )
     {
         // Indices are 32 bit, can't have more vertices 
@@ -1356,7 +1377,7 @@ namespace Gradient::Rendering
         assert(vertices.size() < UINT32_MAX);
 
         ProceduralMesh primitive;
-        primitive.Initialize(device, cq, vertices, indices);
+        primitive.Initialize(device, cq, vertices, indices, simplificationRate, errorRate);
 
         return primitive;
     }
@@ -1364,14 +1385,18 @@ namespace Gradient::Rendering
     ProceduralMesh ProceduralMesh::CreateFromPart(
         ID3D12Device* device,
         ID3D12CommandQueue* cq,
-        const MeshPart& part
+        const MeshPart& part,
+        float simplificationRate,
+        float errorRate
     )
     {
         return ProceduralMesh::CreateFromVertices(
             device,
             cq,
             part.Vertices,
-            part.Indices
+            part.Indices,
+            simplificationRate,
+            errorRate
         );
     }
 
