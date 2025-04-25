@@ -476,7 +476,7 @@ namespace Gradient::Scene
             RigidBodyComponent::CreateCylinder(
                 cylinderHeight,
                 2 * trunkRadius,
-                {position.x, position.y + cylinderHeight / 2.f, position.z},
+                { position.x, position.y + cylinderHeight / 2.f, position.z },
                 [](JPH::BodyCreationSettings settings)
                 {
                     settings.mMotionType = JPH::EMotionType::Static;
@@ -783,6 +783,14 @@ namespace Gradient::Scene
                 0.3f);
         }
 
+        struct Bush
+        {
+            BufferManager::MeshHandle Trunk;
+            InstanceEntityData Leaves;
+        };
+
+        std::vector<Bush> bushTypes;
+
         Rendering::LSystem bushSystem;
         bushSystem.AddRule('T', "FFFX");
         bushSystem.AddRule('X', "F[/+FB[--L]][////+FB[++L]]/////////+FB[-L]");
@@ -796,14 +804,47 @@ namespace Gradient::Scene
 
         bushSystem.Build("T", 6, 3);
 
-        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.7f, 0.4f);
-        auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
+        bushTypes.push_back({
+               bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.4f, 0.2f),
+               MakeLeaves(device, cq, bushSystem, 0.06f)
+            });
 
+        Rendering::LSystem bushSystem2;
+        bushSystem2.AddRule('T', "FF\\FX");
+        bushSystem2.AddRule('X', "F[/+FB[--L]][//&//+FB[++L]]//&/+FB[-L]");
+        bushSystem2.AddRule('B', "FF[/+FB[-L-L]][//&//+F[+L+L]B[+L+L]]/^//^/+F[+L+L]B");
+        bushSystem2.StartingRadius = 0.01f;
+        bushSystem2.RadiusFactor = 1.f;
+        bushSystem2.AngleDegrees = 20.f;
+        bushSystem2.MoveDistance = 0.07f;
+
+        bushSystem2.Build("T", 5, 3);
+
+        bushTypes.push_back({
+                bm->CreateFromPart(device, cq, bushSystem2.GetTrunk(), 0.4f, 0.2f),
+                MakeLeaves(device, cq, bushSystem2, 0.06f)
+            });
+
+        Rendering::LSystem bushSystem3;
+        bushSystem3.AddRule('T', "FX");
+        bushSystem3.AddRule('X', "F[/+FB[--L]][////+FB[++L]]/////////+FB[-L]");
+        bushSystem3.AddRule('B', "FF[/+FB[-L]][////+F[+L+L]B[+L]]/////////+F[+L]B");
+        bushSystem3.StartingRadius = 0.015f;
+        bushSystem3.RadiusFactor = 1.f;
+        bushSystem3.AngleDegrees = 30.f;
+        bushSystem3.MoveDistance = 0.05f;
+
+        bushSystem3.Build("T", 8, 3);
+
+        bushTypes.push_back({
+               bm->CreateFromPart(device, cq, bushSystem3.GetTrunk(), 0.4f, 0.2f),
+               MakeLeaves(device, cq, bushSystem3, 0.03f)
+            });
 
         // To position bushes, rotate the tree position by 90 degrees 
         // and scale it down slightly. Then jitter a bit
         auto bushPositionTransform = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90))
-            * Matrix::CreateScale(0.7);
+            * Matrix::CreateScale(0.8);
 
         for (int i = 0; i < treePositions.size(); i++)
         {
@@ -813,14 +854,17 @@ namespace Gradient::Scene
             int numBushes = rand() % 10;
             for (int j = 0; j < numBushes; j++)
             {
-                auto bushPosition = clusterPosition + Vector3((rand() % 100) / 33.f, 0, (rand() % 100) / 33.f);
+                auto bushPosition = clusterPosition 
+                    + Vector3((rand() % 150 + 33) / 33.f, 0, (rand() % 150 + 33) / 33.f);
+
+                auto bushIndex = rand() % bushTypes.size();
 
                 AddBush(device, cq, "bush" + std::to_string(i) + "-" + std::to_string(j),
                     PlaceOntoHeightField(hfShape,
                         hfWorld,
                         Vector2(bushPosition.x, bushPosition.z),
                         0.02),
-                    bushTrunkMesh, bushLeafData, 0.06f);
+                    bushTypes[bushIndex].Trunk, bushTypes[bushIndex].Leaves, 0.06f);
             }
         }
     }
