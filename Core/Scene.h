@@ -441,7 +441,8 @@ namespace Gradient::Scene
         BufferManager::MeshHandle trunkMeshHandle,
         const InstanceEntityData& branchData,
         const InstanceEntityData& leafData,
-        const float leafWidth = 0.5f)
+        const float leafWidth = 0.5f,
+        const float trunkRadius = 0.3f)
     {
         using namespace Gradient::ECS::Components;
         auto entityManager = EntityManager::Get();
@@ -468,6 +469,20 @@ namespace Gradient::Scene
                 "bark_ao",
                 "defaultMetalness",
                 "bark_roughness"
+            ));
+
+        auto cylinderHeight = 3.f;
+        entityManager->Registry.emplace<RigidBodyComponent>(tree,
+            RigidBodyComponent::CreateCylinder(
+                cylinderHeight,
+                2 * trunkRadius,
+                {position.x, position.y + cylinderHeight / 2.f, position.z},
+                [](JPH::BodyCreationSettings settings)
+                {
+                    settings.mMotionType = JPH::EMotionType::Static;
+                    settings.mObjectLayer = Gradient::Physics::ObjectLayers::NON_MOVING;
+                    return settings;
+                }
             ));
 
         // Branches
@@ -764,7 +779,8 @@ namespace Gradient::Scene
                 trunkMesh,
                 branchData,
                 leafData,
-                0.20f);
+                0.20f,
+                0.3f);
         }
 
         Rendering::LSystem bushSystem;

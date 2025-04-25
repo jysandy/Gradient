@@ -6,6 +6,7 @@
 
 #include <DirectXTex.h>
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <wincodec.h>
 
 namespace Gradient::ECS::Components
@@ -43,6 +44,32 @@ namespace Gradient::ECS::Components
 
         JPH::BoxShape* shape = new JPH::BoxShape(JPH::Vec3(
             dimensions.x / 2.f, dimensions.y / 2.f, dimensions.z / 2.f));
+
+        JPH::BodyCreationSettings settings(
+            shape,
+            Physics::ToJolt(origin),
+            JPH::Quat::sIdentity(),
+            JPH::EMotionType::Dynamic,
+            Gradient::Physics::ObjectLayers::MOVING
+        );
+
+        if (settingsFn)
+            settings = settingsFn(settings);
+
+        auto bodyId = bodyInterface.CreateAndAddBody(settings,
+            JPH::EActivation::Activate);
+
+        return RigidBodyComponent{ bodyId };
+    }
+
+    RigidBodyComponent RigidBodyComponent::CreateCylinder(float height, float diameter,
+        DirectX::SimpleMath::Vector3 origin,
+        std::function<JPH::BodyCreationSettings(JPH::BodyCreationSettings)> settingsFn)
+    {
+        JPH::BodyInterface& bodyInterface
+            = Gradient::Physics::PhysicsEngine::Get()->GetBodyInterface();
+
+        JPH::CylinderShape* shape = new JPH::CylinderShape(height / 2.f, diameter / 2.f);
 
         JPH::BodyCreationSettings settings(
             shape,

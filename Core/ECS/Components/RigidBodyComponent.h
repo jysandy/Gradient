@@ -21,6 +21,10 @@ namespace Gradient::ECS::Components
 
         static RigidBodyComponent CreateBox(DirectX::SimpleMath::Vector3 dimensions,
             DirectX::SimpleMath::Vector3 origin = DirectX::SimpleMath::Vector3::Zero,
+            std::function<JPH::BodyCreationSettings(JPH::BodyCreationSettings)> settingsFn = nullptr);  
+
+        static RigidBodyComponent CreateCylinder(float height, float diameter,
+            DirectX::SimpleMath::Vector3 origin = DirectX::SimpleMath::Vector3::Zero,
             std::function<JPH::BodyCreationSettings(JPH::BodyCreationSettings)> settingsFn = nullptr);
     
         static RigidBodyComponent CreateHeightField(
