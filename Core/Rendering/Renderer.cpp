@@ -47,7 +47,7 @@ namespace Gradient::Rendering
 
         auto dlight = new Gradient::Rendering::DirectionalLight(
             device,
-            { -0.7f, -0.3f, 0.7f },
+            { -0.7f, -0.7f, 0.7f },
             200.f
         );
         DirectionalLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);

@@ -399,6 +399,7 @@ namespace Gradient::Scene
         auto& frustumTransform
             = entityManager->Registry.emplace<TransformComponent>(tree);
         frustumTransform.Translation = Matrix::CreateTranslation(position);
+        frustumTransform.Rotation = Matrix::CreateFromAxisAngle(Vector3::UnitY, rand() / DirectX::XM_2PI);
 
         AttachMeshWithBB(tree, trunkMeshHandle);
 
@@ -778,28 +779,32 @@ namespace Gradient::Scene
 
         bushSystem.Build("T", 6, 3);
 
-        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.7f, 0.3f);
+        auto bushTrunkMesh = bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.7f, 0.4f);
         auto bushLeafData = MakeLeaves(device, cq, bushSystem, 0.06f);
 
-        std::vector<Vector2> bushPositions = {
-            {33.6, 0},
-            {21.7, 4.1},
-            {2.3, 21.2},
-            {-0.4, 33.4},
-            {-11.8, 34.2},
-            {-26.5, 31.1},
-            {-36.1, 8},
-            {-41, -22}
-        };
 
-        for (int i = 0; i < bushPositions.size(); i++)
+        // To position bushes, rotate the tree position by 90 degrees 
+        // and scale it down slightly. Then jitter a bit
+        auto bushPositionTransform = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90))
+            * Matrix::CreateScale(0.7);
+
+        for (int i = 0; i < treePositions.size(); i++)
         {
-            AddBush(device, cq, "bush" + std::to_string(i),
-                PlaceOntoHeightField(hfShape,
-                    hfWorld,
-                    bushPositions[i],
-                    0.02),
-                bushTrunkMesh, bushLeafData, 0.06f);
+            auto clusterPosition = Vector3(treePositions[i].x, 0, treePositions[i].y);
+            clusterPosition = Vector3::Transform(clusterPosition, bushPositionTransform);
+
+            int numBushes = rand() % 10;
+            for (int j = 0; j < numBushes; j++)
+            {
+                auto bushPosition = clusterPosition + Vector3((rand() % 100) / 33.f, 0, (rand() % 100) / 33.f);
+
+                AddBush(device, cq, "bush" + std::to_string(i),
+                    PlaceOntoHeightField(hfShape,
+                        hfWorld,
+                        Vector2(bushPosition.x, bushPosition.z),
+                        0.02),
+                    bushTrunkMesh, bushLeafData, 0.06f);
+            }
         }
     }
 }
