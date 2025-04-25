@@ -63,6 +63,13 @@ Quaternion QuatFrom3x3(in float3x3 m)
     return q;
 }
 
+Quaternion QuatFromAxisAngle(float3 axis, float angle)
+{
+    float sn = sin(angle * 0.5);
+    float cs = cos(angle * 0.5);
+    return float4(axis * sn, cs);
+}
+
 float3x3 QuatTo3x3(in Quaternion q)
 {
     float3x3 m = float3x3(1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z, 2.0f * q.x * q.y - 2.0f * q.z * q.w, 2.0f * q.x * q.z + 2.0f * q.y * q.w,

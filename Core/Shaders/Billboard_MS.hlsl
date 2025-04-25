@@ -24,7 +24,8 @@ cbuffer DrawParams : register(b1, space0)
     float g_cardHeight;
     uint g_numInstances;
     uint g_useCameraDirectionForCulling;
-    float2 pad;
+    float g_totalTime;
+    float pad;
     float4 g_cullingFrustumPlanes[6];
 };
 
@@ -68,6 +69,7 @@ static const uint3 bbIndices[] =
 #define VERTS_PER_INSTANCE 4
 #define TRIS_PER_INSTANCE 2
 
+static const float PI = 3.14159265359;
 
 // 1 instance per thread!
 [numthreads(NUM_THREADS, 1, 1)]
@@ -96,12 +98,37 @@ void Billboard_MS(
     if (instanceIndex < g_numInstances)
     {
         InstanceData instance = Instances[instanceIndex];
+
+        float4x4 instanceTransform = QuatTo4x4(Instances[instanceIndex].RotationQuat);
+         
+        float4x4 animationTransform;
+        {        
+            // Animate rotation
+            float alpha = 0.5 * (cos(3 * g_totalTime + instanceIndex + sin(g_parentWorldMatrix._41)) + 1);
+            alpha *= alpha;
+            float radianFactor = PI / 180.f;
+            float angle = lerp(-10 * radianFactor, 30 * radianFactor, alpha);
+            float3 axis = float3(1, 0, 0);
+            
+            float4x4 animationMat = QuatTo4x4(QuatFromAxisAngle(axis, angle));
+            float4x4 translate1 = float4x4(1, 0, 0, 0,
+                                           0, 1, 0, 0,
+                                           0, 0, 1, 0,
+                                           0, 0, -g_cardHeight / 2.f, 1);
+            
+            float4x4 translate2 = float4x4(1, 0, 0, 0,
+                                           0, 1, 0, 0,
+                                           0, 0, 1, 0,
+                                           0, 0, g_cardHeight / 2.f, 1);
+            
+            animationTransform = mul(mul(translate1, animationMat), translate2);
+        }
         
         // Get transform and determine if we're front-facing
-        float4x4 instanceTransform = QuatTo4x4(Instances[instanceIndex].RotationQuat);
         instanceTransform._41_42_43 = Instances[instanceIndex].LocalPositionWithPad.xyz;
-        float4x4 worldMatrix = mul(instanceTransform, g_parentWorldMatrix);
         
+        float4x4 worldMatrix = mul(mul(animationTransform, instanceTransform), g_parentWorldMatrix);
+
         BoundingSphere bs;
         bs.xyz = mul(float4(0, 0, 0, 1), worldMatrix).xyz;
         // Radius is the length of the diagonal

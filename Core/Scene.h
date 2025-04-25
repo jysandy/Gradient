@@ -798,7 +798,7 @@ namespace Gradient::Scene
             {
                 auto bushPosition = clusterPosition + Vector3((rand() % 100) / 33.f, 0, (rand() % 100) / 33.f);
 
-                AddBush(device, cq, "bush" + std::to_string(i),
+                AddBush(device, cq, "bush" + std::to_string(i) + "-" + std::to_string(j),
                     PlaceOntoHeightField(hfShape,
                         hfWorld,
                         Vector2(bushPosition.x, bushPosition.z),

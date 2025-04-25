@@ -38,7 +38,8 @@ namespace Gradient::Pipelines
             float cardHeight;
             uint32_t numInstances;
             uint32_t useCameraDirectionForCulling = 0;
-            DirectX::XMFLOAT2 pad;
+            float totalTimeSeconds;
+            float pad;
             DirectX::XMFLOAT4 cullingFrustumPlanes[6];
         };
 
@@ -86,6 +87,8 @@ namespace Gradient::Pipelines
         DirectX::SimpleMath::Vector3 CameraDirection;
 
         bool UsingOrthographic = false;
+
+        float TotalTimeSeconds = 0.f;
 
         // TODO: Extract this into Params::DirectionalLight
         struct DirectionalLightParams

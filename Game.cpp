@@ -175,6 +175,7 @@ void Game::Update(DX::StepTimer const& timer)
     m_renderer->WaterPipeline->SetWaterParams(m_renderingWindow.Water);
     m_renderer->BloomProcessor->SetExposure(m_renderingWindow.BloomExposure);
     m_renderer->BloomProcessor->SetIntensity(m_renderingWindow.BloomIntensity);
+    m_renderer->BillboardPipeline->TotalTimeSeconds = totalSeconds;
 
     auto kb = DirectX::Keyboard::Get().GetState();
     if (kb.OemTilde)

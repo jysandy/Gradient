@@ -148,6 +148,7 @@ namespace Gradient::Pipelines
         drawConstants.cardWidth = CardDimensions.x;
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
+        drawConstants.totalTimeSeconds = TotalTimeSeconds;
         if (UsingOrthographic)
         {
             drawConstants.useCameraDirectionForCulling = 1;
@@ -199,6 +200,7 @@ namespace Gradient::Pipelines
         drawConstants.cardWidth = CardDimensions.x;
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
+        drawConstants.totalTimeSeconds = TotalTimeSeconds;
         if (UsingOrthographic)
         {
             drawConstants.useCameraDirectionForCulling = 1;
