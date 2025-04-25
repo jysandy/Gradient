@@ -155,7 +155,7 @@ void Game::Update(DX::StepTimer const& timer)
     m_perfWindow.FPS = timer.GetFramesPerSecond();
 
     m_renderer->DirectionalLight->SetLightDirection(m_renderingWindow.LightDirection);
-    m_renderer->DirectionalLight->SetColour(m_renderingWindow.GetLinearLightColour());
+    m_renderer->DirectionalLight->SetColour(DirectX::SimpleMath::Color(m_renderingWindow.LightColour));
     m_renderer->DirectionalLight->SetIrradiance(m_renderingWindow.Irradiance);
 
     // TODO: Move this into the window
@@ -592,7 +592,7 @@ void Game::CreateWindowSizeDependentResources()
         cq,
         windowSize);
 
-    m_renderingWindow.SetLinearLightColour(m_renderer->DirectionalLight->GetColour());
+    m_renderingWindow.LightColour = m_renderer->DirectionalLight->GetColour().ToVector3();
     m_renderingWindow.LightDirection = m_renderer->DirectionalLight->GetDirection();
     m_renderingWindow.Irradiance = m_renderer->DirectionalLight->GetIrradiance();
     m_renderingWindow.AmbientIrradiance = 1.f;

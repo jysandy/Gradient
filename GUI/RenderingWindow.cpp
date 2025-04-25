@@ -28,27 +28,27 @@ namespace Gradient::GUI
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Point lights"))
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    if (ImGui::TreeNode(("Point Light " + std::to_string(i + 1)).c_str()))
-                    {
-                        ImGui::ColorEdit3("Colour",
-                            &PointLights[i].Colour.x,
-                            ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
-                        ImGui::SliderFloat("Irradiance", 
-                            &PointLights[i].Irradiance,
-                            0.f, 30.f);
-                        ImGui::SliderFloat("Range",
-                            &PointLights[i].MaxRange,
-                            0.2f, 100.f);
-                        ImGui::TreePop();
-                    }
-                }
+            //if (ImGui::TreeNode("Point lights"))
+            //{
+            //    for (int i = 0; i < 2; i++)
+            //    {
+            //        if (ImGui::TreeNode(("Point Light " + std::to_string(i + 1)).c_str()))
+            //        {
+            //            ImGui::ColorEdit3("Colour",
+            //                &PointLights[i].Colour.x,
+            //                ImGuiColorEditFlags_::ImGuiColorEditFlags_Float);
+            //            ImGui::SliderFloat("Irradiance", 
+            //                &PointLights[i].Irradiance,
+            //                0.f, 30.f);
+            //            ImGui::SliderFloat("Range",
+            //                &PointLights[i].MaxRange,
+            //                0.2f, 100.f);
+            //            ImGui::TreePop();
+            //        }
+            //    }
 
-                ImGui::TreePop();
-            }
+            //    ImGui::TreePop();
+            //}
 
             ImGui::TreePop();
         }
@@ -95,23 +95,5 @@ namespace Gradient::GUI
         }
 
         ImGui::End();
-    }
-
-    void RenderingWindow::SetLinearLightColour(DirectX::SimpleMath::Color c)
-    {
-        LightColour.x = pow(c.R(), 1.f / 2.2f);
-        LightColour.y = pow(c.G(), 1.f / 2.2f);
-        LightColour.z = pow(c.B(), 1.f / 2.2f);
-    }
-
-    DirectX::SimpleMath::Color RenderingWindow::GetLinearLightColour()
-    {
-        auto lightColour = DirectX::SimpleMath::Color(
-            pow(LightColour.x, 2.2),
-            pow(LightColour.y, 2.2),
-            pow(LightColour.z, 2.2)
-        );
-
-        return lightColour;
     }
 }

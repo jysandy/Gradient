@@ -51,7 +51,7 @@ namespace Gradient::Rendering
             200.f
         );
         DirectionalLight = std::unique_ptr<Gradient::Rendering::DirectionalLight>(dlight);
-        auto lightColor = DirectX::SimpleMath::Color(0.86, 0.49, 0.06, 1);
+        auto lightColor = DirectX::SimpleMath::Color(0.858, 0.579, 0.181, 1);
         DirectionalLight->SetColour(lightColor);
         DirectionalLight->SetIrradiance(7.f);
 
