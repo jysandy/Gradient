@@ -318,8 +318,9 @@ namespace Gradient::Rendering
         //MultisampledRT->SetDepthOnly(cl);
         //m_prepassedEntities.clear();
 
-        //BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(camera->GetPrepassFrustum());
-        //DrawAllEntities(cl, PassType::ZPrepass, camera->GetPrepassFrustum());
+        //// TODO: Need to disable mesh shader culling in the Z prepass 
+        //BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(cullingCamera->GetFrustum());
+        //DrawAllEntities(cl, PassType::ZPrepass, cullingCamera->GetFrustum());
 
         //PIXEndEvent(cl);
 
