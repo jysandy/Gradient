@@ -456,6 +456,7 @@ namespace Gradient::Scene
         auto& frustumTransform
             = entityManager->Registry.emplace<TransformComponent>(tree);
         frustumTransform.Translation = Matrix::CreateTranslation(position);
+        frustumTransform.Rotation = Matrix::CreateFromAxisAngle(Vector3::UnitY, rand() / DirectX::XM_2PI);
 
         AttachMeshWithBB(tree, trunkMeshHandle);
 
@@ -744,7 +745,7 @@ namespace Gradient::Scene
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
 
         std::vector<Vector2> treePositions
-            = Math::GeneratePoissonDiskSamples(50, 75, 4.f);
+            = Math::GeneratePoissonDiskSamples(100, 75, 4.f);
 
         auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);
         auto hfWorld = entityManager->GetWorldMatrix(terrain);
