@@ -105,14 +105,16 @@ namespace Gradient
         auto [input, jumped] = GetMovementInput(right, forward);
 
         const float speed = 5.f;
-        const float jumpSpeed = 10.f;
+        const float jumpSpeed = 5.f;
         JPH::Vec3 newVelocity = JPH::Vec3::sZero();
 
         auto currentVelocity = character->GetLinearVelocity();
 
         newVelocity += speed * Physics::ToJolt(input);
 
-        if (character->IsSupported())
+        auto groundNormal = Physics::FromJolt(character->GetGroundNormal());
+
+        if (character->IsSupported() && groundNormal.Dot(Vector3::UnitY) > 0.2f)
         {
             if (jumped)
             {
