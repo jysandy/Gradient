@@ -314,15 +314,15 @@ namespace Gradient::Rendering
 
         // The Z pre-pass is not worth it for the time being
 
-        //PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
-        //MultisampledRT->SetDepthOnly(cl);
-        //m_prepassedEntities.clear();
+        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
+        MultisampledRT->SetDepthOnly(cl);
+        m_prepassedEntities.clear();
 
-        //// TODO: Need to disable mesh shader culling in the Z prepass 
-        //BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(cullingCamera->GetFrustum());
-        //DrawAllEntities(cl, PassType::ZPrepass, cullingCamera->GetFrustum());
+        // TODO: Need to disable mesh shader culling in the Z prepass 
+        BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(cullingCamera->GetFrustum());
+        DrawAllEntities(cl, PassType::ZPrepass, cullingCamera->GetFrustum());
 
-        //PIXEndEvent(cl);
+        PIXEndEvent(cl);
 
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");
