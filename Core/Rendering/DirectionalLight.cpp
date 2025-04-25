@@ -156,11 +156,19 @@ namespace Gradient::Rendering
             -lightAABB.Center.z + lightAABB.Extents.z
         );*/
 
+        float leftBound = lightAABB.Center.x - lightAABB.Extents.x;
+        float rightBound = lightAABB.Center.x + lightAABB.Extents.x;
+        float bottomBound = lightAABB.Center.y - lightAABB.Extents.y;
+        float topBound = lightAABB.Center.y + lightAABB.Extents.y;
+
+        float jitter = rand() % 1000 / 2000.f;
+        jitter = 0;
+
         m_shadowMapProj = SimpleMath::Matrix::CreateOrthographicOffCenter(
-            lightAABB.Center.x - lightAABB.Extents.x,
-            lightAABB.Center.x + lightAABB.Extents.x,
-            lightAABB.Center.y - lightAABB.Extents.y,
-            lightAABB.Center.y + lightAABB.Extents.y,
+            leftBound - jitter,
+            rightBound + jitter,
+            bottomBound - jitter,
+            topBound + jitter,
             m_sceneRadius,
             -lightAABB.Center.z + lightAABB.Extents.z
         );
@@ -172,8 +180,8 @@ namespace Gradient::Rendering
 
             DirectX::BoundingBox temp;
             DirectX::BoundingBox::CreateFromPoints(temp,
-                Vector3{ lightAABB.Center.x - lightAABB.Extents.x - 1, lightAABB.Center.y - lightAABB.Extents.y - 1, -m_sceneRadius },
-                Vector3{ lightAABB.Center.x + lightAABB.Extents.x + 1, lightAABB.Center.y + lightAABB.Extents.y + 1, -m_sceneRadius + 1 });
+                Vector3{ leftBound - 1, bottomBound - 1, -m_sceneRadius },
+                Vector3{ rightBound + 1, topBound + 1, -m_sceneRadius + 1 });
 
             DirectX::BoundingBox::CreateMerged(lightAABB, lightAABB, temp);
         }
