@@ -771,7 +771,8 @@ namespace Gradient::Scene
         bushSystem.AddRule('T', "FFFX");
         bushSystem.AddRule('X', "F[/+FB[--L]][////+FB[++L]]/////////+FB[-L]");
         bushSystem.AddRule('B', "FF[/+FB[-L-L]][////+F[+L+L]B[+L+L]]/////////+F[+L+L]B");
-        bushSystem.AddRule('L', "+^L/&--L/&&+L");
+        //bushSystem.AddRule('L', "+^L/&--L/&&+L");
+        //bushSystem.AddRule('L', "+^L/&--L");
         bushSystem.StartingRadius = 0.01f;
         bushSystem.RadiusFactor = 1.f;
         bushSystem.AngleDegrees = 25.7f;
