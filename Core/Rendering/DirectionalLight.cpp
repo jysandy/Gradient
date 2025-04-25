@@ -45,8 +45,8 @@ namespace Gradient::Rendering
 
         auto depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
             DXGI_FORMAT_R32_TYPELESS,
-            (UINT64)shadowMapWidth + 1,
-            (UINT64)shadowMapWidth + 1
+            (UINT64)shadowMapWidth,
+            (UINT64)shadowMapWidth
         );
         depthStencilDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
@@ -117,12 +117,12 @@ namespace Gradient::Rendering
             corners.size(),
             corners.data(),
             sizeof(DirectX::XMFLOAT3));
-        
+
         // Round the orthographic projection bounds to 
         // texel-size extents, as described in 
         // https://learn.microsoft.com/en-us/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps#techniques-to-improve-shadow-maps
         // TODO: This doesn't seem to be working, figure out why
-        float worldUnitsPerTexelX = lightAABB.Extents.x / (m_width + 1);
+        /*float worldUnitsPerTexelX = lightAABB.Extents.x / (m_width + 1);
         float worldUnitsPerTexelY = lightAABB.Extents.y / (m_width + 1);
 
         auto vxBounds = DirectX::XMVectorSet(lightAABB.Center.x - lightAABB.Extents.x,
@@ -134,7 +134,7 @@ namespace Gradient::Rendering
         DirectX::XMStoreFloat2(&foo, vxBounds);
 
         vxBounds *= worldUnitsPerTexelX;
-        
+
         DirectX::XMFLOAT2 xBounds;
         DirectX::XMStoreFloat2(&xBounds, vxBounds);
 
@@ -154,6 +154,15 @@ namespace Gradient::Rendering
             yBounds.y,
             m_sceneRadius,
             -lightAABB.Center.z + lightAABB.Extents.z
+        );*/
+
+        m_shadowMapProj = SimpleMath::Matrix::CreateOrthographicOffCenter(
+            lightAABB.Center.x - lightAABB.Extents.x,
+            lightAABB.Center.x + lightAABB.Extents.x,
+            lightAABB.Center.y - lightAABB.Extents.y,
+            lightAABB.Center.y + lightAABB.Extents.y,
+            m_sceneRadius,
+            -lightAABB.Center.z + lightAABB.Extents.z
         );
 
         {
@@ -163,9 +172,9 @@ namespace Gradient::Rendering
 
             DirectX::BoundingBox temp;
             DirectX::BoundingBox::CreateFromPoints(temp,
-                Vector3{ xBounds.x - 1, yBounds.x - 1, -m_sceneRadius },
-                Vector3{ xBounds.y + 1, yBounds.y + 1, -m_sceneRadius + 1 });
-        
+                Vector3{ lightAABB.Center.x - lightAABB.Extents.x - 1, lightAABB.Center.y - lightAABB.Extents.y - 1, -m_sceneRadius },
+                Vector3{ lightAABB.Center.x + lightAABB.Extents.x + 1, lightAABB.Center.y + lightAABB.Extents.y + 1, -m_sceneRadius + 1 });
+
             DirectX::BoundingBox::CreateMerged(lightAABB, lightAABB, temp);
         }
 

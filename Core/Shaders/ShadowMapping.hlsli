@@ -46,20 +46,42 @@ float calculateShadowFactor(
     float2 zPartials = constant * mul(float2(dpdx.z, dpdy.z), right);
     
     // TODO: Pass the shadow map resolution through
-    const float dx = 1.f / 4097.f;
+    const float dx = 1.f / 4096.f;
     
     // Use a dithered pattern to obtain a result similar to 16 
     // samples per pixel.
     // https://developer.nvidia.com/gpugems/gpugems/part-ii-lighting-and-shadows/chapter-11-shadow-map-antialiasing
-    const float2 offsets[4] =
+    //const float2 offsets[4] =
+    //{
+    //    float2(-1.5, 0.5), float2(0.5, 0.5),
+    //    float2(-1.5, -1.5), float2(0.5, -1.5)
+    //};
+    
+    //float shadowFactor = 0.f;
+    //[unroll]
+    //for (int i = 0; i < 4; ++i)
+    //{
+    //    float2 finalOffsets = offsets[i] * dx;
+    //    shadowFactor += saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
+    //        shadowUV.xy + finalOffsets,
+    //        shadowUV.z + dot(finalOffsets, zPartials)
+    //    ).r);
+    //}
+    
+    //return shadowFactor / 4.f;
+    
+    const float2 offsets[25] =
     {
-        float2(-1.5, 0.5), float2(0.5, 0.5),
-        float2(-1.5, -1.5), float2(0.5, -1.5)
+        float2(-2, -2), float2(-1, -2), float2(0, -2), float2(1, -2),  float2(2, -2),
+        float2(-2, -1), float2(-1, -1), float2(0, -1), float2(1, -1),  float2(2, -1),
+        float2(-2, 0), float2(-1, 0), float2(0, 0), float2(1, 0),     float2(2, 0),
+        float2(-2, 1), float2(-1, 1), float2(0, 1), float2(1, 1),     float2(2, 1),
+        float2(-2, 2), float2(-1, 2), float2(0, 2), float2(1, 2),     float2(2, 2)
+        
     };
     
     float shadowFactor = 0.f;
-    [unroll]
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 25; ++i)
     {
         float2 finalOffsets = offsets[i] * dx;
         shadowFactor += saturate(shadowMap.SampleCmpLevelZero(shadowMapSampler,
@@ -68,7 +90,7 @@ float calculateShadowFactor(
         ).r);
     }
     
-    return shadowFactor / 4.f;
+    return shadowFactor / 25.f;
 }
 
 float calculateShadowFactorNoLargeKernel(
