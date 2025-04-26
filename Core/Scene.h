@@ -831,8 +831,56 @@ namespace Gradient::Scene
             {0.10f, 0.20f}
             });
 
+        Rendering::LSystem treeTrunk3;
+        treeTrunk3.AddRule('T', "FFF&F[/+FX[-G]][///+FX[--B]]///////+F^X[-B][//^-L]");
+        treeTrunk3.AddRule('X', "F[^//+BX][///-BX]////--BX[//^-L]");
+        treeTrunk3.AddRule('B', "FG");
+        treeTrunk3.AddRule('G', "[//&&&-L][/^^^+L]");
+        treeTrunk3.StartingRadius = 0.25f;
+        treeTrunk3.RadiusFactor = 0.7f;
+        treeTrunk3.AngleDegrees = 20.f;
+        treeTrunk3.MoveDistance = 0.8f;
+        treeTrunk3.Build("T", 4);
+
+        Rendering::LSystem treeBranch3;
+        treeBranch3.AddRule('X', "F^^F//-F+F[--B]///F[^^B]//-FB");
+        treeBranch3.AddRule('B', "F^[//^^B]F&[\\\\&L]G[+B]-BG");
+        treeBranch3.AddRule('G', "F[///--L][//---L][\\\\&&+++L]");
+        treeBranch3.StartingRadius = 0.03f;
+        treeBranch3.RadiusFactor = 0.95f;
+        treeBranch3.AngleDegrees = 40.f;
+        treeBranch3.MoveDistance = 0.2f;
+        treeBranch3.Build("X", 5, 3);
+
+        auto trunkMesh3 = bm->CreateFromPart(device, cq, treeTrunk3.GetTrunk(), 0.1f, 0.1f);
+        auto branchData3 = MakeBranches(device, cq, treeTrunk3, treeBranch3);
+        auto leafData3 = MakeLeaves(device, cq, treeTrunk3, treeBranch3, 3, 7, 0, 0, { 0.10f, 0.20f });
+
+        treeTypes.push_back({
+            trunkMesh3,
+            branchData3,
+            leafData3,
+            0.25f,
+            Rendering::PBRMaterial(
+                "bark3_albedo",
+                "bark3_normal",
+                "bark3_ao",
+                "bark3_roughness",
+                2.f
+            ),
+            Rendering::PBRMaterial(
+                "bay_leaf_albedo",
+                "bay_leaf_normal",
+                "bay_leaf_ao",
+                "bay_leaf_roughness",
+                1.f,
+                true
+            ),
+            {0.10f, 0.20f}
+            });
+
         std::vector<Vector2> treePositions
-            = Math::GeneratePoissonDiskSamples(100, 75, 4.f);
+            = Math::GeneratePoissonDiskSamples(150, 75, 3.f);
 
         auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);
         auto hfWorld = entityManager->GetWorldMatrix(terrain);
