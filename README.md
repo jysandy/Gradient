@@ -17,5 +17,6 @@
 - Metal box, ball and ornament materials: https://juliovii.itch.io/metalpk01  
 - Bark: https://www.fab.com/listings/5a0e1c65-f5b3-45c5-9d3e-9a1ff9abba4a
 - Forest floor: https://www.fab.com/listings/db8c5bda-e867-412a-8e9a-f27c536d4ff8
-- Birch leaf: https://www.fab.com/listings/8f51f1e3-921d-4a17-b9c9-123a494584bb  
+- Birch leaf: https://www.fab.com/listings/8f51f1e3-921d-4a17-b9c9-123a494584bb
+- Bark 2: https://www.fab.com/listings/c61dd941-4281-4772-bf2e-ecbfdbb6e676
 Note that no assets are checked in.

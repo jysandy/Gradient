@@ -468,6 +468,19 @@ void Game::CreateEntities()
         L"Assets\\Tree_Bark_sb0jlop0_1K_AO.dds");
 
     textureManager->LoadDDS(device, cq,
+        "bark2_albedo",
+        L"Assets\\Tree_Bark_vimmdcofw_2K_BaseColor.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark2_normal",
+        L"Assets\\Tree_Bark_vimmdcofw_2K_Normal.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark2_roughness",
+        L"Assets\\Tree_Bark_vimmdcofw_2K_Roughness.dds");
+    textureManager->LoadDDS(device, cq,
+        "bark2_ao",
+        L"Assets\\Tree_Bark_vimmdcofw_2K_AO.dds");
+
+    textureManager->LoadDDS(device, cq,
         "leaf_albedo",
         L"Assets\\Birch_qghn02_1K_BaseColor.dds"
     );

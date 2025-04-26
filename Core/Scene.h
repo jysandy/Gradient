@@ -441,6 +441,7 @@ namespace Gradient::Scene
         BufferManager::MeshHandle trunkMeshHandle,
         const InstanceEntityData& branchData,
         const InstanceEntityData& leafData,
+        Rendering::PBRMaterial barkMaterial,
         const float leafWidth = 0.5f,
         const float trunkRadius = 0.3f)
     {
@@ -463,13 +464,7 @@ namespace Gradient::Scene
         AttachMeshWithBB(tree, trunkMeshHandle);
 
         entityManager->Registry.emplace<MaterialComponent>(tree,
-            Rendering::PBRMaterial(
-                "bark_albedo",
-                "bark_normal",
-                "bark_ao",
-                "defaultMetalness",
-                "bark_roughness"
-            ));
+            barkMaterial);
 
         auto cylinderHeight = 3.f;
         entityManager->Registry.emplace<RigidBodyComponent>(tree,
@@ -492,13 +487,7 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<TransformComponent>(branches);
         entityManager->Registry.emplace<RelationshipComponent>(branches, tree);
         entityManager->Registry.emplace<MaterialComponent>(branches,
-            Rendering::PBRMaterial(
-                "bark_albedo",
-                "bark_normal",
-                "bark_ao",
-                "defaultMetalness",
-                "bark_roughness"
-            ));
+            barkMaterial);
 
         AttachInstances(branches, branchData);
 
@@ -737,6 +726,7 @@ namespace Gradient::Scene
             InstanceEntityData Branches;
             InstanceEntityData Leaves;
             float TrunkRadius;
+            Rendering::PBRMaterial BarkMaterial;
         };
 
         std::vector<Tree> treeTypes;
@@ -771,7 +761,14 @@ namespace Gradient::Scene
             trunkMesh,
             branchData,
             leafData,
-            0.3f
+            0.3f,
+            Rendering::PBRMaterial(
+                "bark_albedo",
+                "bark_normal",
+                "bark_ao",
+                "bark_roughness",
+                2.f
+            )
             });
 
         Rendering::LSystem treeTrunk2;
@@ -803,7 +800,14 @@ namespace Gradient::Scene
             trunkMesh2,
             branchData2,
             leafData2,
-            0.2f
+            0.2f,
+            Rendering::PBRMaterial(
+                "bark2_albedo",
+                "bark2_normal",
+                "bark2_ao",
+                "bark2_roughness",
+                2.f
+            )
             });
 
         std::vector<Vector2> treePositions
@@ -827,6 +831,7 @@ namespace Gradient::Scene
                 treeTypes[treeIndex].Trunk,
                 treeTypes[treeIndex].Branches,
                 treeTypes[treeIndex].Leaves,
+                treeTypes[treeIndex].BarkMaterial,
                 0.20f,
                 treeTypes[treeIndex].TrunkRadius);
         }
@@ -902,7 +907,7 @@ namespace Gradient::Scene
             int numBushes = rand() % 10;
             for (int j = 0; j < numBushes; j++)
             {
-                auto bushPosition = clusterPosition 
+                auto bushPosition = clusterPosition
                     + Vector3((rand() % 150 + 33) / 33.f, 0, (rand() % 150 + 33) / 33.f);
 
                 auto bushIndex = rand() % bushTypes.size();
