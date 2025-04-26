@@ -797,7 +797,7 @@ namespace Gradient::Scene
         Rendering::LSystem treeBranch2;
         treeBranch2.AddRule('X', "F^F/-F+F[--B]//F[^^B]//-FB");
         treeBranch2.AddRule('B', "F^[//^^B]F&[\\\\&L]G[+B]-BG");
-        treeBranch2.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
+        treeBranch2.AddRule('G', "F[//--L][//---L][\\^++L]");
         treeBranch2.StartingRadius = 0.04f;
         treeBranch2.RadiusFactor = 0.95f;
         treeBranch2.AngleDegrees = 30.f;
@@ -844,7 +844,7 @@ namespace Gradient::Scene
 
         Rendering::LSystem treeBranch3;
         treeBranch3.AddRule('X', "F^^F//-F+F[--B]///F[^^B]//-FB");
-        treeBranch3.AddRule('B', "F^[//^^B]F&[\\\\&L]G[+B]-BG");
+        treeBranch3.AddRule('B', "F^[//^^B]F&G[+B]-BG");
         treeBranch3.AddRule('G', "F[///--L][//---L][\\\\&&+++L]");
         treeBranch3.StartingRadius = 0.03f;
         treeBranch3.RadiusFactor = 0.95f;
