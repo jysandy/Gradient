@@ -372,7 +372,7 @@ namespace Gradient::Scene
             cq,
             out.Instances);
 
-        out.MeshHandle = bm->CreateFromPart(device, cq, branches.GetTrunk(), 0.7f, 0.5f);
+        out.MeshHandle = bm->CreateFromPart(device, cq, branches.GetTrunk(), 0.4f, 0.1f);
 
         return out;
     }
@@ -731,6 +731,15 @@ namespace Gradient::Scene
             "islandHeightMap",
             L"Assets\\island_height_32bit.dds");
 
+        struct Tree
+        {
+            BufferManager::MeshHandle Trunk;
+            InstanceEntityData Branches;
+            InstanceEntityData Leaves;
+            float TrunkRadius;
+        };
+
+        std::vector<Tree> treeTypes;
 
         Rendering::LSystem treeTrunk;
         treeTrunk.AddRule('T', "FFF[/+FX[--G]][////+FX[++G]]/////////+FX[-G]");
@@ -741,7 +750,6 @@ namespace Gradient::Scene
         treeTrunk.RadiusFactor = 0.5f;
         treeTrunk.AngleDegrees = 25.7f;
         treeTrunk.MoveDistance = 1.f;
-
         treeTrunk.Build("T", 3);
 
         Rendering::LSystem treeBranch;
@@ -753,12 +761,50 @@ namespace Gradient::Scene
         treeBranch.RadiusFactor = 1.f;
         treeBranch.AngleDegrees = 20.f;
         treeBranch.MoveDistance = 0.2f;
-
         treeBranch.Build("X", 5, 3);
 
         auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk(), 0.1f, 0.1f);
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
+
+        treeTypes.push_back({
+            trunkMesh,
+            branchData,
+            leafData,
+            0.3f
+            });
+
+        Rendering::LSystem treeTrunk2;
+        treeTrunk2.AddRule('T', "F^F&F[/+FX[-G]][///+F^X[++G]]//////w/+F&X[-G][//^-L]");
+        treeTrunk2.AddRule('X', "F[^/+FX[-G][//^-L]][///+&FX[++G][//^-L]]///////+F^X[-G][//^-L]");
+        treeTrunk2.AddRule('G', "[//-L][/+L]");
+        //treeTrunk2.AddRule('L', "L///+^L");
+        treeTrunk2.StartingRadius = 0.2f;
+        treeTrunk2.RadiusFactor = 0.5f;
+        treeTrunk2.AngleDegrees = 30.f;
+        treeTrunk2.MoveDistance = 1.5f;
+        treeTrunk2.Build("T", 3);
+
+        Rendering::LSystem treeBranch2;
+        treeBranch2.AddRule('X', "F^F/-F+F[--B]//F[^^B]//-FB");
+        treeBranch2.AddRule('B', "F^[//^^B]F&[\\\\&L]G[+B]-BG");
+        treeBranch2.AddRule('G', "F[//--L][//---L][\\^++L][\\\\&&++L][\\\\&&+++L]");
+        treeBranch2.StartingRadius = 0.04f;
+        treeBranch2.RadiusFactor = 0.95f;
+        treeBranch2.AngleDegrees = 30.f;
+        treeBranch2.MoveDistance = 0.2f;
+        treeBranch2.Build("X", 5, 3);
+
+        auto trunkMesh2 = bm->CreateFromPart(device, cq, treeTrunk2.GetTrunk(), 0.1f, 0.1f);
+        auto branchData2 = MakeBranches(device, cq, treeTrunk2, treeBranch2);
+        auto leafData2 = MakeLeaves(device, cq, treeTrunk2, treeBranch2, 0.20f);
+
+        treeTypes.push_back({
+            trunkMesh2,
+            branchData2,
+            leafData2,
+            0.2f
+            });
 
         std::vector<Vector2> treePositions
             = Math::GeneratePoissonDiskSamples(100, 75, 4.f);
@@ -771,16 +817,18 @@ namespace Gradient::Scene
 
         for (int i = 0; i < treePositions.size(); i++)
         {
+            auto treeIndex = rand() % treeTypes.size();
+
             AddTree(device, cq, "tree" + std::to_string(i),
                 PlaceOntoHeightField(hfShape,
                     hfWorld,
                     treePositions[i],
                     0.02),
-                trunkMesh,
-                branchData,
-                leafData,
+                treeTypes[treeIndex].Trunk,
+                treeTypes[treeIndex].Branches,
+                treeTypes[treeIndex].Leaves,
                 0.20f,
-                0.3f);
+                treeTypes[treeIndex].TrunkRadius);
         }
 
         struct Bush
