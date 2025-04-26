@@ -19,4 +19,5 @@
 - Forest floor: https://www.fab.com/listings/db8c5bda-e867-412a-8e9a-f27c536d4ff8
 - Birch leaf: https://www.fab.com/listings/8f51f1e3-921d-4a17-b9c9-123a494584bb
 - Bark 2: https://www.fab.com/listings/c61dd941-4281-4772-bf2e-ecbfdbb6e676
+- Bay leaf: https://www.fab.com/listings/fcd38b51-45fe-4038-87db-675505c69286
 Note that no assets are checked in.

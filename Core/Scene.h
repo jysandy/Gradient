@@ -23,6 +23,25 @@
 
 namespace Gradient::Scene
 {
+
+    struct InstanceEntityData
+    {
+        BufferManager::MeshHandle MeshHandle;
+        BufferManager::InstanceBufferHandle InstanceBufferHandle;
+        std::vector<BufferManager::InstanceData> Instances;
+    };
+
+    struct Tree
+    {
+        BufferManager::MeshHandle Trunk;
+        InstanceEntityData Branches;
+        InstanceEntityData Leaves;
+        float TrunkRadius;
+        Rendering::PBRMaterial BarkMaterial;
+        Rendering::PBRMaterial LeafMaterial;
+        DirectX::XMFLOAT2 LeafDimensions;
+    };
+
     entt::entity AddEntity(const std::string& name)
     {
         using namespace Gradient::ECS::Components;
@@ -34,13 +53,6 @@ namespace Gradient::Scene
 
         return e;
     }
-
-    struct InstanceEntityData
-    {
-        BufferManager::MeshHandle MeshHandle;
-        BufferManager::InstanceBufferHandle InstanceBufferHandle;
-        std::vector<BufferManager::InstanceData> Instances;
-    };
 
     void AttachMeshWithBB(entt::entity entity,
         BufferManager::MeshHandle meshHandle)
@@ -126,6 +138,13 @@ namespace Gradient::Scene
         const InstanceEntityData& data)
     {
         AttachInstances(entity, data.MeshHandle, data.InstanceBufferHandle, data.Instances);
+    }
+
+    void AttachBillboards(entt::entity entity,
+        const InstanceEntityData& data,
+        DirectX::XMFLOAT2 dimensions)
+    {
+        AttachBillboards(entity, data.InstanceBufferHandle, data.Instances, dimensions);
     }
 
     void AttachBillboards(entt::entity entity,
@@ -254,7 +273,7 @@ namespace Gradient::Scene
     }
 
     InstanceEntityData MakeLeaves(ID3D12Device* device, ID3D12CommandQueue* cq,
-        Rendering::LSystem& lsystem, const float leafWidth = 0.5f)
+        Rendering::LSystem& lsystem, DirectX::XMFLOAT2 leafDimensions = { 0.5f, 0.5f })
     {
         auto bm = BufferManager::Get();
 
@@ -263,7 +282,7 @@ namespace Gradient::Scene
         Matrix billboardTransform = Matrix::Identity;
 
         // Shift the leaf origin and point it upwards.
-        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
+        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafDimensions.y / 2.f })
             * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
 
         int numRows = 3;
@@ -300,27 +319,26 @@ namespace Gradient::Scene
     }
 
     InstanceEntityData MakeLeaves(ID3D12Device* device, ID3D12CommandQueue* cq,
-        Rendering::LSystem& trunk, Rendering::LSystem& branches, const float leafWidth = 0.5f)
+        Rendering::LSystem& trunk, Rendering::LSystem& branches,
+        uint32_t numRows, uint32_t numCols, uint32_t maxRow, uint32_t maxCol,
+        DirectX::XMFLOAT2 leafDimensions = { 0.5f, 0.5f })
     {
         auto bm = BufferManager::Get();
 
         InstanceEntityData out;
 
-        int numRows = 3;
-        int numCols = 4;
-
         Matrix billboardTransform = Matrix::Identity;
 
         // Shift the leaf origin and point it upwards.
-        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafWidth / 2.f })
+        billboardTransform *= Matrix::CreateTranslation({ 0, 0, -leafDimensions.y / 2.f })
             * Matrix::CreateRotationX(DirectX::XM_PIDIV2);
 
         auto leafTransforms = trunk.GetCombinedLeaves(branches);
 
         for (const auto& transform : leafTransforms)
         {
-            float colIndex = abs(rand()) % numCols;
-            float rowIndex = abs(rand()) % numRows;
+            float colIndex = abs(rand()) % (maxCol + 1);
+            float rowIndex = abs(rand()) % (maxRow + 1);
 
             Matrix netTransform = billboardTransform
                 * Matrix::CreateFromQuaternion(transform.Rotation)
@@ -442,7 +460,8 @@ namespace Gradient::Scene
         const InstanceEntityData& branchData,
         const InstanceEntityData& leafData,
         Rendering::PBRMaterial barkMaterial,
-        const float leafWidth = 0.5f,
+        Rendering::PBRMaterial leafMaterial,
+        const DirectX::XMFLOAT2 leafDimensions = { 0.5f, 0.5f },
         const float trunkRadius = 0.3f)
     {
         using namespace Gradient::ECS::Components;
@@ -498,17 +517,9 @@ namespace Gradient::Scene
             = entityManager->Registry.emplace<TransformComponent>(leaves);
         entityManager->Registry.emplace<RelationshipComponent>(leaves, tree);
         entityManager->Registry.emplace<MaterialComponent>(leaves,
-            Rendering::PBRMaterial(
-                "leaf_albedo",
-                "leaf_normal",
-                "leaf_ao",
-                "defaultMetalness",
-                "leaf_roughness",
-                1.f,
-                true
-            ));
+            leafMaterial);
 
-        AttachBillboards(leaves, leafData, leafWidth);
+        AttachBillboards(leaves, leafData, leafDimensions);
 
         return tree;
     }
@@ -720,15 +731,6 @@ namespace Gradient::Scene
             "islandHeightMap",
             L"Assets\\island_height_32bit.dds");
 
-        struct Tree
-        {
-            BufferManager::MeshHandle Trunk;
-            InstanceEntityData Branches;
-            InstanceEntityData Leaves;
-            float TrunkRadius;
-            Rendering::PBRMaterial BarkMaterial;
-        };
-
         std::vector<Tree> treeTypes;
 
         Rendering::LSystem treeTrunk;
@@ -755,7 +757,7 @@ namespace Gradient::Scene
 
         auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk(), 0.1f, 0.1f);
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
-        auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 0.20f);
+        auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 3, 4, 2, 3, { 0.17f, 0.20f });
 
         treeTypes.push_back({
             trunkMesh,
@@ -768,7 +770,17 @@ namespace Gradient::Scene
                 "bark_ao",
                 "bark_roughness",
                 2.f
-            )
+            ),
+            Rendering::PBRMaterial(
+                "leaf_albedo",
+                "leaf_normal",
+                "leaf_ao",
+                "defaultMetalness",
+                "leaf_roughness",
+                1.f,
+                true
+            ),
+            { 0.20f, 0.20f }
             });
 
         Rendering::LSystem treeTrunk2;
@@ -794,7 +806,7 @@ namespace Gradient::Scene
 
         auto trunkMesh2 = bm->CreateFromPart(device, cq, treeTrunk2.GetTrunk(), 0.1f, 0.1f);
         auto branchData2 = MakeBranches(device, cq, treeTrunk2, treeBranch2);
-        auto leafData2 = MakeLeaves(device, cq, treeTrunk2, treeBranch2, 0.20f);
+        auto leafData2 = MakeLeaves(device, cq, treeTrunk2, treeBranch2, 3, 7, 0, 0, { 0.10f, 0.20f });
 
         treeTypes.push_back({
             trunkMesh2,
@@ -807,7 +819,16 @@ namespace Gradient::Scene
                 "bark2_ao",
                 "bark2_roughness",
                 2.f
-            )
+            ),
+            Rendering::PBRMaterial(
+                "bay_leaf_albedo",
+                "bay_leaf_normal",
+                "bay_leaf_ao",
+                "bay_leaf_roughness",
+                1.f,
+                true
+            ),
+            {0.10f, 0.20f}
             });
 
         std::vector<Vector2> treePositions
@@ -832,7 +853,8 @@ namespace Gradient::Scene
                 treeTypes[treeIndex].Branches,
                 treeTypes[treeIndex].Leaves,
                 treeTypes[treeIndex].BarkMaterial,
-                0.20f,
+                treeTypes[treeIndex].LeafMaterial,
+                treeTypes[treeIndex].LeafDimensions,
                 treeTypes[treeIndex].TrunkRadius);
         }
 
@@ -859,7 +881,7 @@ namespace Gradient::Scene
 
         bushTypes.push_back({
                bm->CreateFromPart(device, cq, bushSystem.GetTrunk(), 0.4f, 0.2f),
-               MakeLeaves(device, cq, bushSystem, 0.06f)
+               MakeLeaves(device, cq, bushSystem, {0.06f, 0.06f})
             });
 
         Rendering::LSystem bushSystem2;
@@ -875,7 +897,7 @@ namespace Gradient::Scene
 
         bushTypes.push_back({
                 bm->CreateFromPart(device, cq, bushSystem2.GetTrunk(), 0.4f, 0.2f),
-                MakeLeaves(device, cq, bushSystem2, 0.06f)
+                MakeLeaves(device, cq, bushSystem2, {0.06f, 0.06f})
             });
 
         Rendering::LSystem bushSystem3;
@@ -891,7 +913,7 @@ namespace Gradient::Scene
 
         bushTypes.push_back({
                bm->CreateFromPart(device, cq, bushSystem3.GetTrunk(), 0.4f, 0.2f),
-               MakeLeaves(device, cq, bushSystem3, 0.03f)
+               MakeLeaves(device, cq, bushSystem3, {0.03f, 0.05f})
             });
 
         // To position bushes, rotate the tree position by 90 degrees 

@@ -498,6 +498,23 @@ void Game::CreateEntities()
     );
 
     textureManager->LoadDDS(device, cq,
+        "bay_leaf_albedo",
+        L"Assets\\Bay_Leaf_oh0eedvh2_1K_BaseColor.dds"
+    );
+    textureManager->LoadDDS(device, cq,
+        "bay_leaf_normal",
+        L"Assets\\Bay_Leaf_oh0eedvh2_1K_Normal.dds"
+    );
+    textureManager->LoadDDS(device, cq,
+        "bay_leaf_ao",
+        L"Assets\\Bay_Leaf_oh0eedvh2_1K_AO.dds"
+    );
+    textureManager->LoadDDS(device, cq,
+        "bay_leaf_roughness",
+        L"Assets\\Bay_Leaf_oh0eedvh2_1K_Roughness.dds"
+    );
+
+    textureManager->LoadDDS(device, cq,
         "forest_floor_albedo",
         L"Assets\\Forest_Floor_vktfeilaw_1K_BaseColor.dds");
     textureManager->LoadDDS(device, cq,
