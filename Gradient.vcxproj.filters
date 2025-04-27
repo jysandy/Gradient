@@ -280,6 +280,8 @@
     <None Include="CompressTex.ps1" />
     <None Include="Core\Shaders\Quaternion.hlsli" />
     <None Include="CompileShaders.ps1" />
+    <None Include="Core\Shaders\Culling.hlsli" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
@@ -302,7 +304,7 @@
     <FxCompile Include="Core\Shaders\Heightmap_PS.hlsl" />
     <FxCompile Include="Core\Shaders\Instanced_VS.hlsl" />
     <FxCompile Include="Core\Shaders\PBR_Masked_PS.hlsl" />
-    <FxCompile Include="Core\Shaders\Shadow_Masked_PS.hlsl" />
     <FxCompile Include="Core\Shaders\Billboard_MS.hlsl" />
+    <FxCompile Include="Core\Shaders\MaskedDepth_PS.hlsl" />
   </ItemGroup>
 </Project>
