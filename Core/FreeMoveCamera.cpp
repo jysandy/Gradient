@@ -52,11 +52,11 @@ namespace Gradient
         {
             translation += right;
         }
-        if (kb.Space)
+        if (kb.E)
         {
             translation += up;
         }
-        if (kb.C)
+        if (kb.Q)
         {
             translation += down;
         }
@@ -70,11 +70,11 @@ namespace Gradient
         m_mouseButtonTracker.Update(mouseState);
 
         auto& mouse = DirectX::Mouse::Get();
-        if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::PRESSED)
+        if (m_mouseButtonTracker.rightButton == DirectX::Mouse::ButtonStateTracker::ButtonState::PRESSED)
         {
             mouse.SetMode(DirectX::Mouse::MODE_RELATIVE);
         }
-        else if (m_mouseButtonTracker.leftButton == DirectX::Mouse::ButtonStateTracker::ButtonState::RELEASED)
+        else if (m_mouseButtonTracker.rightButton == DirectX::Mouse::ButtonStateTracker::ButtonState::RELEASED)
         {
             mouse.SetMode(DirectX::Mouse::MODE_ABSOLUTE);
         }

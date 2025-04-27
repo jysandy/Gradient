@@ -178,7 +178,7 @@ void Game::Update(DX::StepTimer const& timer)
     m_renderer->BillboardPipeline->TotalTimeSeconds = totalSeconds;
 
     auto kb = DirectX::Keyboard::Get().GetState();
-    if (kb.OemTilde)
+    if (kb.P)
     {
         TogglePlaying(timer.GetTotalSeconds());
     }

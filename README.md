@@ -7,9 +7,11 @@
 - After that, simply build and run the solution.
 
 ## Controls
-- Hold the left mouse button and move the mouse to move the camera.
+- Hold the right mouse button and move the mouse to move the camera.
 - WASD to adjust the camera position. 
-- C to descend, and Space to ascend. 
+- Q to descend, and E to ascend. 
+- Press P to toggle between Gameplay Mode and Edit Mode.  
+- In edit mode, press Tab to freeze the culling frustum of the camera.
 
 ## Assets used
 - Wooden crate materials: https://3dtextures.me/2021/02/12/wood-crate-001/  
