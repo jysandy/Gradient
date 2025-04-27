@@ -215,7 +215,7 @@ if (FAILED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderM
     || (shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_7))
 {
     OutputDebugStringA("ERROR: Shader Model 6.7 is not supported\n");
-    throw std::exception("Shader Model 6.7 is not supported");
+    throw std::exception("Shader Model 6.7 is not supported by this device. Please ensure your graphics drivers and Windows version are up to date.");
 }
 
 D3D12_FEATURE_DATA_D3D12_OPTIONS7 features = {};
@@ -223,7 +223,7 @@ if (FAILED(m_d3dDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &featu
     || (features.MeshShaderTier == D3D12_MESH_SHADER_TIER_NOT_SUPPORTED))
 {
     OutputDebugStringA("ERROR: Mesh Shaders aren't supported!\n");
-    throw std::exception("Mesh Shaders aren't supported!");
+    throw std::exception("This application makes use of mesh shaders, which are not supported by this graphics device. The application will now exit.");
 }
 
 // Create the command queue.

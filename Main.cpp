@@ -54,78 +54,89 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     g_game = std::make_unique<Game>();
 
-    // Register class and create window
+    // Register class
+    WNDCLASSEXW wcex = {};
+    wcex.cbSize = sizeof(WNDCLASSEXW);
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
+    wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+    wcex.lpszClassName = L"GradientWindowClass";
+    wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
+    if (!RegisterClassExW(&wcex))
+        return 1;
+
+    // Create window
+    int w, h;
+    g_game->GetDefaultSize(w, h);
+
+    RECT rc = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
+
+    AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
+
+    HWND hwnd = CreateWindowExW(0, L"GradientWindowClass", g_szAppName, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top,
+        nullptr, nullptr, hInstance,
+        g_game.get());
+    // TODO: Change to CreateWindowExW(WS_EX_TOPMOST, L"GradientWindowClass", g_szAppName, WS_POPUP,
+    // to default to fullscreen.
+
+    if (!hwnd)
+        return 1;
+
+    try
     {
-        // Register class
-        WNDCLASSEXW wcex = {};
-        wcex.cbSize = sizeof(WNDCLASSEXW);
-        wcex.style = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc = WndProc;
-        wcex.hInstance = hInstance;
-        wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
-        wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-        wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
-        wcex.lpszClassName = L"GradientWindowClass";
-        wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
-        if (!RegisterClassExW(&wcex))
-            return 1;
+        {
+            IMGUI_CHECKVERSION();
+            ImGui::CreateContext();
+            ImGuiIO& io = ImGui::GetIO();
 
-        // Create window
-        int w, h;
-        g_game->GetDefaultSize(w, h);
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-        RECT rc = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
+            ImGui_ImplWin32_Init(hwnd);
 
-        AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
+            ShowWindow(hwnd, nCmdShow);
+            // TODO: Change nCmdShow to SW_SHOWMAXIMIZED to default to fullscreen.
 
-        HWND hwnd = CreateWindowExW(0, L"GradientWindowClass", g_szAppName, WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top,
-            nullptr, nullptr, hInstance,
-            g_game.get());
-        // TODO: Change to CreateWindowExW(WS_EX_TOPMOST, L"GradientWindowClass", g_szAppName, WS_POPUP,
-        // to default to fullscreen.
+            GetClientRect(hwnd, &rc);
 
-        if (!hwnd)
-            return 1;
+            g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top);
+        }
 
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
+        // Main message loop
+        MSG msg = {};
+        while (WM_QUIT != msg.message)
+        {
+            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+            else
+            {
+                g_game->Tick();
+            }
+        }
 
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        g_game.reset();
 
-        ImGui_ImplWin32_Init(hwnd);
+        CoUninitialize();
 
-        ShowWindow(hwnd, nCmdShow);
-        // TODO: Change nCmdShow to SW_SHOWMAXIMIZED to default to fullscreen.
-
-        GetClientRect(hwnd, &rc);
-
-        g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top);
+        Gradient::Logger::Destroy();
+        return static_cast<int>(msg.wParam);
     }
-
-    // Main message loop
-    MSG msg = {};
-    while (WM_QUIT != msg.message)
+    catch (std::exception e)
     {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        else
-        {
-            g_game->Tick();
-        }
+        MessageBoxA(hwnd, e.what(), "Fatal error", MB_OK);
     }
 
     g_game.reset();
-
     CoUninitialize();
-
     Gradient::Logger::Destroy();
-    return static_cast<int>(msg.wParam);
+    return 1;
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
