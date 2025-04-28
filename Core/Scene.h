@@ -14,6 +14,7 @@
 #include "Core/ECS/Components/RelationshipComponent.h"
 #include "Core/ECS/Components/BoundingBoxComponent.h"
 #include "Core/Math.h"
+#include "Core/Logger.h"
 
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
 #include <Jolt/Core/RTTI.h>
@@ -758,6 +759,8 @@ namespace Gradient::Scene
         auto trunkMesh = bm->CreateFromPart(device, cq, treeTrunk.GetTrunk(), 0.1f, 0.1f);
         auto branchData = MakeBranches(device, cq, treeTrunk, treeBranch);
         auto leafData = MakeLeaves(device, cq, treeTrunk, treeBranch, 3, 4, 2, 3, { 0.17f, 0.20f });
+        Logger::Get()->info("Tree 1 has " + std::to_string(leafData.Instances.size()) + " leaves");
+
 
         treeTypes.push_back({
             trunkMesh,
@@ -807,6 +810,8 @@ namespace Gradient::Scene
         auto trunkMesh2 = bm->CreateFromPart(device, cq, treeTrunk2.GetTrunk(), 0.1f, 0.1f);
         auto branchData2 = MakeBranches(device, cq, treeTrunk2, treeBranch2);
         auto leafData2 = MakeLeaves(device, cq, treeTrunk2, treeBranch2, 3, 7, 0, 0, { 0.10f, 0.20f });
+        Logger::Get()->info("Tree 2 has " + std::to_string(leafData2.Instances.size()) + " leaves");
+
 
         treeTypes.push_back({
             trunkMesh2,
@@ -855,6 +860,8 @@ namespace Gradient::Scene
         auto trunkMesh3 = bm->CreateFromPart(device, cq, treeTrunk3.GetTrunk(), 0.1f, 0.1f);
         auto branchData3 = MakeBranches(device, cq, treeTrunk3, treeBranch3);
         auto leafData3 = MakeLeaves(device, cq, treeTrunk3, treeBranch3, 3, 7, 0, 0, { 0.10f, 0.20f });
+        Logger::Get()->info("Tree 3 has " + std::to_string(leafData3.Instances.size()) + " leaves");
+
 
         treeTypes.push_back({
             trunkMesh3,
@@ -882,11 +889,15 @@ namespace Gradient::Scene
         std::vector<Vector2> treePositions
             = Math::GeneratePoissonDiskSamples(150, 75, 3.f);
 
+        Logger::Get()->info("Generated " + std::to_string(treePositions.size()) + " trees");
+
         auto& terrainBody = entityManager->Registry.get<RigidBodyComponent>(terrain);
         auto hfWorld = entityManager->GetWorldMatrix(terrain);
 
         auto shape = bodyInterface.GetShape(terrainBody.BodyID);
         const JPH::HeightFieldShape* hfShape = JPH::StaticCast<JPH::HeightFieldShape>(shape);
+
+        size_t leafCount = 0;
 
         for (int i = 0; i < treePositions.size(); i++)
         {
@@ -904,6 +915,8 @@ namespace Gradient::Scene
                 treeTypes[treeIndex].LeafMaterial,
                 treeTypes[treeIndex].LeafDimensions,
                 treeTypes[treeIndex].TrunkRadius);
+
+            leafCount += treeTypes[treeIndex].Leaves.Instances.size();
         }
 
         struct Bush
@@ -964,11 +977,21 @@ namespace Gradient::Scene
                MakeLeaves(device, cq, bushSystem3, {0.03f, 0.05f})
             });
 
+        for (int i = 0; i < bushTypes.size(); i++)
+        {
+            Logger::Get()->info("Bush " 
+                + std::to_string(i + 1) 
+                + " has "
+                + std::to_string(bushTypes[i].Leaves.Instances.size()) 
+                + " leaves");
+        }
+
         // To position bushes, rotate the tree position by 90 degrees 
         // and scale it down slightly. Then jitter a bit
         auto bushPositionTransform = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90))
             * Matrix::CreateScale(0.8);
 
+        size_t bushCount = 0;
         for (int i = 0; i < treePositions.size(); i++)
         {
             auto clusterPosition = Vector3(treePositions[i].x, 0, treePositions[i].y);
@@ -988,7 +1011,12 @@ namespace Gradient::Scene
                         Vector2(bushPosition.x, bushPosition.z),
                         0.02),
                     bushTypes[bushIndex].Trunk, bushTypes[bushIndex].Leaves, 0.06f);
+                leafCount += bushTypes[bushIndex].Leaves.Instances.size();
+                bushCount++;
             }
         }
+
+        Logger::Get()->info("Generated " + std::to_string(bushCount) + " bushes");
+        Logger::Get()->info("Generated a total of " + std::to_string(leafCount) + " leaves");
     }
 }
