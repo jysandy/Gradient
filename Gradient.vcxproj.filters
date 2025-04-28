@@ -76,6 +76,7 @@
     <ClInclude Include="Core\FreeListAllocator.h" />
     <ClInclude Include="Core\PoissonGenerator.h" />
     <ClInclude Include="Core\Pipelines\BillboardPipeline.h" />
+    <ClInclude Include="GUI\ControlsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -125,6 +126,7 @@
     <ClCompile Include="Core\ECS\Components\BoundingBoxComponent.cpp" />
     <ClCompile Include="Core\Math.cpp" />
     <ClCompile Include="Core\Pipelines\BillboardPipeline.cpp" />
+    <ClCompile Include="GUI\ControlsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -255,6 +255,7 @@ void Game::Render()
         m_physicsWindow.Draw();
         m_renderingWindow.Draw();
         m_entityWindow.Draw();
+        m_controlsWindow.Draw();
     }
 
     ImGui::Render();

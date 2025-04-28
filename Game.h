@@ -26,7 +26,8 @@
 #include "GUI/PhysicsWindow.h"
 #include "GUI/RenderingWindow.h"
 #include "GUI/PerformanceWindow.h"
-#include "GUI/EntityWindow.h"
+#include "GUI/EntityWindow.h"           
+#include "GUI/ControlsWindow.h"
 
 #include "Core/Rendering/Renderer.h"
 
@@ -106,6 +107,7 @@ private:
     Gradient::GUI::RenderingWindow m_renderingWindow;
     Gradient::GUI::PerformanceWindow m_perfWindow;
     Gradient::GUI::EntityWindow m_entityWindow;
+    Gradient::GUI::ControlsWindow m_controlsWindow;
                                                               
     std::unique_ptr<Gradient::Rendering::Renderer> m_renderer;
     std::unique_ptr<Gradient::Rendering::RenderTexture> m_tonemappedRenderTexture;
