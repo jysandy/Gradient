@@ -260,7 +260,8 @@ float3 cookTorranceEnvironmentMap(
     float3 radiance = 1 * sampleEnvironmentMap(
         environmentMap,
         linearSampler,
-        L);
+        L)
+        + float3(0.3, 0.3, 0.3);
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance, false
