@@ -74,7 +74,7 @@ float4 PBR_PS(InputType input) : SV_TARGET
         N, V, albedo, metalness, roughness, g_directionalLight,
         shadowMap, shadowMapSampler, shadowTransform, input.worldPosition
     );
-    
+
     float3 pointRadiance = float3(0, 0, 0);
     for (int i = 0; i < g_numPointLights; i++)
     {

@@ -252,7 +252,8 @@ float3 cookTorranceEnvironmentMap(
     float3 albedo,
     float ao,
     float metalness,
-    float roughness)
+    float roughness,
+    float luminanceFactor = 4.f)
 {
     float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
@@ -260,8 +261,10 @@ float3 cookTorranceEnvironmentMap(
     float3 radiance = 1 * sampleEnvironmentMap(
         environmentMap,
         linearSampler,
-        L)
-        + float3(0.3, 0.3, 0.3);
+        L);
+    
+    float luminance = dot(radiance, float3(0.2126, 0.7152, 0.0722));
+    radiance += luminanceFactor * luminance;
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance, false

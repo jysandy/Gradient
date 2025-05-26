@@ -28,7 +28,7 @@ namespace Gradient::Rendering
     GTAOProcessor::GTAOProcessor(ID3D12Device* device,
         RECT windowSize)
     {
-        m_gtaoSettings.DenoisePasses = 2;
+        m_gtaoSettings.DenoisePasses = 1;
 
         auto gmm = GraphicsMemoryManager::Get();
 
