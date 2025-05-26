@@ -390,6 +390,136 @@ namespace Gradient::Rendering
         auto em = EntityManager::Get();
         auto bm = BufferManager::Get();
 
+        // Heightmap shading model
+        auto heightmapView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            HeightMapComponent,
+            MaterialComponent>();
+        for (auto entity : heightmapView)
+        {
+            auto [drawable, transform, heightMap, material] = heightmapView.get(entity);
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
+
+            if (mesh == nullptr) continue;
+            if (passType == PassType::ShadowPass
+                && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Heightmap)
+                continue;
+
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
+
+            HeightmapPipeline->SetMaterial(material.Material);
+            HeightmapPipeline->SetHeightMapComponent(heightMap);
+            HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
+            HeightmapPipeline->Apply(cl, true, drawType);
+
+            mesh->Draw(cl);
+        }
+
+        // Default shading model without instancing
+        auto defaultView = em->Registry.view<DrawableComponent,
+            TransformComponent,
+            MaterialComponent>(entt::exclude<InstanceDataComponent>);
+        for (auto entity : defaultView)
+        {
+            auto [drawable, transform, material] = defaultView.get(entity);
+
+            auto mesh = bm->GetMesh(drawable.MeshHandle);
+
+            if (mesh == nullptr) continue;
+
+            if (passType == PassType::ShadowPass
+                && !drawable.CastsShadows) continue;
+
+            if (drawable.ShadingModel
+                != DrawableComponent::ShadingModel::Default)
+                continue;
+
+            auto bb = em->GetBoundingBox(entity);
+            if (passType == PassType::ShadowPass
+                && shadowBB && bb)
+            {
+                if (!shadowBB.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+            else  if (viewFrustum && bb)
+            {
+                if (!viewFrustum.value().Intersects(bb.value()))
+                {
+                    continue;
+                }
+            }
+
+            PbrPipeline->SetMaterial(material.Material);
+
+            auto world = em->GetWorldMatrix(entity);
+            PbrPipeline->SetWorld(world);
+
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
+
+            PbrPipeline->Apply(cl, true, drawType);
+
+            mesh->Draw(cl);
+        }
+
         // Billboard shading model with instancing
         auto billboardView = em->Registry.view<DrawableComponent,
             TransformComponent,
@@ -469,81 +599,6 @@ namespace Gradient::Rendering
             }
         }
 
-        // Default shading model without instancing
-        auto defaultView = em->Registry.view<DrawableComponent,
-            TransformComponent,
-            MaterialComponent>(entt::exclude<InstanceDataComponent>);
-        for (auto entity : defaultView)
-        {
-            auto [drawable, transform, material] = defaultView.get(entity);
-
-            auto mesh = bm->GetMesh(drawable.MeshHandle);
-
-            if (mesh == nullptr) continue;
-
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
-
-            if (drawable.ShadingModel
-                != DrawableComponent::ShadingModel::Default)
-                continue;
-
-            auto bb = em->GetBoundingBox(entity);
-            if (passType == PassType::ShadowPass
-                && shadowBB && bb)
-            {
-                if (!shadowBB.value().Intersects(bb.value()))
-                {
-                    continue;
-                }
-            }
-            else  if (viewFrustum && bb)
-            {
-                if (!viewFrustum.value().Intersects(bb.value()))
-                {
-                    continue;
-                }
-            }
-
-            PbrPipeline->SetMaterial(material.Material);
-
-            auto world = em->GetWorldMatrix(entity);
-            PbrPipeline->SetWorld(world);
-
-            DrawType drawType;
-
-            switch (passType)
-            {
-            case PassType::ShadowPass:
-                drawType = DrawType::ShadowPass;
-                break;
-
-            case PassType::ZPrepass:
-                drawType = DrawType::DepthWriteOnly;
-                m_prepassedEntities.insert(entity);
-                break;
-
-            case PassType::ForwardPass:
-                if (m_prepassedEntities.contains(entity))
-                {
-                    drawType = DrawType::PixelDepthReadOnly;
-                }
-                else
-                {
-                    drawType = DrawType::PixelDepthReadWrite;
-                }
-                break;
-
-            default:
-                drawType = DrawType::PixelDepthReadWrite;
-                break;
-            }
-
-            PbrPipeline->Apply(cl, true, drawType);
-
-            mesh->Draw(cl);
-        }
-
         // Default shading model with instancing
         auto instanceView = em->Registry.view<DrawableComponent,
             TransformComponent,
@@ -621,61 +676,6 @@ namespace Gradient::Rendering
             {
                 mesh->Draw(cl, bufferEntry->InstanceCount);
             }
-        }
-
-        // Heightmap shading model
-        auto heightmapView = em->Registry.view<DrawableComponent,
-            TransformComponent,
-            HeightMapComponent,
-            MaterialComponent>();
-        for (auto entity : heightmapView)
-        {
-            auto [drawable, transform, heightMap, material] = heightmapView.get(entity);
-            auto mesh = bm->GetMesh(drawable.MeshHandle);
-
-            if (mesh == nullptr) continue;
-            if (passType == PassType::ShadowPass
-                && !drawable.CastsShadows) continue;
-
-            if (drawable.ShadingModel
-                != DrawableComponent::ShadingModel::Heightmap)
-                continue;
-
-            DrawType drawType;
-
-            switch (passType)
-            {
-            case PassType::ShadowPass:
-                drawType = DrawType::ShadowPass;
-                break;
-
-            case PassType::ZPrepass:
-                drawType = DrawType::DepthWriteOnly;
-                m_prepassedEntities.insert(entity);
-                break;
-
-            case PassType::ForwardPass:
-                if (m_prepassedEntities.contains(entity))
-                {
-                    drawType = DrawType::PixelDepthReadOnly;
-                }
-                else
-                {
-                    drawType = DrawType::PixelDepthReadWrite;
-                }
-                break;
-
-            default:
-                drawType = DrawType::PixelDepthReadWrite;
-                break;
-            }
-
-            HeightmapPipeline->SetMaterial(material.Material);
-            HeightmapPipeline->SetHeightMapComponent(heightMap);
-            HeightmapPipeline->SetWorld(em->GetWorldMatrix(entity));
-            HeightmapPipeline->Apply(cl, true, drawType);
-
-            mesh->Draw(cl);
         }
 
         // Water shading model
