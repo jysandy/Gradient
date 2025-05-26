@@ -17,6 +17,8 @@
 #include "Core/Rendering/ProceduralMesh.h"
 #include "Core/BufferManager.h"
 #include "Core/Camera.h"
+#include "Core/Rendering/GTAOProcessor.h"
+#include "Core/Shaders/XeGTAO.h"
 
 #include <entt/entt.hpp>
 
@@ -50,7 +52,8 @@ namespace Gradient::Rendering
             D3D12_VIEWPORT screenViewport,
             Camera* viewingCamera,
             Camera* cullingCamera,
-            RenderTexture* finalRenderTarget);
+            RenderTexture* finalRenderTarget,
+            RECT windowSize);
 
         void DrawAllEntities(ID3D12GraphicsCommandList6* cl,
             PassType passType = PassType::ForwardPass,
@@ -65,6 +68,13 @@ namespace Gradient::Rendering
 
         void SetFrameParameters(const Camera* camera);
 
+        void ComputeGTAO(
+            ID3D12GraphicsCommandList* cl,
+            const Camera* viewingCamera,
+            RECT windowSize);
+
+        void SetGTAOTexture(ID3D12GraphicsCommandList* cl);
+
         std::unique_ptr<DirectX::CommonStates> m_states;
 
         std::unique_ptr<Gradient::Pipelines::PBRPipeline> PbrPipeline;
@@ -76,6 +86,7 @@ namespace Gradient::Rendering
 
         std::unique_ptr<Gradient::Rendering::RenderTexture> MultisampledRT;
         std::unique_ptr<Gradient::Rendering::BloomProcessor> BloomProcessor;
+        std::unique_ptr<Gradient::Rendering::GTAOProcessor> AOProcessor;
 
         BufferManager::MeshHandle SkyGeometry;
         std::unique_ptr<Gradient::Rendering::CubeMap> EnvironmentMap;
@@ -84,6 +95,9 @@ namespace Gradient::Rendering
         std::unique_ptr<Gradient::Rendering::DirectionalLight> DirectionalLight;
         std::unique_ptr<Gradient::Rendering::DepthCubeArray> ShadowCubeArray;
 
+    private:
         std::set<entt::entity> m_prepassedEntities;
+
+
     };
 }

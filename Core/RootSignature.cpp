@@ -59,6 +59,19 @@ namespace Gradient
         m_srvSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
     }
 
+    void RootSignature::AddUAV(UINT slot, UINT space)
+    {
+        assert(!m_isBuilt);
+
+        m_descRanges.push_back(
+            {
+               ParameterTypes::DescriptorTableUAV,
+               slot,
+               space
+            });
+        m_uavSpaceToSlotToRPIndex[space][slot] = m_descRanges.size() - 1;
+    }
+
     void RootSignature::AddRootSRV(UINT slot, UINT space)
     {
         assert(!m_isBuilt);
@@ -84,7 +97,7 @@ namespace Gradient
         m_staticSamplers.push_back(samplerDesc);
     }
 
-    void RootSignature::Build(ID3D12Device* device)
+    void RootSignature::Build(ID3D12Device* device, bool compute)
     {
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
 
@@ -119,10 +132,21 @@ namespace Gradient
                 rootParameters.push_back(rp);
                 break;
 
+            case ParameterTypes::DescriptorTableUAV:
+                descriptorRanges.push_back({});
+                descriptorRanges[descriptorRanges.size() - 1].Init(
+                    D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                    1, m_descRanges[i].Slot, m_descRanges[i].Space);
+                rp.InitAsDescriptorTable(1, &descriptorRanges[descriptorRanges.size() - 1]);
+                rootParameters.push_back(rp);
+                break;
+
             default:
                 throw std::runtime_error("Unsupported descriptor range type!");
                 break;
             }
+
+            m_isCompute = compute;
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSig(rootParameters.size(),
@@ -161,14 +185,40 @@ namespace Gradient
 
         auto rpIndex = m_srvSpaceToSlotToRPIndex[space][slot];
         assert(rpIndex != UINT32_MAX);
-        cl->SetGraphicsRootDescriptorTable(rpIndex,
-            index->GetGPUHandle());
+
+        if (m_isCompute)
+            cl->SetComputeRootDescriptorTable(rpIndex, index->GetGPUHandle());
+        else
+            cl->SetGraphicsRootDescriptorTable(rpIndex,
+                index->GetGPUHandle());
+    }
+
+    void RootSignature::SetUAV(ID3D12GraphicsCommandList* cl,
+        UINT slot,
+        UINT space,
+        GraphicsMemoryManager::DescriptorView index)
+    {
+        assert(m_isBuilt);
+        if (!index) return;
+
+        auto rpIndex = m_uavSpaceToSlotToRPIndex[space][slot];
+        assert(rpIndex != UINT32_MAX);
+
+        if (m_isCompute)
+            cl->SetComputeRootDescriptorTable(rpIndex,
+                index->GetGPUHandle());
+        else
+            cl->SetGraphicsRootDescriptorTable(rpIndex,
+                index->GetGPUHandle());
     }
 
     void RootSignature::SetOnCommandList(ID3D12GraphicsCommandList* cl)
     {
         assert(m_isBuilt);
-        cl->SetGraphicsRootSignature(m_rootSignature.Get());
+        if (m_isCompute)
+            cl->SetComputeRootSignature(m_rootSignature.Get());
+        else
+            cl->SetGraphicsRootSignature(m_rootSignature.Get());
     }
 
     void RootSignature::SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,

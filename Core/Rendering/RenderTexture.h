@@ -24,8 +24,10 @@ namespace Gradient::Rendering
         GraphicsMemoryManager::DescriptorView GetRTV();
         ID3D12Resource* GetSingleSampledTexture();
         BarrierResource* GetSingleSampledBarrierResource();
+        BarrierResource* GetDepthBuffer();
         GraphicsMemoryManager::DescriptorView GetSRV();
         RECT GetOutputSize();
+        DXGI_FORMAT GetDepthBufferFormat() const;
         void CopyToSingleSampled(ID3D12GraphicsCommandList* cl);
         void ClearAndSetAsTarget(ID3D12GraphicsCommandList* cl);
         void Clear(ID3D12GraphicsCommandList* cl);

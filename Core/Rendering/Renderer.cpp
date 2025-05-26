@@ -20,13 +20,6 @@
 namespace Gradient::Rendering
 {
 
-    // An integer version of ceil(value / divisor)
-    template <typename T, typename U>
-    T DivRoundUp(T value, U divisor)
-    {
-        return (value + divisor - 1) / divisor;
-    }
-
     void Renderer::CreateWindowSizeIndependentResources(ID3D12Device2* device,
         ID3D12CommandQueue* cq)
     {
@@ -99,6 +92,9 @@ namespace Gradient::Rendering
 
         BloomProcessor->SetExposure(18.f);
         BloomProcessor->SetIntensity(0.3f);
+
+        AOProcessor = std::make_unique<Gradient::Rendering::GTAOProcessor>(device,
+            windowSize);
 
         auto physicsEngine = Physics::PhysicsEngine::Get();
         physicsEngine->InitializeDebugRenderer(device, DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -212,11 +208,30 @@ namespace Gradient::Rendering
         WaterPipeline->SetShadowCubeArray(ShadowCubeArray->GetSRV());
     }
 
+    void Renderer::ComputeGTAO(
+        ID3D12GraphicsCommandList* cl,
+        const Camera* viewingCamera,
+        RECT windowSize)
+    {
+        AOProcessor->Process(cl, MultisampledRT->GetDepthBuffer(), viewingCamera, windowSize);
+    }
+
+    void Renderer::SetGTAOTexture(ID3D12GraphicsCommandList* cl)
+    {
+        auto srv = AOProcessor->GetSRV(cl);
+
+        InstancePipeline->GTAOTexture = srv;
+        BillboardPipeline->GTAOTexture = srv;
+        PbrPipeline->GTAOTexture = srv;
+        HeightmapPipeline->GTAOTexture = srv;
+    }
+
     void Renderer::Render(ID3D12GraphicsCommandList6* cl,
         D3D12_VIEWPORT screenViewport,
         Camera* viewingCamera,
         Camera* cullingCamera,
-        RenderTexture* finalRenderTarget)
+        RenderTexture* finalRenderTarget,
+        RECT windowSize)
     {
         using namespace DirectX;
         using namespace Gradient::ECS::Components;
@@ -225,7 +240,7 @@ namespace Gradient::Rendering
         auto gmm = Gradient::GraphicsMemoryManager::Get();
         auto bm = BufferManager::Get();
 
-        ID3D12DescriptorHeap* heaps[] = { gmm->GetSrvDescriptorHeap(), m_states->Heap() };
+        ID3D12DescriptorHeap* heaps[] = { gmm->GetSrvUavDescriptorHeap(), m_states->Heap() };
         cl->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
         D3D12_RECT scissorRect;
@@ -312,18 +327,25 @@ namespace Gradient::Rendering
 
         SetFrameParameters(viewingCamera);
 
-        // The Z pre-pass is not worth it for the time being
-
+        // TODO: Draw everything else into the Z prepass to fix ambient occlusion
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Z-prepass");
+
         MultisampledRT->SetDepthOnly(cl);
         m_prepassedEntities.clear();
 
-        // TODO: Need to disable mesh shader culling in the Z prepass 
+        // TODO: Need to disable mesh shader culling in the Z prepass if using a shorter draw distance
         BillboardPipeline->CullingFrustumPlanes = Math::GetPlanes(cullingCamera->GetFrustum());
         DrawAllEntities(cl, PassType::ZPrepass, cullingCamera->GetFrustum());
 
         PIXEndEvent(cl);
 
+        PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"GTAO pass");
+
+        ComputeGTAO(cl, viewingCamera, windowSize);
+
+        PIXEndEvent(cl);
+
+        SetGTAOTexture(cl);
 
         PIXBeginEvent(cl, PIX_COLOR_DEFAULT, L"Forward pass");
         MultisampledRT->SetDepthAndRT(cl);
@@ -442,7 +464,7 @@ namespace Gradient::Rendering
                 BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
                 BillboardPipeline->Apply(cl, true, drawType);
 
-                cl->DispatchMesh(DivRoundUp(bufferEntry->InstanceCount, 
+                cl->DispatchMesh(Math::DivRoundUp(bufferEntry->InstanceCount, 
                     BillboardPipeline->InstancesPerThreadGroup), 1, 1);
             }
         }
@@ -461,9 +483,6 @@ namespace Gradient::Rendering
 
             if (passType == PassType::ShadowPass
                 && !drawable.CastsShadows) continue;
-
-            // TODO: Support the z pre-pass for non-instanced entities
-            if (passType == PassType::ZPrepass) continue;
 
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Default)
@@ -491,7 +510,34 @@ namespace Gradient::Rendering
             auto world = em->GetWorldMatrix(entity);
             PbrPipeline->SetWorld(world);
 
-            auto drawType = passType == PassType::ShadowPass ? DrawType::ShadowPass : DrawType::PixelDepthReadWrite;
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
 
             PbrPipeline->Apply(cl, true, drawType);
 
@@ -591,13 +637,38 @@ namespace Gradient::Rendering
             if (passType == PassType::ShadowPass
                 && !drawable.CastsShadows) continue;
 
-            if (passType == PassType::ZPrepass) continue;
-
             if (drawable.ShadingModel
                 != DrawableComponent::ShadingModel::Heightmap)
                 continue;
 
-            auto drawType = passType == PassType::ShadowPass ? DrawType::ShadowPass : DrawType::PixelDepthReadWrite;
+            DrawType drawType;
+
+            switch (passType)
+            {
+            case PassType::ShadowPass:
+                drawType = DrawType::ShadowPass;
+                break;
+
+            case PassType::ZPrepass:
+                drawType = DrawType::DepthWriteOnly;
+                m_prepassedEntities.insert(entity);
+                break;
+
+            case PassType::ForwardPass:
+                if (m_prepassedEntities.contains(entity))
+                {
+                    drawType = DrawType::PixelDepthReadOnly;
+                }
+                else
+                {
+                    drawType = DrawType::PixelDepthReadWrite;
+                }
+                break;
+
+            default:
+                drawType = DrawType::PixelDepthReadWrite;
+                break;
+            }
 
             HeightmapPipeline->SetMaterial(material.Material);
             HeightmapPipeline->SetHeightMapComponent(heightMap);

@@ -9,6 +9,8 @@ namespace Gradient::Pipelines
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
         InitializeRenderPSO(device);
+        InitializeDepthWritePSO(device);
+        InitializePixelDepthReadPSO(device);
     }
 
     void HeightmapPipeline::InitializeRootSignature(ID3D12Device* device)
@@ -27,6 +29,7 @@ namespace Gradient::Pipelines
         m_rootSignature.AddSRV(5, 2);   // roughness map
         m_rootSignature.AddSRV(6, 2);   // environment map
         m_rootSignature.AddSRV(7, 2);   // point shadow maps
+        m_rootSignature.AddSRV(8, 2);   // GTAO
 
         m_rootSignature.AddStaticSampler(
             CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR),
@@ -110,6 +113,61 @@ namespace Gradient::Pipelines
         m_shadowPso->Build(device);
     }
 
+    void HeightmapPipeline::InitializeDepthWritePSO(ID3D12Device2* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto vsData = DX::ReadData(L"Heightmap_VS.cso");
+        auto hsData = DX::ReadData(L"Heightmap_HS.cso");
+        auto dsData = DX::ReadData(L"Heightmap_DS.cso");
+
+        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
+        std::copy(VertexType::InputLayout.pInputElementDescs,
+            VertexType::InputLayout.pInputElementDescs + 3,
+            inputElements.begin());
+        inputElements[0].SemanticName = "LOCALPOS";
+        inputElements[0].SemanticIndex = 0;
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = { inputElements.data(), 3 };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.HS = { hsData.data(), hsData.size() };
+        psoDesc.DS = { dsData.data(), dsData.size() };
+
+        m_depthWritePso = std::make_unique<PipelineState>(psoDesc);
+        m_depthWritePso->Build(device);
+    }
+
+    void HeightmapPipeline::InitializePixelDepthReadPSO(ID3D12Device2* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
+
+        auto vsData = DX::ReadData(L"Heightmap_VS.cso");
+        auto hsData = DX::ReadData(L"Heightmap_HS.cso");
+        auto dsData = DX::ReadData(L"Heightmap_DS.cso");
+        auto psData = DX::ReadData(L"Heightmap_PS.cso");
+
+        auto inputElements = std::array<D3D12_INPUT_ELEMENT_DESC, 3>();
+        std::copy(VertexType::InputLayout.pInputElementDescs,
+            VertexType::InputLayout.pInputElementDescs + 3,
+            inputElements.begin());
+        inputElements[0].SemanticName = "LOCALPOS";
+        inputElements[0].SemanticIndex = 0;
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = { inputElements.data(), 3 };
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.HS = { hsData.data(), hsData.size() };
+        psoDesc.DS = { dsData.data(), dsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+        //psoDesc.RasterizerState = DirectX::CommonStates::Wireframe;
+
+        m_pixelDepthReadPso = std::make_unique<PipelineState>(psoDesc);
+        m_pixelDepthReadPso->Build(device);
+    }
+
     void HeightmapPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
     {
         m_shadowPso->Set(cl, false);
@@ -142,6 +200,38 @@ namespace Gradient::Pipelines
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
 
+    void HeightmapPipeline::ApplyDepthWriteOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled)
+    {
+        m_depthWritePso->Set(cl, multisampled);
+        m_rootSignature.SetOnCommandList(cl);
+
+        MatrixCB matrixConstants;
+        matrixConstants.world = DirectX::XMMatrixTranspose(m_world);
+        matrixConstants.view = DirectX::XMMatrixTranspose(m_view);
+        matrixConstants.proj = DirectX::XMMatrixTranspose(m_proj);
+
+        m_rootSignature.SetCBV(cl, 0, 1, matrixConstants);
+
+        LodCB lodConstants;
+        lodConstants.cameraDirection = m_cameraDirection;
+        lodConstants.cameraPosition = m_cameraPosition;
+        lodConstants.minLodDistance = 100;
+        lodConstants.maxLodDistance = 400;
+        lodConstants.cullingEnabled = 1;
+
+        m_rootSignature.SetCBV(cl, 1, 1, lodConstants);
+
+        HeightMapParamsCB heightConstants;
+        heightConstants.height = m_heightMapComponent.Height;
+        heightConstants.gridWidth = m_heightMapComponent.GridWidth;
+
+        m_rootSignature.SetCBV(cl, 2, 1, heightConstants);
+
+        m_rootSignature.SetSRV(cl, 0, 0, m_heightMapComponent.HeightMapTexture);
+
+        cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+    }
+
     void HeightmapPipeline::Apply(ID3D12GraphicsCommandList* cl,
         bool multisampled,
         DrawType passType)
@@ -151,10 +241,20 @@ namespace Gradient::Pipelines
             ApplyShadowPipeline(cl);
             return;
         }
-
-        if (passType == DrawType::DepthWriteOnly) return;
-
-        m_pso->Set(cl, multisampled);
+        else if (passType == DrawType::DepthWriteOnly)
+        {
+            ApplyDepthWriteOnlyPipeline(cl, multisampled);
+            return;
+        }
+        else if (passType == DrawType::PixelDepthReadOnly)
+        {
+            m_pixelDepthReadPso->Set(cl, multisampled);
+        }
+        else
+        {
+            m_pso->Set(cl, multisampled);
+        }
+        
         m_rootSignature.SetOnCommandList(cl);
 
         MatrixCB matrixConstants;
@@ -224,6 +324,7 @@ namespace Gradient::Pipelines
         m_rootSignature.SetSRV(cl, 5, 2, m_material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 2, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 2, m_shadowCubeArray);
+        m_rootSignature.SetSRV(cl, 8, 2, GTAOTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }

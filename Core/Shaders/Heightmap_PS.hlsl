@@ -15,6 +15,7 @@ Texture2D metallicMap : register(t4, space2);
 Texture2D roughnessMap : register(t5, space2);
 TextureCube environmentMap : register(t6, space2);
 TextureCubeArray pointShadowMaps : register(t7, space2);
+Texture2D<uint> ssaoMap : register(t8, space2);
 
 SamplerState anisotropicSampler : register(s0, space2);
 SamplerComparisonState shadowMapSampler : register(s1, space2);
@@ -64,7 +65,10 @@ float4 Heightmap_PS(InputType input) : SV_TARGET
     float3 V = normalize(cameraPosition - input.worldPosition);
     
     float3 albedo = albedoSample.rgb;
-    float ao = aoMap.Sample(linearSampler, input.tex).r;
+    uint screenWidth, screenHeight;
+    ssaoMap.GetDimensions(screenWidth, screenHeight);
+    uint ssao = ssaoMap.Sample(linearSampler, float2(input.position.x / screenWidth, input.position.y / screenHeight));
+    float ao = min(aoMap.Sample(linearSampler, input.tex).r, (ssao / 255.f));
     float metalness = metallicMap.Sample(linearSampler, input.tex).r;
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
 

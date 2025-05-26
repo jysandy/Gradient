@@ -77,6 +77,8 @@
     <ClInclude Include="Core\PoissonGenerator.h" />
     <ClInclude Include="Core\Pipelines\BillboardPipeline.h" />
     <ClInclude Include="GUI\ControlsWindow.h" />
+    <ClInclude Include="Core\Shaders\XeGTAO.h" />
+    <ClInclude Include="Core\Rendering\GTAOProcessor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -127,6 +129,7 @@
     <ClCompile Include="Core\Math.cpp" />
     <ClCompile Include="Core\Pipelines\BillboardPipeline.cpp" />
     <ClCompile Include="GUI\ControlsWindow.cpp" />
+    <ClCompile Include="Core\Rendering\GTAOProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -284,6 +287,7 @@
     <None Include="CompileShaders.ps1" />
     <None Include="Core\Shaders\Culling.hlsli" />
     <None Include="packages.config" />
+    <None Include="Core\Shaders\XeGTAO.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
@@ -308,5 +312,9 @@
     <FxCompile Include="Core\Shaders\PBR_Masked_PS.hlsl" />
     <FxCompile Include="Core\Shaders\Billboard_MS.hlsl" />
     <FxCompile Include="Core\Shaders\MaskedDepth_PS.hlsl" />
+    <FxCompile Include="Core\Shaders\GTAONormals_CS.hlsl" />
+    <FxCompile Include="Core\Shaders\GTAOPrefilterDepths_CS.hlsl" />
+    <FxCompile Include="Core\Shaders\GTAOMainPass_CS.hlsl" />
+    <FxCompile Include="Core\Shaders\GTAODenoisePass_CS.hlsl" />
   </ItemGroup>
 </Project>

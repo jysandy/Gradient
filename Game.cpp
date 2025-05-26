@@ -240,7 +240,8 @@ void Game::Render()
         m_deviceResources->GetScreenViewport(),
         &frameCamera,
         cullingCamera,
-        m_tonemappedRenderTexture.get());
+        m_tonemappedRenderTexture.get(),
+        m_deviceResources->GetOutputSize());
 
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -567,16 +568,16 @@ void Game::CreateDeviceDependentResources()
     initInfo.RTVFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
     auto gmm = Gradient::GraphicsMemoryManager::Get();
-    initInfo.SrvDescriptorHeap = gmm->GetSrvDescriptorHeap();
+    initInfo.SrvDescriptorHeap = gmm->GetSrvUavDescriptorHeap();
     initInfo.SrvDescriptorAllocFn
         = [](ImGui_ImplDX12_InitInfo*,
             D3D12_CPU_DESCRIPTOR_HANDLE* outCpuHandle,
             D3D12_GPU_DESCRIPTOR_HANDLE* outGpuHandle)
         {
             auto gmm = Gradient::GraphicsMemoryManager::Get();
-            auto index = gmm->AllocateSrv();
-            *outCpuHandle = gmm->GetSRVCpuHandle(index);
-            *outGpuHandle = gmm->GetSRVGpuHandle(index);
+            auto index = gmm->AllocateSrvOrUav();
+            *outCpuHandle = gmm->GetSRVOrUAVCpuHandle(index);
+            *outGpuHandle = gmm->GetSRVOrUAVGpuHandle(index);
         };
     initInfo.SrvDescriptorFreeFn
         = [](ImGui_ImplDX12_InitInfo*,

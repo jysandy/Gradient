@@ -63,18 +63,28 @@ namespace Gradient::Pipelines
         void SetPointLights(std::vector<Params::PointLight> pointLights);
         void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
         void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
+        GraphicsMemoryManager::DescriptorView GTAOTexture;
 
     private:
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device2* device);
         void InitializeRenderPSO(ID3D12Device2* device);
-        void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
+        void InitializeDepthWritePSO(ID3D12Device2* device);
+        void InitializePixelDepthReadPSO(ID3D12Device2* device);
+        void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl,
+            bool multisampled,
+            DrawType passType);
 
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_unmaskedPipelineState;
-        std::unique_ptr<PipelineState> m_maskedPipelineState;
         std::unique_ptr<PipelineState> m_unmaskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_unmaskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_unmaskedPixelDepthReadPSO;
+
+        std::unique_ptr<PipelineState> m_maskedPipelineState;
         std::unique_ptr<PipelineState> m_maskedShadowPipelineState;
+        std::unique_ptr<PipelineState> m_maskedDepthWriteOnlyPSO;
+        std::unique_ptr<PipelineState> m_maskedPixelDepthReadPSO;
 
         Rendering::PBRMaterial m_material;
 

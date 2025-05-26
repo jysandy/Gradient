@@ -105,6 +105,7 @@ namespace Gradient::Pipelines
 
         std::vector<Params::PointLight> PointLights;
         GraphicsMemoryManager::DescriptorView ShadowCubeArray;
+        GraphicsMemoryManager::DescriptorView GTAOTexture;
 
     private:
         void InitializeRootSignature(ID3D12Device2* device);

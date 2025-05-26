@@ -13,6 +13,8 @@ namespace Gradient::Pipelines
         InitializeRootSignature(device);
         InitializeShadowPSO(device);
         InitializeRenderPSO(device);
+        InitializeDepthWritePSO(device);
+        InitializePixelDepthReadPSO(device);
     }
 
     void PBRPipeline::InitializeRootSignature(ID3D12Device* device)
@@ -29,6 +31,7 @@ namespace Gradient::Pipelines
         m_rootSignature.AddSRV(5, 1);
         m_rootSignature.AddSRV(6, 1);
         m_rootSignature.AddSRV(7, 1);
+        m_rootSignature.AddSRV(8, 1);
 
         m_rootSignature.AddStaticSampler(
             CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_ANISOTROPIC),
@@ -96,15 +99,75 @@ namespace Gradient::Pipelines
         m_maskedPipelineState->Build(device);
     }
 
-    void PBRPipeline::ApplyShadowPipeline(ID3D12GraphicsCommandList* cl)
+    void PBRPipeline::InitializeDepthWritePSO(ID3D12Device2* device)
     {
-        if (m_material.Masked)
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDefaultDesc();
+
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+
+        m_unmaskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedDepthWriteOnlyPSO->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedDepthWriteOnlyPSO->Build(device);
+    }
+
+    void PBRPipeline::InitializePixelDepthReadPSO(ID3D12Device2* device)
+    {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = PipelineState::GetDepthWriteDisableDesc();
+
+        auto vsData = DX::ReadData(L"WVP_VS.cso");
+        auto psData = DX::ReadData(L"PBR_PS.cso");
+
+        psoDesc.pRootSignature = m_rootSignature.Get();
+        psoDesc.InputLayout = VertexType::InputLayout;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.VS = { vsData.data(), vsData.size() };
+        psoDesc.PS = { psData.data(), psData.size() };
+
+        m_unmaskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_unmaskedPixelDepthReadPSO->Build(device);
+
+        auto maskedPSData = DX::ReadData(L"PBR_Masked_PS.cso");
+
+        psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        m_maskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
+        m_maskedPixelDepthReadPSO->Build(device);
+    }
+
+    void PBRPipeline::ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl,
+        bool multisampled,
+        DrawType passType)
+    {
+        if (passType == DrawType::ShadowPass)
         {
-            m_maskedShadowPipelineState->Set(cl, false);
+            if (m_material.Masked)
+            {
+                m_maskedShadowPipelineState->Set(cl, false);
+            }
+            else
+            {
+                m_unmaskedShadowPipelineState->Set(cl, false);
+            }
         }
-        else
+        else if (passType == DrawType::DepthWriteOnly)
         {
-            m_unmaskedShadowPipelineState->Set(cl, false);
+            if (m_material.Masked)
+            {
+                m_maskedDepthWriteOnlyPSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedDepthWriteOnlyPSO->Set(cl, multisampled);
+            }
         }
 
         m_rootSignature.SetOnCommandList(cl);
@@ -123,19 +186,32 @@ namespace Gradient::Pipelines
         bool multisampled,
         DrawType passType)
     {
-        if (passType == DrawType::ShadowPass)
+        if (passType == DrawType::ShadowPass || passType == DrawType::DepthWriteOnly)
         {
-            ApplyShadowPipeline(cl);
+            ApplyDepthOnlyPipeline(cl, multisampled, passType);
             return;
         }
-
-        if (m_material.Masked)
+        else if (passType == DrawType::PixelDepthReadOnly)
         {
-            m_maskedPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPixelDepthReadPSO->Set(cl, multisampled);
+            }
         }
-        else
+        else  // passType == DrawType::PixelDepthReadWrite
         {
-            m_unmaskedPipelineState->Set(cl, multisampled);
+            if (m_material.Masked)
+            {
+                m_maskedPipelineState->Set(cl, multisampled);
+            }
+            else
+            {
+                m_unmaskedPipelineState->Set(cl, multisampled);
+            }
         }
 
         m_rootSignature.SetOnCommandList(cl);
@@ -185,6 +261,7 @@ namespace Gradient::Pipelines
         m_rootSignature.SetSRV(cl, 5, 1, m_material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray);
+        m_rootSignature.SetSRV(cl, 8, 1, GTAOTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }

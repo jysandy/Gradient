@@ -33,6 +33,7 @@ namespace Gradient::Pipelines
         m_rootSignature.AddSRV(5, 1);
         m_rootSignature.AddSRV(6, 1);
         m_rootSignature.AddSRV(7, 1);
+        m_rootSignature.AddSRV(8, 1);
 
         m_rootSignature.AddStaticSampler(
             CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_ANISOTROPIC),
@@ -257,6 +258,7 @@ namespace Gradient::Pipelines
         m_rootSignature.SetSRV(cl, 5, 1, Material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 1, EnvironmentMap);
         m_rootSignature.SetSRV(cl, 7, 1, ShadowCubeArray);
+        m_rootSignature.SetSRV(cl, 8, 1, GTAOTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }

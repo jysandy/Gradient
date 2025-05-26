@@ -66,6 +66,8 @@ namespace Gradient::Pipelines
         void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
         void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
 
+        GraphicsMemoryManager::DescriptorView GTAOTexture;
+
     private:
         void InitializeRootSignature(ID3D12Device2* device);
         void InitializeShadowPSO(ID3D12Device2* device);

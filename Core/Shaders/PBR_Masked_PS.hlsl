@@ -11,6 +11,7 @@ Texture2D metalnessMap : register(t4, space1);
 Texture2D roughnessMap : register(t5, space1);
 TextureCube environmentMap : register(t6, space1);
 TextureCubeArray pointShadowMaps : register(t7, space1);
+Texture2D<uint> ssaoMap : register(t8, space1);
 
 SamplerState linearSampler : register(s3, space1);
 SamplerState anisotropicSampler : register(s0, space1);
@@ -62,7 +63,12 @@ float4 PBR_Masked_PS(InputType input) : SV_TARGET
     
 
     float3 albedo = albedoSample.rgb;
-    float ao = aoMap.Sample(linearSampler, input.tex).r;
+
+    uint screenWidth, screenHeight;
+    ssaoMap.GetDimensions(screenWidth, screenHeight);
+    uint ssao = ssaoMap.Sample(linearSampler, float2(input.position.x / screenWidth, input.position.y / screenHeight));
+    float ao = min(aoMap.Sample(linearSampler, input.tex).r, (ssao / 255.f));
+    //ao *= ao;
     float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     

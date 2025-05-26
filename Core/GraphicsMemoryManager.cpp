@@ -28,7 +28,7 @@ namespace Gradient
         m_graphicsMemory->Commit(cq);
     }
 
-    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateSrv()
+    GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateSrvOrUav()
     {
         if (!m_freeSrvIndices.empty())
         {
@@ -56,7 +56,7 @@ namespace Gradient
         m_cpuHandleToSrvIndex.erase(cpuHandle);
     }
 
-    void GraphicsMemoryManager::FreeSrv(GraphicsMemoryManager::DescriptorIndex index)
+    void GraphicsMemoryManager::FreeSrvOrUav(GraphicsMemoryManager::DescriptorIndex index)
     {
         UntrackCpuDescriptorHandle(index);
         m_freeSrvIndices.insert(index);
@@ -66,7 +66,7 @@ namespace Gradient
     {
         if (auto it = m_cpuHandleToSrvIndex.find(cpuHandle); it != m_cpuHandleToSrvIndex.end())
         {
-            FreeSrv(it->second);
+            FreeSrvOrUav(it->second);
         }
     }
 
@@ -76,14 +76,27 @@ namespace Gradient
         bool isCubeMap
     )
     {
-        auto index = AllocateSrv();
+        auto index = AllocateSrvOrUav();
 
         DirectX::CreateShaderResourceView(device,
             resource,
-            GetSRVCpuHandle(index),
+            GetSRVOrUAVCpuHandle(index),
             isCubeMap);
 
-        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRV);
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRVorUAV);
+    }
+
+    GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateUAV(
+        ID3D12Device* device,
+        ID3D12Resource* resource,
+        uint32_t mipLevel
+    )
+    {
+        auto index = AllocateSrvOrUav();
+
+        DirectX::CreateUnorderedAccessView(device, resource, GetSRVOrUAVCpuHandle(index), mipLevel);
+
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRVorUAV);
     }
 
     GraphicsMemoryManager::DescriptorView GraphicsMemoryManager::CreateSRV(
@@ -92,12 +105,12 @@ namespace Gradient
         D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
     )
     {
-        auto index = AllocateSrv();
+        auto index = AllocateSrvOrUav();
 
         device->CreateShaderResourceView(resource,
-            srvDesc, GetSRVCpuHandle(index));
+            srvDesc, GetSRVOrUAVCpuHandle(index));
 
-        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRV);
+        return std::make_shared<DescriptorIndexContainer>(index, DescriptorIndexType::SRVorUAV);
     }
 
     GraphicsMemoryManager::DescriptorIndex GraphicsMemoryManager::AllocateRTV()
@@ -192,17 +205,17 @@ namespace Gradient
         return m_dsvDescriptors->GetCpuHandle(index);
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSRVCpuHandle(DescriptorIndex index)
+    D3D12_CPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSRVOrUAVCpuHandle(DescriptorIndex index)
     {
         return m_srvDescriptors->GetCpuHandle(index);
     }
 
-    D3D12_GPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSRVGpuHandle(DescriptorIndex index)
+    D3D12_GPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::GetSRVOrUAVGpuHandle(DescriptorIndex index)
     {
         return m_srvDescriptors->GetGpuHandle(index);
     }
 
-    ID3D12DescriptorHeap* GraphicsMemoryManager::GetSrvDescriptorHeap()
+    ID3D12DescriptorHeap* GraphicsMemoryManager::GetSrvUavDescriptorHeap()
     {
         return m_srvDescriptors->Heap();
     }
@@ -236,8 +249,8 @@ namespace Gradient
 
         switch (m_indexType)
         {
-        case DescriptorIndexType::SRV:
-            gmm->FreeSrv(m_index);
+        case DescriptorIndexType::SRVorUAV:
+            gmm->FreeSrvOrUav(m_index);
             break; 
         case DescriptorIndexType::RTV:
             gmm->FreeRTV(m_index);
@@ -254,8 +267,8 @@ namespace Gradient
 
         switch (m_indexType)
         {
-        case DescriptorIndexType::SRV:
-            return gmm->GetSRVCpuHandle(m_index);
+        case DescriptorIndexType::SRVorUAV:
+            return gmm->GetSRVOrUAVCpuHandle(m_index);
             break;
         case DescriptorIndexType::RTV:
             return gmm->GetRTVCpuHandle(m_index);
@@ -268,9 +281,9 @@ namespace Gradient
 
     D3D12_GPU_DESCRIPTOR_HANDLE GraphicsMemoryManager::DescriptorIndexContainer::GetGPUHandle()
     {
-        assert(m_indexType == DescriptorIndexType::SRV);
+        assert(m_indexType == DescriptorIndexType::SRVorUAV);
         auto gmm = GraphicsMemoryManager::Get();
 
-        return gmm->GetSRVGpuHandle(m_index);
+        return gmm->GetSRVOrUAVGpuHandle(m_index);
     }
 }

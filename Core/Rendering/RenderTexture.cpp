@@ -73,7 +73,7 @@ namespace Gradient::Rendering
             );
             dsDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.Format = GetDepthBufferFormat();
             dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
         }
         else
@@ -95,12 +95,12 @@ namespace Gradient::Rendering
             dsDesc.Height = height;
             dsDesc.DepthOrArraySize = 1;
             dsDesc.MipLevels = 1;
-            dsDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsDesc.Format = GetDepthBufferFormat();
             dsDesc.SampleDesc.Count = 1;
             dsDesc.SampleDesc.Quality = 0;
             dsDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.Format = GetDepthBufferFormat();
             dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
         }
 
@@ -121,7 +121,7 @@ namespace Gradient::Rendering
         m_rtv = gmm->CreateRTV(device, m_offscreenRT.Get());
 
         D3D12_CLEAR_VALUE depthClearValue = {};
-        depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        depthClearValue.Format = GetDepthBufferFormat();
         depthClearValue.DepthStencil.Depth = 1.0f;
         depthClearValue.DepthStencil.Stencil = 0;
 
@@ -144,6 +144,11 @@ namespace Gradient::Rendering
         {
             m_srv = gmm->CreateSRV(device, m_offscreenRT.Get());
         }
+    }
+
+    DXGI_FORMAT RenderTexture::GetDepthBufferFormat() const
+    {
+        return DXGI_FORMAT_D32_FLOAT;
     }
 
     ID3D12Resource* RenderTexture::GetTexture()
@@ -276,6 +281,11 @@ namespace Gradient::Rendering
     RECT RenderTexture::GetOutputSize()
     {
         return m_size;
+    }
+
+    BarrierResource* RenderTexture::GetDepthBuffer()
+    {
+        return &m_depthBuffer;
     }
 
     void RenderTexture::DrawTo(

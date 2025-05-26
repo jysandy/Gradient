@@ -14,12 +14,13 @@ namespace Gradient
 
         void AddCBV(UINT slot, UINT space);
         void AddSRV(UINT slot, UINT space);
+        void AddUAV(UINT slot, UINT space);
         void AddRootSRV(UINT slot, UINT space);
         void AddStaticSampler(CD3DX12_STATIC_SAMPLER_DESC samplerDesc,
             UINT slot,
             UINT space);
 
-        void Build(ID3D12Device* device);
+        void Build(ID3D12Device* device, bool compute = false);
         ID3D12RootSignature* Get();
         void Reset();
 
@@ -39,16 +40,23 @@ namespace Gradient
             UINT space, 
             GraphicsMemoryManager::DescriptorView index);
 
+        void SetUAV(ID3D12GraphicsCommandList* cl,
+            UINT slot,
+            UINT space,
+            GraphicsMemoryManager::DescriptorView index);
+
         void SetOnCommandList(ID3D12GraphicsCommandList* cl);
 
     private:
         bool m_isBuilt = false;
+        bool m_isCompute = false;
 
         enum class ParameterTypes
         {
             RootCBV,
             RootSRV,
-            DescriptorTableSRV
+            DescriptorTableSRV,
+            DescriptorTableUAV
         };
 
         struct ParameterDesc
@@ -62,8 +70,8 @@ namespace Gradient
         std::vector< CD3DX12_STATIC_SAMPLER_DESC> m_staticSamplers;
         std::array<std::array<UINT, 64>, 6> m_cbvSpaceToSlotToRPIndex; // 'b' resources
         std::array<std::array<UINT, 64>, 6> m_srvSpaceToSlotToRPIndex; // 't' resources
+        std::array<std::array<UINT, 64>, 6> m_uavSpaceToSlotToRPIndex; // 'u' resources
 
-        // TODO: Need an array for 'u' resources (UAVs)
 
         Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
     };
@@ -82,6 +90,10 @@ namespace Gradient
 
         auto gmm = GraphicsMemoryManager::Get();
         auto cbvAddress = gmm->AllocateConstant(data);
-        cl->SetGraphicsRootConstantBufferView(rpIndex, cbvAddress);
+
+        if (m_isCompute)
+            cl->SetComputeRootConstantBufferView(rpIndex, cbvAddress);
+        else
+            cl->SetGraphicsRootConstantBufferView(rpIndex, cbvAddress);
     }
 }

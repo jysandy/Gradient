@@ -7,6 +7,13 @@
 
 namespace Gradient::Math
 {
+    // An integer version of ceil(value / divisor)
+    template <typename T, typename U>
+    T DivRoundUp(T value, U divisor)
+    {
+        return (value + divisor - 1) / divisor;
+    }
+
     inline DirectX::BoundingFrustum MakeFrustum(
         DirectX::SimpleMath::Matrix view,
         DirectX::SimpleMath::Matrix proj)

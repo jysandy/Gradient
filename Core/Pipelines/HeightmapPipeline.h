@@ -85,16 +85,22 @@ namespace Gradient::Pipelines
         void SetPointLights(std::vector<Params::PointLight> pointLights);
         void SetEnvironmentMap(GraphicsMemoryManager::DescriptorView index);
         void SetShadowCubeArray(GraphicsMemoryManager::DescriptorView index);
+        GraphicsMemoryManager::DescriptorView GTAOTexture;
 
     private:
         void InitializeRootSignature(ID3D12Device* device);
         void InitializeShadowPSO(ID3D12Device2* device);
         void InitializeRenderPSO(ID3D12Device2* device);
+        void InitializeDepthWritePSO(ID3D12Device2* device);
+        void InitializePixelDepthReadPSO(ID3D12Device2* device);
         void ApplyShadowPipeline(ID3D12GraphicsCommandList* cl);
+        void ApplyDepthWriteOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled);
 
         RootSignature m_rootSignature;
         std::unique_ptr<PipelineState> m_pso;
         std::unique_ptr<PipelineState> m_shadowPso;
+        std::unique_ptr<PipelineState> m_depthWritePso;
+        std::unique_ptr<PipelineState> m_pixelDepthReadPso;
 
         GraphicsMemoryManager::DescriptorView m_shadowMap;
         GraphicsMemoryManager::DescriptorView m_environmentMap;

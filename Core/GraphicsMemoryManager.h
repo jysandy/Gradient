@@ -21,7 +21,7 @@ namespace Gradient
 
         enum class DescriptorIndexType
         {
-            SRV, RTV, DSV
+            SRVorUAV, RTV, DSV
         };
 
         class DescriptorIndexContainer
@@ -54,10 +54,10 @@ namespace Gradient
         void Commit(ID3D12CommandQueue* cq);
 
 
-        // SRV
+        // SRV & UAV
 
-        DescriptorIndex AllocateSrv();
-        void FreeSrv(DescriptorIndex index);
+        DescriptorIndex AllocateSrvOrUav();
+        void FreeSrvOrUav(DescriptorIndex index);
         // Used by ImGui
         void FreeSrvByCpuHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
@@ -73,10 +73,16 @@ namespace Gradient
             D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc
         );
 
-        D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuHandle(DescriptorIndex index);
-        D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuHandle(DescriptorIndex index);
+        DescriptorView CreateUAV(
+            ID3D12Device* device,
+            ID3D12Resource* resource,
+            uint32_t mipLevel = 0
+        );
 
-        ID3D12DescriptorHeap* GetSrvDescriptorHeap();
+        D3D12_CPU_DESCRIPTOR_HANDLE GetSRVOrUAVCpuHandle(DescriptorIndex index);
+        D3D12_GPU_DESCRIPTOR_HANDLE GetSRVOrUAVGpuHandle(DescriptorIndex index);
+
+        ID3D12DescriptorHeap* GetSrvUavDescriptorHeap();
 
 
         // RTV

@@ -335,6 +335,7 @@
     <ClInclude Include="Core\Rendering\CubeMap.h" />
     <ClInclude Include="Core\Rendering\DepthCubeArray.h" />
     <ClInclude Include="Core\Rendering\DirectionalLight.h" />
+    <ClInclude Include="Core\Rendering\GTAOProcessor.h" />
     <ClInclude Include="Core\Rendering\LSystem.h" />
     <ClInclude Include="Core\Rendering\ProceduralMesh.h" />
     <ClInclude Include="Core\Rendering\IDrawable.h" />
@@ -345,6 +346,7 @@
     <ClInclude Include="Core\Rendering\TextureDrawer.h" />
     <ClInclude Include="Core\RootSignature.h" />
     <ClInclude Include="Core\Scene.h" />
+    <ClInclude Include="Core\Shaders\XeGTAO.h" />
     <ClInclude Include="Core\TextureManager.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeviceResources.h" />
@@ -386,6 +388,7 @@
     <ClCompile Include="Core\Rendering\CubeMap.cpp" />
     <ClCompile Include="Core\Rendering\DepthCubeArray.cpp" />
     <ClCompile Include="Core\Rendering\DirectionalLight.cpp" />
+    <ClCompile Include="Core\Rendering\GTAOProcessor.cpp" />
     <ClCompile Include="Core\Rendering\LSystem.cpp" />
     <ClCompile Include="Core\Rendering\ProceduralMesh.cpp" />
     <ClCompile Include="Core\Rendering\PBRMaterial.cpp" />
@@ -479,6 +482,7 @@
     <None Include="Core\Shaders\Quaternion.hlsli" />
     <None Include="Core\Shaders\ShadowMapping.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
+    <None Include="Core\Shaders\XeGTAO.hlsli" />
     <None Include="ImportTex.ps1" />
     <None Include="packages.config" />
     <None Include="README.md" />
@@ -523,6 +527,62 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BrightnessFilter_PS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">BrightnessFilter_PS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BrightnessFilter_PS</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\GTAODenoisePass_CS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Compute</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GTAODenoisePass</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GTAODenoisePass</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GTAODenoisePass</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\GTAOMainPass_CS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Compute</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GTAOMainPassHigh</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GTAOMainPassHigh</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GTAOMainPassHigh</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\GTAONormals_CS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Compute</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GTAOGenerateNormals</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GTAOGenerateNormals</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GTAOGenerateNormals</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Core\Shaders\GTAOPrefilterDepths_CS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">4.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GTAOPrefilterDepths</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">GTAOPrefilterDepths</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GTAOPrefilterDepths</EntryPointName>
     </FxCompile>
     <FxCompile Include="Core\Shaders\Heightmap_DS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
