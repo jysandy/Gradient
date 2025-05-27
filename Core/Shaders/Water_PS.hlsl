@@ -1,6 +1,7 @@
 #include "ShadowMapping.hlsli"
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
+#include "Utils.hlsli"
 
 SamplerState linearSampler : register(s0, space3);
 SamplerComparisonState shadowMapSampler : register(s1, space3);
@@ -105,6 +106,8 @@ float4 Water_PS(InputType input) : SV_TARGET
         + directSSS
         + pointSSS;
 
+    outputColour = ApplyFog(outputColour, input.worldPosition, cameraPosition);
+    
     //return float4(1, 1, 1, 1);    
     return float4(outputColour, 1.f);
 }

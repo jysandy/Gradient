@@ -481,6 +481,7 @@
     <None Include="Core\Shaders\PBRLighting.hlsli" />
     <None Include="Core\Shaders\Quaternion.hlsli" />
     <None Include="Core\Shaders\ShadowMapping.hlsli" />
+    <None Include="Core\Shaders\Utils.hlsli" />
     <None Include="Core\Shaders\WaterWaves.hlsli" />
     <None Include="Core\Shaders\XeGTAO.hlsli" />
     <None Include="ImportTex.ps1" />

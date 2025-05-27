@@ -288,6 +288,7 @@
     <None Include="Core\Shaders\Culling.hlsli" />
     <None Include="packages.config" />
     <None Include="Core\Shaders\XeGTAO.hlsli" />
+    <None Include="Core\Shaders\Utils.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />

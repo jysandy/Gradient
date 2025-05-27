@@ -1,3 +1,5 @@
+#include "Utils.hlsli"
+
 struct VSOutput
 {
     float4 position : SV_Position;
@@ -22,7 +24,7 @@ float4 Skydome_PS(VSOutput input) : SV_TARGET
     
     float3 horizontalL = normalize(float3(L.x, lerp(L.y, 0, g_drawSunCircle), L.z));
     
-    float cosTheta = dot(normalize(input.texcoord), up);
+    float cosTheta = saturate(dot(normalize(input.texcoord), up));
     float cosL = max(dot(L, up), 0);
     float cosHorizontalL = dot(horizontalL, V) * 0.5 + 0.5;
     
@@ -30,7 +32,7 @@ float4 Skydome_PS(VSOutput input) : SV_TARGET
     float3 black = float3(0, 0, 0);
     
     float3 skyColour;
-    float3 skyBase = lerp(g_sunColour, blue, saturate(cosL + 0.3f));
+    float3 skyBase = lerp(2 * g_sunColour, blue, saturate(cosL + 0.3f));
     skyBase = lerp(blue, skyBase, saturate(cosHorizontalL - 0.3f));
 
     // TODO: Get the sun flare up at the height of the sun
@@ -40,5 +42,15 @@ float4 Skydome_PS(VSOutput input) : SV_TARGET
     
     float3 sunCircle = g_drawSunCircle * g_sunIrradiance * g_sunColour * pow(LdotV, g_sunExp);
     
-    return float4(sunCircle + skyColour, 1);
+    if (g_drawSunCircle)
+    {
+        float alpha = pow(1 - cosTheta, 10);
+        skyColour = lerp(skyColour, g_ambientIrradiance * 2 * float3(0.8, 0.8, 0.8), 
+            lerp(0, 0.3, alpha)
+        );
+    }
+    
+    float3 outputColor = sunCircle + skyColour;
+    
+    return float4(outputColor, 1);
 }

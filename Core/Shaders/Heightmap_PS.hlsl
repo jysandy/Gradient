@@ -2,6 +2,7 @@
 #include "ShadowMapping.hlsli"
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
+#include "Utils.hlsli"
 
 // Shared with the vertex shader
 Texture2D heightmap : register(t0, space0);
@@ -95,6 +96,8 @@ float4 Heightmap_PS(InputType input) : SV_TARGET
         + directRadiance
         + pointRadiance;
 
+    outputColour = ApplyFog(outputColour, input.worldPosition, cameraPosition);
+    
     //return float4(1, 1, 1, 1);    
     return float4(outputColour, 1.f);
 }

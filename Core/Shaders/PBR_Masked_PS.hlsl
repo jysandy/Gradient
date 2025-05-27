@@ -2,6 +2,7 @@
 #include "ShadowMapping.hlsli"
 #include "LightStructs.hlsli"
 #include "PBRLighting.hlsli"
+#include "Utils.hlsli"
 
 Texture2D albedoMap : register(t0, space1);
 Texture2D shadowMap : register(t1, space1);
@@ -95,6 +96,8 @@ float4 PBR_Masked_PS(InputType input) : SV_TARGET
         + directRadiance
         + pointRadiance
         + emissiveRadiance;
+    
+    outputColour = ApplyFog(outputColour, input.worldPosition, cameraPosition);
     
     return float4(outputColour, albedoSample.a);
 }
