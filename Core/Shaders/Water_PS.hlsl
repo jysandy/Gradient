@@ -95,9 +95,9 @@ float4 Water_PS(InputType input) : SV_TARGET
                                   refractiveIndex) * shallowWaterColour;
     }
     
-    float3 ambient = 2 * cookTorranceEnvironmentMap(
+    float3 ambient = 0.6 * IndirectLighting(
         environmentMap, linearSampler,
-        N, V, albedo, ao, metalness, roughness, 0
+        N, V, albedo, ao, metalness, roughness, float3(0, 0, 0)
     );
     
     float3 outputColour = ambient 

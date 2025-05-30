@@ -85,7 +85,7 @@ float4 PBR_PS(InputType input) : SV_TARGET
         );
     }
     
-    float3 ambient = cookTorranceEnvironmentMap(
+    float3 ambient = IndirectLighting(
         environmentMap, linearSampler,
         N, V, albedo, ao, metalness, roughness
     );

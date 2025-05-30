@@ -244,18 +244,18 @@ float3 sampleEnvironmentMap(TextureCube environmentMap,
     return environmentMap.Sample(linearSampler, sampleVec).rgb;
 }
 
-float3 cookTorranceEnvironmentMap(
+float3 CookTorranceEnvironmentMap(
     TextureCube environmentMap,
     SamplerState linearSampler,
+    float3 L,
     float3 N,
     float3 V,
     float3 albedo,
     float ao,
     float metalness,
     float roughness,
-    float luminanceFactor = 4.f)
+    float3 luminanceFactor = 4.f * float3(0.6, 1, 0.8))
 {
-    float3 L = normalize(reflect(-V, N));
     float3 H = normalize(V + L);
     
     float3 radiance = 1 * sampleEnvironmentMap(
@@ -264,13 +264,54 @@ float3 cookTorranceEnvironmentMap(
         L);
     
     float luminance = dot(radiance, float3(0.2126, 0.7152, 0.0722));
-    radiance += luminanceFactor * luminance;
+    radiance += luminanceFactor * luminance 
+    //* float3(0.05, 0.15, 0.1) / 0.15
+    ;
     
     float3 ct = cookTorranceRadiance(
         N, V, L, H, albedo, metalness, roughness, radiance, false
     );
     
     return ao * ct;
+}
+
+float3 IndirectLighting(
+    TextureCube environmentMap,
+    SamplerState linearSampler,
+    float3 N,
+    float3 V,
+    float3 albedo,
+    float ao,
+    float metalness,
+    float roughness,
+    float3 luminanceFactor = 4.f * float3(0.6, 1, 0.8))
+{
+    float3 L = normalize(reflect(-V, N));
+                           
+    float reflectionContribution = lerp(0.5, 0.95, metalness);
+    
+    return reflectionContribution * CookTorranceEnvironmentMap(
+        environmentMap,
+        linearSampler,
+        L,
+        N,
+        V,
+        albedo,
+        ao,
+        metalness,
+        roughness,
+        luminanceFactor)
+        + (1.f - reflectionContribution) * CookTorranceEnvironmentMap(
+        environmentMap,
+        linearSampler,
+        N,
+        N,
+        V,
+        albedo,
+        ao,
+        metalness,
+        roughness,
+        luminanceFactor);
 }
 
 // Simple thickness-based subsurface scattering,
