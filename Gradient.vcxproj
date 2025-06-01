@@ -643,6 +643,17 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Instanced_VS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Instanced_VS</EntryPointName>
     </FxCompile>
+    <FxCompile Include="Core\Shaders\Leaf_Masked_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GpuTrace|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Leaf_Masked_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='GpuTrace|x64'">Leaf_Masked_PS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Leaf_Masked_PS</EntryPointName>
+    </FxCompile>
     <FxCompile Include="Core\Shaders\PBR_Masked_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

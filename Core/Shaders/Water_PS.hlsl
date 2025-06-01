@@ -75,7 +75,7 @@ float4 Water_PS(InputType input) : SV_TARGET
                                            V,
                                            thickness,
                                            sharpness,
-                                           refractiveIndex) * shallowWaterColour;
+                                           refractiveIndex) * 0.05 * shallowWaterColour;
     
     float3 pointRadiance = float3(0, 0, 0);
     float3 pointSSS = float3(0, 0, 0);
@@ -92,7 +92,7 @@ float4 Water_PS(InputType input) : SV_TARGET
                                   V,
                                   thickness,
                                   sharpness,
-                                  refractiveIndex) * shallowWaterColour;
+                                  refractiveIndex) * 0.05 * shallowWaterColour;
     }
     
     float3 ambient = 0.6 * IndirectLighting(

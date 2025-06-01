@@ -207,6 +207,38 @@ float3 DirectionalLightContribution(float3 N,
         light);
 }
 
+float3 DirectionalLightContributionWithSSS(float3 N,
+    float3 V,
+    float3 albedo,
+    float metallic,
+    float roughness,
+    DirectionalLight light,
+    Texture2D shadowMap,
+    SamplerComparisonState shadowMapSampler,
+    float4x4 shadowTransform,
+    float3 worldPosition,
+    float3 sss)
+{
+    float shadowFactor = calculateShadowFactor(shadowMap,
+        shadowMapSampler,
+        shadowTransform,
+        worldPosition);
+    
+    if (shadowFactor < 0.001f)
+    {
+        // Don't compute the BRDF if the pixel is in shadow.
+        return float3(0, 0, 0);
+    }
+    
+    return shadowFactor * (cookTorranceDirectionalLight(N,
+        V,
+        albedo,
+        metallic,
+        roughness,
+        light)
+        + sss);
+}
+
 float3 PointLightContribution(float3 N,
     float3 V,
     float3 albedo,
@@ -234,6 +266,36 @@ float3 PointLightContribution(float3 N,
         roughness,
         light,
         worldPosition);
+}
+
+float3 PointLightContributionWithSSS(float3 N,
+    float3 V,
+    float3 albedo,
+    float metalness,
+    float roughness,
+    PointLight light,
+    TextureCubeArray shadowMaps,
+    SamplerComparisonState shadowMapSampler,
+    float3 worldPosition,
+    float3 sss)
+{
+    float shadowFactor = cubeShadowFactor(shadowMaps,
+        shadowMapSampler,
+        light,
+        worldPosition);
+    
+    if (shadowFactor < 0.001f)
+    {
+        return float3(0, 0, 0);
+    }
+    
+    return shadowFactor * (cookTorrancePointLight(N,
+        V,
+        albedo,
+        metalness,
+        roughness,
+        light,
+        worldPosition) + sss);
 }
 
 float3 sampleEnvironmentMap(TextureCube environmentMap,
@@ -325,7 +387,7 @@ float3 subsurfaceScattering(float3 irradiance,
                             float refractiveIndex)
 {
     float I = (1 - thickness) *
-        pow(saturate(dot(V, normalize(-L + N * (refractiveIndex - 1)))), sharpness) * 0.05;
+        pow(saturate(dot(V, normalize(-L + N * (refractiveIndex - 1)))), sharpness);
     
     return I * irradiance;
 }
