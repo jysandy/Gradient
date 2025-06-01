@@ -99,7 +99,7 @@ void Billboard_MS(
     {
         InstanceData instance = Instances[instanceIndex];
 
-        float4x4 instanceTransform = QuatTo4x4(Instances[instanceIndex].RotationQuat);
+        float4x4 instanceTransform = QuatTo4x4(instance.RotationQuat);
          
         float4x4 animationTransform;
         {        
@@ -125,7 +125,7 @@ void Billboard_MS(
         }
         
         // Get transform and determine if we're front-facing
-        instanceTransform._41_42_43 = Instances[instanceIndex].LocalPositionWithPad.xyz;
+        instanceTransform._41_42_43 = instance.LocalPositionWithPad.xyz;
         
         float4x4 worldMatrix = mul(mul(animationTransform, instanceTransform), g_parentWorldMatrix);
 
