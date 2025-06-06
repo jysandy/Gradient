@@ -66,6 +66,7 @@ namespace Gradient::Pipelines
         psoDesc.pRootSignature = m_rootSignature.Get();
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.MS = { msData.data(), msData.size() };
+        psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
 
         auto maskedPSData = DX::ReadData(L"MaskedDepth_PS.cso");
 
@@ -85,6 +86,7 @@ namespace Gradient::Pipelines
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.MS = { msData.data(), msData.size() };
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
         m_maskedPixelDepthReadPSO = std::make_unique<PipelineState>(psoDesc);
         m_maskedPixelDepthReadPSO->Build(device);
     }
@@ -100,6 +102,7 @@ namespace Gradient::Pipelines
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.MS = { msData.data(), msData.size() };
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
 
         m_maskedPixelDepthReadWritePSO = std::make_unique<PipelineState>(psoDesc);
         m_maskedPixelDepthReadWritePSO->Build(device);
@@ -116,6 +119,7 @@ namespace Gradient::Pipelines
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.MS = { msData.data(), msData.size() };
         psoDesc.PS = { maskedPSData.data(), maskedPSData.size() };
+        psoDesc.BlendState.AlphaToCoverageEnable = TRUE;
         m_maskedDepthWriteOnlyPSO = std::make_unique<PipelineState>(psoDesc);
         m_maskedDepthWriteOnlyPSO->Build(device);
     }
