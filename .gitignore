@@ -3,7 +3,6 @@ vcpkg_installed/
 x64/ 
 .vs/
 imgui.ini
-Assets/
 HeightmapsImport/
 PIXCaptures/
 Profiling/

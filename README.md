@@ -3,6 +3,7 @@
 ![Screenshot](screenshot.png)
  
 ## Building
+- The project uses the MSVC Toolset version `14.43.34808`. This can be installed using the Visual Studio Installer.
 - Ensure that `vcpkg` is integrated with Visual Studio by running `vcpkg integrate install` from a Developer Command Prompt. 
 - After that, simply build and run the solution.
 
@@ -23,4 +24,3 @@
 - Bark 2: https://www.fab.com/listings/c61dd941-4281-4772-bf2e-ecbfdbb6e676
 - Bay leaf: https://www.fab.com/listings/fcd38b51-45fe-4038-87db-675505c69286
 - Bark 3: https://www.fab.com/listings/7a67e7f0-4abf-49d7-af52-2149c60b0c60
-Note that no assets are checked in.
