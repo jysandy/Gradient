@@ -286,9 +286,9 @@
     <None Include="Core\Shaders\Quaternion.hlsli" />
     <None Include="CompileShaders.ps1" />
     <None Include="Core\Shaders\Culling.hlsli" />
-    <None Include="packages.config" />
     <None Include="Core\Shaders\XeGTAO.hlsli" />
     <None Include="Core\Shaders\Utils.hlsli" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Core\Shaders\ACESTonemapper_PS.hlsl" />
@@ -317,5 +317,6 @@
     <FxCompile Include="Core\Shaders\GTAOPrefilterDepths_CS.hlsl" />
     <FxCompile Include="Core\Shaders\GTAOMainPass_CS.hlsl" />
     <FxCompile Include="Core\Shaders\GTAODenoisePass_CS.hlsl" />
+    <FxCompile Include="Core\Shaders\Leaf_Masked_PS.hlsl" />
   </ItemGroup>
 </Project>
