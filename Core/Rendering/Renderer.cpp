@@ -586,15 +586,15 @@ namespace Gradient::Rendering
                 break;
             }
 
-            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+            auto bufferEntry = bm->GetStructuredBuffer(instances.BufferHandle);
 
             if (bufferEntry)
             {
                 BillboardPipeline->CardDimensions = drawable.BillboardDimensions;
-                BillboardPipeline->InstanceCount = bufferEntry->InstanceCount;
+                BillboardPipeline->InstanceCount = bufferEntry->Count;
                 BillboardPipeline->Apply(cl, true, drawType);
 
-                cl->DispatchMesh(Math::DivRoundUp(bufferEntry->InstanceCount, 
+                cl->DispatchMesh(Math::DivRoundUp(bufferEntry->Count, 
                     BillboardPipeline->InstancesPerThreadGroup), 1, 1);
             }
         }
@@ -670,11 +670,11 @@ namespace Gradient::Rendering
 
             InstancePipeline->Apply(cl, true, drawType);
 
-            auto bufferEntry = bm->GetInstanceBuffer(instances.BufferHandle);
+            auto bufferEntry = bm->GetStructuredBuffer(instances.BufferHandle);
 
             if (bufferEntry)
             {
-                mesh->Draw(cl, bufferEntry->InstanceCount);
+                mesh->Draw(cl, bufferEntry->Count);
             }
         }
 

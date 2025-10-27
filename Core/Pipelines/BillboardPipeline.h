@@ -74,7 +74,7 @@ namespace Gradient::Pipelines
 
         GraphicsMemoryManager::DescriptorView EnvironmentMap;
 
-        BufferManager::InstanceBufferHandle InstanceHandle;
+        BufferManager::StructuredBufferHandle InstanceHandle;
         uint32_t InstanceCount;
         DirectX::XMFLOAT2 CardDimensions;
         std::array<DirectX::XMFLOAT4, 6> CullingFrustumPlanes;

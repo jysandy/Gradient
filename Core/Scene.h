@@ -28,7 +28,7 @@ namespace Gradient::Scene
     struct InstanceEntityData
     {
         BufferManager::MeshHandle MeshHandle;
-        BufferManager::InstanceBufferHandle InstanceBufferHandle;
+        BufferManager::StructuredBufferHandle InstanceBufferHandle;
         std::vector<BufferManager::InstanceData> Instances;
     };
 
@@ -77,7 +77,7 @@ namespace Gradient::Scene
 
     void AttachInstances(entt::entity entity,
         BufferManager::MeshHandle instancedMeshHandle,
-        BufferManager::InstanceBufferHandle instanceBufferHandle,
+        BufferManager::StructuredBufferHandle instanceBufferHandle,
         const std::vector<BufferManager::InstanceData>& instances)
     {
         using namespace Gradient::ECS::Components;
@@ -103,7 +103,7 @@ namespace Gradient::Scene
     }
 
     void AttachBillboards(entt::entity entity,
-        BufferManager::InstanceBufferHandle instanceBufferHandle,
+        BufferManager::StructuredBufferHandle instanceBufferHandle,
         const std::vector<BufferManager::InstanceData>& instances,
         DirectX::XMFLOAT2 dimensions)
     {
@@ -312,7 +312,7 @@ namespace Gradient::Scene
                 });
         }
 
-        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+        out.InstanceBufferHandle = bm->CreateStructuredBuffer(device,
             cq,
             out.Instances);
 
@@ -362,7 +362,7 @@ namespace Gradient::Scene
         // TODO: Sort instances by sub-UVs to maximise warp coherence
         // TODO: Make the leaf texture smaller
 
-        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+        out.InstanceBufferHandle = bm->CreateStructuredBuffer(device,
             cq,
             out.Instances);
 
@@ -387,7 +387,7 @@ namespace Gradient::Scene
                 });
         }
 
-        out.InstanceBufferHandle = bm->CreateInstanceBuffer(device,
+        out.InstanceBufferHandle = bm->CreateStructuredBuffer(device,
             cq,
             out.Instances);
 

@@ -6,6 +6,8 @@
 #include "Core/FreeListAllocator.h"
 #include "Core/Rendering/ProceduralMesh.h"
 
+#include <directxtk12/BufferHelpers.h>
+#include <directxtk12/ResourceUploadBatch.h>
 #include <optional>
 
 namespace Gradient
@@ -24,14 +26,14 @@ namespace Gradient
             DirectX::XMFLOAT2 TexcoordVRange;
         };
 
-        struct InstanceBufferEntry
+        struct StructuredBufferEntry
         {
             BarrierResource Resource;
-            uint32_t InstanceCount;
+            uint32_t Count;
         };
 
-        using InstanceBufferList = FreeListAllocator<InstanceBufferEntry>;
-        using InstanceBufferHandle = InstanceBufferList::Handle;
+        using StructuredBufferList = FreeListAllocator<StructuredBufferEntry>;
+        using StructuredBufferHandle = StructuredBufferList::Handle;
 
         using MeshList = FreeListAllocator<Rendering::ProceduralMesh>;
         using MeshHandle = MeshList::Handle;
@@ -40,10 +42,12 @@ namespace Gradient
         static void Shutdown();
         static BufferManager* Get();
 
-        InstanceBufferHandle CreateInstanceBuffer(ID3D12Device* device,
+        template <typename T>
+        StructuredBufferHandle CreateStructuredBuffer(ID3D12Device* device,
             ID3D12CommandQueue* cq,
-            const std::vector<InstanceData>& instanceData);
-        InstanceBufferEntry* GetInstanceBuffer(InstanceBufferHandle handle);
+            const std::vector<T>& bufferData);
+
+        StructuredBufferEntry* GetStructuredBuffer(StructuredBufferHandle handle);
 
         MeshHandle AddMesh(Rendering::ProceduralMesh&& mesh);
         void RemoveMesh(MeshHandle handle);
@@ -122,7 +126,40 @@ namespace Gradient
     private:
         static std::unique_ptr<BufferManager> s_instance;
 
-        InstanceBufferList m_instanceBuffers;
+        StructuredBufferList m_structuredBuffers;
         MeshList m_meshes;
     };
+
+    template <typename T>
+    BufferManager::StructuredBufferHandle BufferManager::CreateStructuredBuffer(
+        ID3D12Device* device,
+        ID3D12CommandQueue* cq,
+        const std::vector<T>& instanceData)
+    {
+        auto handle = m_structuredBuffers.Allocate({
+            BarrierResource(),
+            static_cast<uint32_t>(instanceData.size())
+            });
+
+        auto entry = m_structuredBuffers.Get(handle);
+
+        DirectX::ResourceUploadBatch uploadBatch(device);
+
+        uploadBatch.Begin();
+
+        DX::ThrowIfFailed(
+            DirectX::CreateStaticBuffer(device,
+                uploadBatch,
+                instanceData.data(),
+                instanceData.size(),
+                D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
+                entry->Resource.ReleaseAndGetAddressOf(),
+                D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS));
+        entry->Resource.SetState(D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
+
+        auto uploadFinished = uploadBatch.End(cq);
+        uploadFinished.wait();
+
+        return handle;
+    }
 }

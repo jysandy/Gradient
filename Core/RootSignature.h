@@ -33,7 +33,7 @@ namespace Gradient
         void SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,
             UINT space,
-            BufferManager::InstanceBufferHandle handle);
+            BufferManager::StructuredBufferHandle handle);
         
         void SetSRV(ID3D12GraphicsCommandList* cl,
             UINT slot,

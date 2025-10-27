@@ -93,7 +93,7 @@ namespace Gradient::Pipelines
         GraphicsMemoryManager::DescriptorView m_environmentMap;
         GraphicsMemoryManager::DescriptorView m_shadowCubeArray;
 
-        BufferManager::InstanceBufferHandle m_instanceHandle;
+        BufferManager::StructuredBufferHandle m_instanceHandle;
         DirectX::SimpleMath::Matrix m_world;
         DirectX::SimpleMath::Matrix m_view;
         DirectX::SimpleMath::Matrix m_proj;

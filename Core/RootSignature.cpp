@@ -224,7 +224,7 @@ namespace Gradient
     void RootSignature::SetStructuredBufferSRV(ID3D12GraphicsCommandList* cl,
         UINT slot,
         UINT space,
-        BufferManager::InstanceBufferHandle handle)
+        BufferManager::StructuredBufferHandle handle)
     {
         assert(m_isBuilt);
 
@@ -234,7 +234,7 @@ namespace Gradient
 
         auto bm = BufferManager::Get();
 
-        auto bufferEntry = bm->GetInstanceBuffer(handle);
+        auto bufferEntry = bm->GetStructuredBuffer(handle);
 
         assert(bufferEntry);
         cl->SetGraphicsRootShaderResourceView(rpIndex,

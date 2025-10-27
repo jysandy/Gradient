@@ -9,6 +9,6 @@ namespace Gradient::ECS::Components
 {
     struct InstanceDataComponent
     {
-        BufferManager::InstanceBufferHandle BufferHandle;
+        BufferManager::StructuredBufferHandle BufferHandle;
     };
 }
