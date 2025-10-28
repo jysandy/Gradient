@@ -154,7 +154,10 @@ namespace Gradient
             m_staticSamplers.size(),
             m_staticSamplers.data());
 
-        rootSig.Desc_1_0.Flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        rootSig.Desc_1_0.Flags |= 
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+            | D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED
+            | D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
         using Microsoft::WRL::ComPtr;
 
         ComPtr<ID3DBlob> serializedRootSig;

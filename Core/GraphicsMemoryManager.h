@@ -13,10 +13,6 @@ namespace Gradient
     class GraphicsMemoryManager
     {
     public:
-        // TODO: Make these things free themselves.
-        // The descriptor heap runs out of space whenever the 
-        // window is resized because the old descriptors are 
-        // never reclaimed.
         using DescriptorIndex = DirectX::DescriptorPile::IndexType;
 
         enum class DescriptorIndexType
@@ -32,7 +28,8 @@ namespace Gradient
             DescriptorIndexContainer(const DescriptorIndexContainer&&) = delete;
 
             D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle();
-            D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
+            D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(); 
+            uint32_t GetIndex();
 
             ~DescriptorIndexContainer();
 

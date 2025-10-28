@@ -1,0 +1,2 @@
+- Do not add explanatory comments to generated code unless prompted to do so.  
+- When asked to generate code in a `.cpp` file, make sure to make necessary changes to the corresponding `.h` file as applicable.

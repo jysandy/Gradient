@@ -4,15 +4,9 @@
 #include "PBRLighting.hlsli"
 #include "Utils.hlsli"
 
-Texture2D albedoMap : register(t0, space1);
 Texture2D shadowMap : register(t1, space1);
-Texture2D normalMap : register(t2, space1);
-Texture2D aoMap : register(t3, space1);
-Texture2D metalnessMap : register(t4, space1);
-Texture2D roughnessMap : register(t5, space1);
 TextureCube environmentMap : register(t6, space1);
 TextureCubeArray pointShadowMaps : register(t7, space1);
-Texture2D<uint> ssaoMap : register(t8, space1);
 
 SamplerState linearSampler : register(s3, space1);
 SamplerState anisotropicSampler : register(s0, space1);
@@ -32,8 +26,17 @@ cbuffer Constants : register(b1, space1)
     float3 cameraPosition;
     float uvTiling;
     float3 emissiveRadiance;
-    float pad2;
+    uint g_ssaoMapIndex; // WIP: Bindless stuff
     float4x4 shadowTransform; // TODO: put this into the light
+};
+
+cbuffer Material : register(b2, space1)
+{
+    uint g_albedoMapIndex;
+    uint g_normalMapIndex;
+    uint g_metallicMapIndex;
+    uint g_roughnessMapIndex;
+    uint g_aoMapIndex;
 };
 
 struct InputType
@@ -44,9 +47,24 @@ struct InputType
     float3 worldPosition : POSITION1;
 };
 
+float SampleSSAO(Texture2D<uint> ssaoMap, float2 pixelPosition)
+{
+    uint screenWidth, screenHeight;
+    ssaoMap.GetDimensions(screenWidth, screenHeight);
+    uint ssao = ssaoMap.Sample(linearSampler, float2(pixelPosition.x / screenWidth, pixelPosition.y / screenHeight));
+    
+    return ssao / 255.f;
+}
+
 float4 PBR_PS(InputType input) : SV_TARGET
 {
     input.tex *= uvTiling;
+
+    Texture2D albedoMap = ResourceDescriptorHeap[g_albedoMapIndex];
+    Texture2D normalMap = ResourceDescriptorHeap[g_normalMapIndex];
+    Texture2D metalnessMap = ResourceDescriptorHeap[g_metallicMapIndex];
+    Texture2D roughnessMap = ResourceDescriptorHeap[g_roughnessMapIndex];
+    Texture2D aoMap = ResourceDescriptorHeap[g_aoMapIndex];
     
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
     
@@ -60,14 +78,10 @@ float4 PBR_PS(InputType input) : SV_TARGET
         input.tex);
     float3 V = normalize(cameraPosition - input.worldPosition);
     
-
     float3 albedo = albedoSample.rgb;
     
-    uint screenWidth, screenHeight;
-    ssaoMap.GetDimensions(screenWidth, screenHeight);
-    uint ssao = ssaoMap.Sample(linearSampler, float2(input.position.x / screenWidth, input.position.y / screenHeight));
-    float ao = min(aoMap.Sample(linearSampler, input.tex).r, (ssao / 255.f));
-    //ao *= ao;
+    Texture2D<uint> ssaoMap = ResourceDescriptorHeap[g_ssaoMapIndex];
+    float ao = min(aoMap.Sample(linearSampler, input.tex).r, SampleSSAO(ssaoMap, input.position.xy));
     float metalness = metalnessMap.Sample(linearSampler, input.tex).r;
     float roughness = roughnessMap.Sample(linearSampler, input.tex).r;
     

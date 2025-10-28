@@ -22,16 +22,10 @@ namespace Gradient::Pipelines
         m_rootSignature.AddCBV(0, 0);
         m_rootSignature.AddCBV(0, 1);
         m_rootSignature.AddCBV(1, 1);
-
-        m_rootSignature.AddSRV(0, 1);
+        m_rootSignature.AddCBV(2, 1); // Material
         m_rootSignature.AddSRV(1, 1);
-        m_rootSignature.AddSRV(2, 1);
-        m_rootSignature.AddSRV(3, 1);
-        m_rootSignature.AddSRV(4, 1);
-        m_rootSignature.AddSRV(5, 1);
         m_rootSignature.AddSRV(6, 1);
         m_rootSignature.AddSRV(7, 1);
-        m_rootSignature.AddSRV(8, 1);
 
         m_rootSignature.AddStaticSampler(
             CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_ANISOTROPIC),
@@ -179,6 +173,8 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
 
+        SetMaterialCB(cl);
+
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
@@ -250,18 +246,15 @@ namespace Gradient::Pipelines
         pixelConstants.tiling = m_material.Tiling;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(m_shadowTransform);
         pixelConstants.emissiveRadiance = m_material.EmissiveRadiance;
+        pixelConstants.SSAOMapIndex = GTAOTexture->GetIndex();
 
         m_rootSignature.SetCBV(cl, 1, 1, pixelConstants);
 
-        m_rootSignature.SetSRV(cl, 0, 1, m_material.Texture);
+        SetMaterialCB(cl);
+
         m_rootSignature.SetSRV(cl, 1, 1, m_shadowMap);
-        m_rootSignature.SetSRV(cl, 2, 1, m_material.NormalMap);
-        m_rootSignature.SetSRV(cl, 3, 1, m_material.AOMap);
-        m_rootSignature.SetSRV(cl, 4, 1, m_material.MetalnessMap);
-        m_rootSignature.SetSRV(cl, 5, 1, m_material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 1, m_environmentMap);
         m_rootSignature.SetSRV(cl, 7, 1, m_shadowCubeArray);
-        m_rootSignature.SetSRV(cl, 8, 1, GTAOTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
@@ -321,5 +314,16 @@ namespace Gradient::Pipelines
     void PBRPipeline::SetCameraPosition(DirectX::SimpleMath::Vector3 cameraPosition)
     {
         m_cameraPosition = cameraPosition;
+    }
+
+    void PBRPipeline::SetMaterialCB(ID3D12GraphicsCommandList* cl)
+    {
+        MaterialCB materialConstants{};
+        materialConstants.AlbedoMapIndex = m_material.Texture ? m_material.Texture->GetIndex() : 0u;
+        materialConstants.NormalMapIndex = m_material.NormalMap ? m_material.NormalMap->GetIndex() : 0u;
+        materialConstants.MetallicMapIndex = m_material.MetalnessMap ? m_material.MetalnessMap->GetIndex() : 0u;
+        materialConstants.RoughnessMapIndex = m_material.RoughnessMap ? m_material.RoughnessMap->GetIndex() : 0u;
+        materialConstants.AOMapIndex = m_material.AOMap ? m_material.AOMap->GetIndex() : 0u;
+        m_rootSignature.SetCBV(cl, 2, 1, materialConstants);
     }
 }

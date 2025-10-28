@@ -286,4 +286,10 @@ namespace Gradient
 
         return gmm->GetSRVOrUAVGpuHandle(m_index);
     }
+
+    uint32_t GraphicsMemoryManager::DescriptorIndexContainer::GetIndex()
+    {
+        assert(m_index <= UINT32_MAX);
+        return static_cast<uint32_t>(m_index);
+    }
 }
