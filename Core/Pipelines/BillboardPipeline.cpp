@@ -23,17 +23,11 @@ namespace Gradient::Pipelines
         m_rootSignature.AddCBV(1, 0);
         m_rootSignature.AddCBV(0, 1);
         m_rootSignature.AddCBV(1, 1);
-
-        m_rootSignature.AddRootSRV(0, 0); // instance data
-        m_rootSignature.AddSRV(0, 1);
+        m_rootSignature.AddCBV(2, 1); // Material
+        m_rootSignature.AddRootSRV(0, 0); // instance data 
         m_rootSignature.AddSRV(1, 1);
-        m_rootSignature.AddSRV(2, 1);
-        m_rootSignature.AddSRV(3, 1);
-        m_rootSignature.AddSRV(4, 1);
-        m_rootSignature.AddSRV(5, 1);
         m_rootSignature.AddSRV(6, 1);
         m_rootSignature.AddSRV(7, 1);
-        m_rootSignature.AddSRV(8, 1);
 
         m_rootSignature.AddStaticSampler(
             CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_ANISOTROPIC),
@@ -145,7 +139,8 @@ namespace Gradient::Pipelines
 
         m_rootSignature.SetCBV(cl, 0, 0, vertexConstants);
         m_rootSignature.SetStructuredBufferSRV(cl, 0, 0, InstanceHandle);
-        m_rootSignature.SetSRV(cl, 0, 1, Material.Texture);
+
+        SetMaterialCB(cl);
 
         DrawParamsCB drawConstants;
         drawConstants.cameraPosition = CameraPosition;
@@ -154,14 +149,7 @@ namespace Gradient::Pipelines
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
         drawConstants.totalTimeSeconds = TotalTimeSeconds;
-        if (UsingOrthographic)
-        {
-            drawConstants.useCameraDirectionForCulling = 1;
-        }
-        else
-        {
-            drawConstants.useCameraDirectionForCulling = 0;
-        }
+        drawConstants.useCameraDirectionForCulling = UsingOrthographic ? 1u : 0u;
         for (int i = 0; i < 6; i++)
         {
             drawConstants.cullingFrustumPlanes[i] = CullingFrustumPlanes[i];
@@ -182,13 +170,12 @@ namespace Gradient::Pipelines
         }
         else if (passType == DrawType::PixelDepthReadOnly)
         {
-                m_maskedPixelDepthReadPSO->Set(cl, multisampled);
+            m_maskedPixelDepthReadPSO->Set(cl, multisampled);
         }
         else if (passType == DrawType::PixelDepthReadWrite)
         {
-                m_maskedPixelDepthReadWritePSO->Set(cl, multisampled);
+            m_maskedPixelDepthReadWritePSO->Set(cl, multisampled);
         }
-
 
         m_rootSignature.SetOnCommandList(cl);
 
@@ -206,14 +193,7 @@ namespace Gradient::Pipelines
         drawConstants.cardHeight = CardDimensions.y;
         drawConstants.numInstances = InstanceCount;
         drawConstants.totalTimeSeconds = TotalTimeSeconds;
-        if (UsingOrthographic)
-        {
-            drawConstants.useCameraDirectionForCulling = 1;
-        }
-        else
-        {
-            drawConstants.useCameraDirectionForCulling = 0;
-        }
+        drawConstants.useCameraDirectionForCulling = UsingOrthographic ? 1u : 0u;
         for (int i = 0; i < 6; i++)
         {
             drawConstants.cullingFrustumPlanes[i] = CullingFrustumPlanes[i];
@@ -251,18 +231,15 @@ namespace Gradient::Pipelines
         pixelConstants.tiling = Material.Tiling;
         pixelConstants.shadowTransform = DirectX::XMMatrixTranspose(SunlightParams.ShadowTransform);
         pixelConstants.emissiveRadiance = Material.EmissiveRadiance;
+        pixelConstants.SSAOMapIndex = GTAOTexture ? GTAOTexture->GetIndex() : 0u;
 
         m_rootSignature.SetCBV(cl, 1, 1, pixelConstants);
 
-        m_rootSignature.SetSRV(cl, 0, 1, Material.Texture);
+        SetMaterialCB(cl);
+
         m_rootSignature.SetSRV(cl, 1, 1, SunlightParams.ShadowMap);
-        m_rootSignature.SetSRV(cl, 2, 1, Material.NormalMap);
-        m_rootSignature.SetSRV(cl, 3, 1, Material.AOMap);
-        m_rootSignature.SetSRV(cl, 4, 1, Material.MetalnessMap);
-        m_rootSignature.SetSRV(cl, 5, 1, Material.RoughnessMap);
         m_rootSignature.SetSRV(cl, 6, 1, EnvironmentMap);
         m_rootSignature.SetSRV(cl, 7, 1, ShadowCubeArray);
-        m_rootSignature.SetSRV(cl, 8, 1, GTAOTexture);
 
         cl->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
@@ -275,5 +252,16 @@ namespace Gradient::Pipelines
         SunlightParams.DirectionalLightColour = dlight->GetColour();
         SunlightParams.LightIrradiance = dlight->GetIrradiance();
         SunlightParams.LightDirection = dlight->GetDirection();
+    }
+
+    void BillboardPipeline::SetMaterialCB(ID3D12GraphicsCommandList* cl)
+    {
+        BillboardPipeline::MaterialCB materialConstants{};
+        materialConstants.AlbedoMapIndex = Material.Texture ? Material.Texture->GetIndex() : 0u;
+        materialConstants.NormalMapIndex = Material.NormalMap ? Material.NormalMap->GetIndex() : 0u;
+        materialConstants.MetallicMapIndex = Material.MetalnessMap ? Material.MetalnessMap->GetIndex() : 0u;
+        materialConstants.RoughnessMapIndex = Material.RoughnessMap ? Material.RoughnessMap->GetIndex() : 0u;
+        materialConstants.AOMapIndex = Material.AOMap ? Material.AOMap->GetIndex() : 0u;
+        m_rootSignature.SetCBV(cl, 2, 1, materialConstants);
     }
 }

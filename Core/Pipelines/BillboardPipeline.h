@@ -48,7 +48,7 @@ namespace Gradient::Pipelines
             DirectX::XMFLOAT3 cameraPosition;
             float tiling;
             DirectX::XMFLOAT3 emissiveRadiance;
-            float pad2;
+            uint32_t SSAOMapIndex;
             DirectX::XMMATRIX shadowTransform;
         };
 
@@ -57,6 +57,16 @@ namespace Gradient::Pipelines
             AlignedDirectionalLight directionalLight;
             AlignedPointLight pointLights[MAX_POINT_LIGHTS];
             uint32_t numPointLights;
+        };
+
+        struct __declspec(align(16)) MaterialCB
+        {
+            uint32_t AlbedoMapIndex;
+            uint32_t NormalMapIndex;
+            uint32_t MetallicMapIndex;
+            uint32_t RoughnessMapIndex;
+            uint32_t AOMapIndex;
+            DirectX::XMFLOAT3 _padding[3];
         };
 
         using VertexType = DirectX::VertexPositionNormalTexture;
@@ -114,6 +124,8 @@ namespace Gradient::Pipelines
         void InitializePixelDepthReadWritePSO(ID3D12Device2* device);
         void InitializeDepthWritePSO(ID3D12Device2* device);
         void ApplyDepthOnlyPipeline(ID3D12GraphicsCommandList* cl, bool multisampled, DrawType passType);
+
+        void SetMaterialCB(ID3D12GraphicsCommandList* cl);
 
         RootSignature m_rootSignature;
 

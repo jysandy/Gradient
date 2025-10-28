@@ -1,4 +1,12 @@
-Texture2D albedoMap : register(t0, space1);
+cbuffer Material : register(b2, space1)
+{
+    uint g_albedoMapIndex;
+    uint g_normalMapIndex;
+    uint g_metallicMapIndex;
+    uint g_roughnessMapIndex;
+    uint g_aoMapIndex;
+}
+
 SamplerState anisotropicSampler : register(s0, space1);
 
 struct InputType
@@ -13,8 +21,9 @@ struct InputType
 // when drawing shadows.
 float4 MaskedDepth_PS(InputType input) : SV_Target
 {
+    Texture2D albedoMap = ResourceDescriptorHeap[g_albedoMapIndex];
     float4 albedoSample = albedoMap.Sample(anisotropicSampler, input.tex);
     clip(albedoSample.a - 0.01);
-    
-    return (0, 0, 0, albedoSample.a);
+
+    return float4(0, 0, 0, albedoSample.a);
 }
